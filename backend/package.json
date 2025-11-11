@@ -11,7 +11,7 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write \"**/*.{js,jsx,json,md}\""
   },
-  "author": "Diego Salazar Jara",
+  "author": "Hector Diaz Fernandez",
   "license": "ISC",
   "dependencies": {
     "bcryptjs": "^2.4.3",

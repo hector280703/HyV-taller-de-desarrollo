@@ -60,6 +60,132 @@
 	}
 }
 
+/* Estilos para botones de login/logout */
+.login-nav-item {
+	padding: 0 20px !important;
+}
+
+.login-btn, .logout-btn {
+	background-color: #006edf;
+	color: white;
+	border: none;
+	padding: 10px 20px;
+	border-radius: 5px;
+	cursor: pointer;
+	font-size: 0.9em;
+	transition: background-color 0.3s ease;
+}
+
+.login-btn:hover, .logout-btn:hover {
+	background-color: #0056b3;
+}
+
+.logout-btn {
+	background-color: #dc3545;
+}
+
+.logout-btn:hover {
+	background-color: #c82333;
+}
+
+/* Estilos para el formulario de login en el navbar */
+.login-form-container {
+	position: absolute;
+	top: 9vh;
+	right: 20px;
+	background-color: white;
+	padding: 20px;
+	border-radius: 8px;
+	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+	z-index: 1001;
+	min-width: 300px;
+}
+
+.navbar-login-form {
+	display: flex;
+	flex-direction: column;
+	gap: 15px;
+}
+
+.navbar-login-form .form-group {
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+}
+
+.navbar-login-form label {
+	font-size: 0.9em;
+	color: #003366;
+	font-weight: 500;
+}
+
+.navbar-login-form input {
+	padding: 10px;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	font-size: 0.9em;
+	background-color: white;
+}
+
+.navbar-login-form input:focus {
+	outline: none;
+	border-color: #006edf;
+}
+
+.navbar-login-form input:-webkit-autofill,
+.navbar-login-form input:-webkit-autofill:hover,
+.navbar-login-form input:-webkit-autofill:focus {
+	-webkit-box-shadow: 0 0 0px 1000px white inset;
+	-webkit-text-fill-color: #000;
+	transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Ocultar listas de autocompletado del navegador */
+.navbar-login-form input::-webkit-contacts-auto-fill-button,
+.navbar-login-form input::-webkit-credentials-auto-fill-button {
+	visibility: hidden;
+	display: none !important;
+	pointer-events: none;
+	height: 0;
+	width: 0;
+	margin: 0;
+}
+
+.navbar-login-form .error-message {
+	color: #dc3545;
+	font-size: 0.8em;
+}
+
+.navbar-login-form .submit-btn {
+	background-color: #006edf;
+	color: white;
+	border: none;
+	padding: 10px;
+	border-radius: 5px;
+	cursor: pointer;
+	font-size: 0.9em;
+	transition: background-color 0.3s ease;
+}
+
+.navbar-login-form .submit-btn:hover {
+	background-color: #0056b3;
+}
+
+.navbar-login-form .register-link {
+	text-align: center;
+	font-size: 0.85em;
+	color: #666;
+}
+
+.navbar-login-form .register-link a {
+	color: #006edf;
+	text-decoration: none;
+}
+
+.navbar-login-form .register-link a:hover {
+	text-decoration: underline;
+}
+
 .hamburger {
 	display: none;
 	flex-direction: column;
@@ -116,6 +242,13 @@
 			box-sizing: border-box;
         }
 	}
+	
+	.login-form-container {
+		right: 10px;
+		left: 10px;
+		min-width: auto;
+		width: calc(100% - 20px);
+	}
 }
 
 @media (min-width: 768px) and (max-width: 1024px) {
@@ -155,5 +288,10 @@
 			padding-left: 5px;
 			box-sizing: border-box;
         }
+	}
+	
+	.login-form-container {
+		right: 15px;
+		min-width: 280px;
 	}
 }

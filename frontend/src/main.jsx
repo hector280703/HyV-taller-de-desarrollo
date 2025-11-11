@@ -9,12 +9,18 @@ import Root from '@pages/Root';
 import ProtectedRoute from '@components/ProtectedRoute';
 import '@styles/styles.css';
 
+import Products from '@pages/Products';
+
 const router = createBrowserRouter([
   {
     path: '/',
     element: <Root/>,
     errorElement: <Error404/>,
     children: [
+      {
+        path: '/',
+        element: <Home/>
+      },
       {
         path: '/home',
         element: <Home/>
@@ -26,16 +32,20 @@ const router = createBrowserRouter([
           <Users />
         </ProtectedRoute>
         ),
-    }
+      },
+      {
+        path: '/products',
+        element: (
+        <ProtectedRoute allowedRoles={['administrador']}>
+          <Products />
+        </ProtectedRoute>
+        ),
+      },
+      {
+        path: '/register',
+        element: <Register/>
+      }
     ]
-  },
-  {
-    path: '/auth',
-    element: <Login/>
-  },
-  {
-    path: '/register',
-    element: <Register/>
   }
 ])
 

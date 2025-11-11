@@ -20,7 +20,7 @@ const registerSubmit = async (data) => {
         if (response.status === 'Success') {
             showSuccessAlert('¡Registrado!','Usuario registrado exitosamente.');
             setTimeout(() => {
-                navigate('/auth');
+                navigate('/home');
             }, 3000)
         } else if (response.status === 'Client error') {
             errorData(response.details);
@@ -41,7 +41,7 @@ const patternRut = new RegExp(/^(?:(?:[1-9]\d{0}|[1-2]\d{1})(\.\d{3}){2}|[1-9]\d
 					{
 						label: "Nombre completo",
 						name: "nombreCompleto",
-						placeholder: "Diego Alexis Salazar Jara",
+						placeholder: "Héctor Bastián Díaz Fernández",
                         fieldType: 'input',
 						type: "text",
 						required: true,
@@ -96,7 +96,7 @@ const patternRut = new RegExp(/^(?:(?:[1-9]\d{0}|[1-2]\d{1})(\.\d{3}){2}|[1-9]\d
 				onSubmit={registerSubmit}
 				footerContent={
 					<p>
-						¿Ya tienes cuenta?, <a href="/auth">¡Inicia sesión aquí!</a>
+						¿Ya tienes cuenta?, <a href="/home">¡Inicia sesión aquí!</a>
 					</p>
 				}
 			/>
