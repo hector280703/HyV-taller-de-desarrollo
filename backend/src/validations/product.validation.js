@@ -85,17 +85,61 @@ export const productBodyValidation = Joi.object({
       "string.base": "La categoría debe ser de tipo string.",
       "string.max": "La categoría debe tener como máximo 50 caracteres.",
     }),
+  unidadMedida: Joi.string()
+    .max(20)
+    .messages({
+      "string.base": "La unidad de medida debe ser de tipo string.",
+      "string.max": "La unidad de medida debe tener como máximo 20 caracteres.",
+    }),
+  marca: Joi.string()
+    .max(100)
+    .allow("")
+    .messages({
+      "string.base": "La marca debe ser de tipo string.",
+      "string.max": "La marca debe tener como máximo 100 caracteres.",
+    }),
+  imagenUrl: Joi.string()
+    .uri()
+    .allow("")
+    .messages({
+      "string.base": "La URL de la imagen debe ser de tipo string.",
+      "string.uri": "Debe ser una URL válida.",
+    }),
+  descuento: Joi.number()
+    .min(0)
+    .max(100)
+    .precision(2)
+    .messages({
+      "number.base": "El descuento debe ser un número.",
+      "number.min": "El descuento no puede ser negativo.",
+      "number.max": "El descuento no puede ser mayor a 100.",
+    }),
+  peso: Joi.number()
+    .positive()
+    .precision(2)
+    .allow(null)
+    .messages({
+      "number.base": "El peso debe ser un número.",
+      "number.positive": "El peso debe ser un número positivo.",
+    }),
+  dimensiones: Joi.string()
+    .max(100)
+    .allow("")
+    .messages({
+      "string.base": "Las dimensiones deben ser de tipo string.",
+      "string.max": "Las dimensiones deben tener como máximo 100 caracteres.",
+    }),
   activo: Joi.boolean()
     .messages({
       "boolean.base": "El campo activo debe ser de tipo boolean.",
     }),
 })
-  .or("nombre", "codigo", "descripcion", "precio", "stock", "categoria", "activo")
+  .or("nombre", "codigo", "descripcion", "precio", "stock", "categoria", "unidadMedida", "marca", "imagenUrl", "descuento", "peso", "dimensiones", "activo")
   .unknown(false)
   .messages({
     "object.unknown": "No se permiten propiedades adicionales.",
     "object.missing":
-      "Debes proporcionar al menos un campo: nombre, codigo, descripcion, precio, stock, categoria o activo.",
+      "Debes proporcionar al menos un campo: nombre, codigo, descripcion, precio, stock, categoria, unidadMedida, marca, imagenUrl, descuento, peso, dimensiones o activo.",
   });
 
 export const productCreateValidation = Joi.object({
@@ -152,6 +196,53 @@ export const productCreateValidation = Joi.object({
     .messages({
       "string.base": "La categoría debe ser de tipo string.",
       "string.max": "La categoría debe tener como máximo 50 caracteres.",
+    }),
+  unidadMedida: Joi.string()
+    .max(20)
+    .required()
+    .messages({
+      "string.base": "La unidad de medida debe ser de tipo string.",
+      "string.max": "La unidad de medida debe tener como máximo 20 caracteres.",
+      "any.required": "La unidad de medida es obligatoria.",
+    }),
+  marca: Joi.string()
+    .max(100)
+    .allow("")
+    .messages({
+      "string.base": "La marca debe ser de tipo string.",
+      "string.max": "La marca debe tener como máximo 100 caracteres.",
+    }),
+  imagenUrl: Joi.string()
+    .uri()
+    .allow("")
+    .messages({
+      "string.base": "La URL de la imagen debe ser de tipo string.",
+      "string.uri": "Debe ser una URL válida.",
+    }),
+  descuento: Joi.number()
+    .min(0)
+    .max(100)
+    .precision(2)
+    .default(0)
+    .messages({
+      "number.base": "El descuento debe ser un número.",
+      "number.min": "El descuento no puede ser negativo.",
+      "number.max": "El descuento no puede ser mayor a 100.",
+    }),
+  peso: Joi.number()
+    .positive()
+    .precision(2)
+    .allow(null)
+    .messages({
+      "number.base": "El peso debe ser un número.",
+      "number.positive": "El peso debe ser un número positivo.",
+    }),
+  dimensiones: Joi.string()
+    .max(100)
+    .allow("")
+    .messages({
+      "string.base": "Las dimensiones deben ser de tipo string.",
+      "string.max": "Las dimensiones deben tener como máximo 100 caracteres.",
     }),
   activo: Joi.boolean()
     .default(true)

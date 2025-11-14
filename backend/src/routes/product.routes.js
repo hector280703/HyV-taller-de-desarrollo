@@ -12,15 +12,15 @@ import {
 
 const router = Router();
 
+// Rutas públicas - no requieren autenticación
 router
-  .use(authenticateJwt)
-  .use(isAdmin);
-
-router
-  .post("/", createProduct)
   .get("/", getProducts)
-  .get("/detail/", getProduct)
-  .patch("/detail/", updateProduct)
-  .delete("/detail/", deleteProduct);
+  .get("/detail/", getProduct);
+
+// Rutas protegidas - requieren autenticación y rol de administrador
+router
+  .post("/", authenticateJwt, isAdmin, createProduct)
+  .patch("/detail/", authenticateJwt, isAdmin, updateProduct)
+  .delete("/detail/", authenticateJwt, isAdmin, deleteProduct);
 
 export default router;
