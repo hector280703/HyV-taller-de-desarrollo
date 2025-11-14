@@ -1,5 +1,6 @@
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { logout, login } from '@services/auth.service.js';
+import { useCarroCompras } from '@context/CarroComprasContext';
 import '@styles/navbar.css';
 import { useState } from "react";
 import useLogin from '@hooks/auth/useLogin.jsx';
@@ -7,6 +8,8 @@ import useLogin from '@hooks/auth/useLogin.jsx';
 const Navbar = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const { obtenerCantidadItems } = useCarroCompras();
+    const cantidadItemsCarrito = obtenerCantidadItems();
     const user = JSON.parse(sessionStorage.getItem('usuario')) || '';
     const userRole = user?.rol;
     const isAuthenticated = user ? true : false;
@@ -100,6 +103,22 @@ const Navbar = () => {
                             activeClassName="active"
                         >
                             Productos
+                        </NavLink>
+                    </li>
+                    <li>
+                        <NavLink 
+                            to="/carroCompras" 
+                            onClick={() => { 
+                                setMenuOpen(false); 
+                                addActiveClass();
+                            }} 
+                            activeClassName="active"
+                            className="cart-nav-link"
+                        >
+                            🛒 Carrito
+                            {cantidadItemsCarrito > 0 && (
+                                <span className="cart-badge">{cantidadItemsCarrito}</span>
+                            )}
                         </NavLink>
                     </li>
                     {isAuthenticated && userRole === 'administrador' && (

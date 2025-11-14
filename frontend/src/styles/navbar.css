@@ -191,6 +191,42 @@
 	text-decoration: underline;
 }
 
+/* Estilos del carrito en navbar */
+.cart-nav-link {
+	display: flex !important;
+	align-items: center;
+	gap: 5px;
+	position: relative;
+}
+
+.cart-badge {
+	background-color: #e74c3c;
+	color: white;
+	border-radius: 50%;
+	padding: 2px 7px;
+	font-size: 0.75em;
+	font-weight: bold;
+	min-width: 20px;
+	height: 20px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	position: absolute;
+	top: -8px;
+	right: -12px;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+	animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+	0%, 100% {
+		transform: scale(1);
+	}
+	50% {
+		transform: scale(1.1);
+	}
+}
+
 .hamburger {
 	display: none;
 	flex-direction: column;

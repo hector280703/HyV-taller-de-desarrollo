@@ -97,6 +97,7 @@ export default function Popup({ show, setShow, data, action, isProductForm = fal
             required: true,
             minLength: 3,
             maxLength: 100,
+            fullWidth: true,
         },
         {
             label: "Código del producto",
@@ -118,6 +119,7 @@ export default function Popup({ show, setShow, data, action, isProductForm = fal
             type: "text",
             required: false,
             maxLength: 500,
+            fullWidth: true,
         },
         {
             label: "Categoría",
@@ -229,6 +231,7 @@ export default function Popup({ show, setShow, data, action, isProductForm = fal
             fieldType: 'input',
             type: "text",
             required: false,
+            fullWidth: true,
         },
         {
             label: "Estado",
@@ -265,6 +268,7 @@ export default function Popup({ show, setShow, data, action, isProductForm = fal
                         onSubmit={handleSubmit}
                         buttonText={buttonText}
                         backgroundColor={'#fff'}
+                        isProductForm={isProductForm}
                     />
                 </div>
             </div>

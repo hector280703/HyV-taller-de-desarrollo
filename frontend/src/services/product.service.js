@@ -3,7 +3,6 @@ import axios from './root.service.js';
 export async function getProducts() {
     try {
         const { data } = await axios.get('/product/');
-        console.log('Respuesta de getProducts:', data);
         // Asegurarse de devolver siempre un array
         return Array.isArray(data.data) ? data.data : [];
     } catch (error) {

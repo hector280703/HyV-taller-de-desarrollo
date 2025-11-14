@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getProduct } from '@services/product.service.js';
+import { useCarroCompras } from '@context/CarroComprasContext';
+import { showSuccessAlert, showErrorAlert } from '@helpers/sweetAlert.js';
 import '@styles/productDetail.css';
 
 const ProductDetail = () => {
@@ -9,6 +11,8 @@ const ProductDetail = () => {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [quantity, setQuantity] = useState(1);
+  const { agregarAlCarrito, estaEnCarrito, obtenerCantidadItem } = useCarroCompras();
   const user = JSON.parse(sessionStorage.getItem('usuario')) || null;
   const isAdmin = user?.rol === 'administrador';
 
@@ -48,6 +52,32 @@ const ProductDetail = () => {
   const calculateSavings = (price, discount) => {
     if (!discount || discount === 0) return 0;
     return (price * discount / 100);
+  };
+
+  const handleAddToCart = () => {
+    if (product.stock === 0) {
+      showErrorAlert('Sin stock', 'Este producto no está disponible');
+      return;
+    }
+    
+    const cantidadEnCarrito = obtenerCantidadItem(product.id);
+    if (cantidadEnCarrito + quantity > product.stock) {
+      showErrorAlert('Stock insuficiente', `Solo hay ${product.stock} unidades disponibles`);
+      return;
+    }
+
+    agregarAlCarrito(product, quantity);
+    showSuccessAlert('¡Agregado!', `${product.nombre} agregado al carrito`);
+  };
+
+  const handleBuyNow = () => {
+    if (product.stock === 0) {
+      showErrorAlert('Sin stock', 'Este producto no está disponible');
+      return;
+    }
+    
+    agregarAlCarrito(product, quantity);
+    navigate('/carroCompras');
   };
 
   if (loading) {
@@ -153,6 +183,52 @@ const ProductDetail = () => {
                 </div>
               )}
             </div>
+
+            {/* Cantidad y Botones de Compra */}
+            {product.stock > 0 && (
+              <div className="purchase-section">
+                <div className="quantity-selector">
+                  <label>Cantidad:</label>
+                  <div className="quantity-controls-detail">
+                    <button 
+                      className="qty-btn-detail"
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    >
+                      -
+                    </button>
+                    <input
+                      type="number"
+                      value={quantity}
+                      min="1"
+                      max={product.stock}
+                      onChange={(e) => setQuantity(Math.min(product.stock, Math.max(1, parseInt(e.target.value) || 1)))}
+                      className="quantity-input-detail"
+                    />
+                    <button 
+                      className="qty-btn-detail"
+                      onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+
+                <div className="action-buttons">
+                  <button className="btn-add-to-cart" onClick={handleAddToCart}>
+                    🛒 Agregar al Carrito
+                  </button>
+                  <button className="btn-buy-now" onClick={handleBuyNow}>
+                    ⚡ Comprar Ahora
+                  </button>
+                </div>
+
+                {estaEnCarrito(product.id) && (
+                  <div className="in-cart-notice">
+                    ✓ Ya tienes {obtenerCantidadItem(product.id)} unidad(es) en el carrito
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 

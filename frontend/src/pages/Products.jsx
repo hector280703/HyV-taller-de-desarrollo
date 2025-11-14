@@ -1,5 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useCarroCompras } from '@context/CarroComprasContext';
+import { showSuccessAlert, showErrorAlert } from '@helpers/sweetAlert.js';
 import useGetProducts from '@hooks/products/useGetProducts.jsx';
 import useCreateProduct from '@hooks/products/useCreateProduct.jsx';
 import useEditProduct from '@hooks/products/useEditProduct.jsx';
@@ -16,6 +18,7 @@ const Products = () => {
   const user = JSON.parse(sessionStorage.getItem('usuario')) || null;
   const isAdmin = user?.rol === 'administrador';
   const navigate = useNavigate();
+  const { agregarAlCarrito } = useCarroCompras();
 
   const { products, fetchProducts, setProducts } = useGetProducts();
   const [filterCodigo, setFilterCodigo] = useState('');
@@ -25,7 +28,7 @@ const Products = () => {
     handleCreate,
     isPopupOpen: isCreatePopupOpen,
     setIsPopupOpen: setIsCreatePopupOpen
-  } = useCreateProduct(setProducts);
+  } = useCreateProduct(setProducts, fetchProducts);
 
   const {
     handleClickUpdate,
@@ -34,7 +37,7 @@ const Products = () => {
     setIsPopupOpen: setIsEditPopupOpen,
     dataProduct,
     setDataProduct
-  } = useEditProduct(setProducts);
+  } = useEditProduct(setProducts, fetchProducts);
 
   const { handleDelete } = useDeleteProduct(fetchProducts, setDataProduct);
 
@@ -65,6 +68,16 @@ const Products = () => {
   });
 
   const categories = ['Cemento y Morteros', 'Ladrillos y Bloques', 'Fierro y Acero', 'Arena y Ripio', 'Madera', 'Pintura', 'Herramientas', 'Fontanería', 'Electricidad', 'Cerámica y Porcelanato', 'Otros'];
+
+  const handleAddToCart = (e, product) => {
+    e.stopPropagation();
+    if (product.stock === 0) {
+      showErrorAlert('Sin stock', 'Este producto no está disponible');
+      return;
+    }
+    agregarAlCarrito(product, 1);
+    showSuccessAlert('¡Agregado!', `${product.nombre} agregado al carrito`);
+  };
 
   return (
     <div className='main-container'>
@@ -163,6 +176,16 @@ const Products = () => {
                     </p>
                   </div>
                 </div>
+                
+                {!isAdmin && product.stock > 0 && (
+                  <button 
+                    className='btn-add-to-cart-card'
+                    onClick={(e) => handleAddToCart(e, product)}
+                  >
+                    🛒 Agregar al Carrito
+                  </button>
+                )}
+
                 {isAdmin && (
                   <div className='product-card-admin-actions'>
                     <button 

@@ -294,6 +294,31 @@
     color: #e74c3c;
 }
 
+.btn-add-to-cart-card {
+    width: 100%;
+    background-color: #e67e22;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 4px 10px rgba(230, 126, 34, 0.3);
+}
+
+.btn-add-to-cart-card:hover {
+    background-color: #d35400;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(230, 126, 34, 0.4);
+}
+
 .product-card-admin-actions {
     display: flex;
     gap: 10px;
