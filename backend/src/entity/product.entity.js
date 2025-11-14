@@ -42,6 +42,39 @@ const ProductSchema = new EntitySchema({
       length: 50,
       nullable: true,
     },
+    unidadMedida: {
+      type: "varchar",
+      length: 20,
+      nullable: false,
+      default: "unidad",
+    },
+    marca: {
+      type: "varchar",
+      length: 100,
+      nullable: true,
+    },
+    imagenUrl: {
+      type: "text",
+      nullable: true,
+    },
+    descuento: {
+      type: "decimal",
+      precision: 5,
+      scale: 2,
+      nullable: true,
+      default: 0,
+    },
+    peso: {
+      type: "decimal",
+      precision: 10,
+      scale: 2,
+      nullable: true,
+    },
+    dimensiones: {
+      type: "varchar",
+      length: 100,
+      nullable: true,
+    },
     activo: {
       type: "boolean",
       default: true,

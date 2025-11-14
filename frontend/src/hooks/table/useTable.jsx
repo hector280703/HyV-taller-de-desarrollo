@@ -3,14 +3,14 @@ import { TabulatorFull as Tabulator } from 'tabulator-tables';
 import "tabulator-tables/dist/css/tabulator.min.css";
 import '@styles/table.css';
 
-function useTable({ data, columns, filter, dataToFilter, initialSortName, onSelectionChange }) {
+function useTable({ data, columns, filter, dataToFilter, initialSortName, onSelectionChange, selectable = true }) {
     const tableRef = useRef(null);
     const [table, setTable] = useState(null);
     const [isTableBuilt, setIsTableBuilt] = useState(false);
 
     useEffect(() => {
         if (tableRef.current) {
-            const updatedColumns = [
+            const selectColumn = selectable ? [
                 { 
                     formatter: "rowSelection", 
                     titleFormatter: false, 
@@ -19,7 +19,11 @@ function useTable({ data, columns, filter, dataToFilter, initialSortName, onSele
                     cellClick: function (e, cell) {
                         cell.getRow().toggleSelect();
                     } 
-                },
+                }
+            ] : [];
+            
+            const updatedColumns = [
+                ...selectColumn,
                 ...columns
             ];
             const tabulatorTable = new Tabulator(tableRef.current, {
@@ -60,7 +64,7 @@ function useTable({ data, columns, filter, dataToFilter, initialSortName, onSele
                 setTable(null);
             };
         }
-    }, []);
+    }, [selectable]);
 
     useEffect(() => {
         if (table && isTableBuilt) {
