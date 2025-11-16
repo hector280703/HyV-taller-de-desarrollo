@@ -1,18 +1,13 @@
 name: Despliegue a face-ubb
 
 on:
-# Forma automaticamente al realizar un push a la rama main
-#   push:
-#     branches:
-#       - main
-
-# Forma manual al presionar un boton en Actions
   workflow_dispatch:
 
 jobs:
   deploy:
     environment: production
     runs-on: ubuntu-latest
+
     steps:
       - name: Instalar dependencias (OpenVPN, SSH y sshpass)
         run: |
@@ -25,21 +20,19 @@ jobs:
       - name: Conexion a la VPN de la UBB
         uses: kota65535/github-openvpn-connect-action@v3.1.0
         timeout-minutes: 2
-        continue-on-error: false
         with:
           config_file: /dev/shm/face-ubb.ovpn
           username: ${{ secrets.OPENVPN_USERNAME }}
           password: ${{ secrets.OPENVPN_PASSWORD }}
 
-      - name: Eliminar archivo de configuración OpenVPN (temporal VPN)
+      - name: Eliminar archivo de configuración OpenVPN
         if: always()
         run: rm -f /dev/shm/face-ubb.ovpn
 
-      - name: Crear archivos .env temporales para scp
+      - name: Crear archivos .env temporales
         run: |
           printf '%s' "${{ secrets.ENV_FRONTEND_CONTENT }}" > /dev/shm/frontend.env.tmp
           printf '%s' "${{ secrets.ENV_BACKEND_CONTENT }}" > /dev/shm/backend.env.tmp
-        shell: bash
 
       - name: Copiar archivos .env al servidor remoto
         env:
@@ -48,24 +41,19 @@ jobs:
           PROD_PASSWORD: ${{ secrets.PROD_PASSWORD }}
           PROD_PORT: ${{ secrets.PROD_PORT }}
           REMOTE_REPO_NAME: ${{ secrets.NOMBRE_REPOSITORIO || 'Proyecto' }}
+
         run: |
           APP_DIR_REMOTE="/home/$PROD_USER/$REMOTE_REPO_NAME"
           ENV_FILE_BACKEND_REMOTE="$APP_DIR_REMOTE/backend/src/config/.env"
           ENV_FILE_FRONTEND_REMOTE="$APP_DIR_REMOTE/frontend/.env"
 
-          echo "Copiando .env de frontend a $PROD_USER@$PROD_HOST:$ENV_FILE_FRONTEND_REMOTE"
-          sshpass -p "$PROD_PASSWORD" scp \
-            -o StrictHostKeyChecking=no \
-            -P "$PROD_PORT" \
-            /dev/shm/frontend.env.tmp "$PROD_USER@$PROD_HOST:$ENV_FILE_FRONTEND_REMOTE"
+          echo "Copiando .env de frontend"
+          sshpass -p "$PROD_PASSWORD" scp -o StrictHostKeyChecking=no -P "$PROD_PORT" /dev/shm/frontend.env.tmp "$PROD_USER@$PROD_HOST:$ENV_FILE_FRONTEND_REMOTE"
 
-          echo "Copiando .env de backend a $PROD_USER@$PROD_HOST:$ENV_FILE_BACKEND_REMOTE"
-          sshpass -p "$PROD_PASSWORD" scp \
-            -o StrictHostKeyChecking=no \
-            -P "$PROD_PORT" \
-            /dev/shm/backend.env.tmp "$PROD_USER@$PROD_HOST:$ENV_FILE_BACKEND_REMOTE"
+          echo "Copiando .env de backend"
+          sshpass -p "$PROD_PASSWORD" scp -o StrictHostKeyChecking=no -P "$PROD_PORT" /dev/shm/backend.env.tmp "$PROD_USER@$PROD_HOST:$ENV_FILE_BACKEND_REMOTE"
 
-      - name: Eliminar archivos .env temporales del runner
+      - name: Eliminar archivos .env temporales
         if: always()
         run: |
           rm -f /dev/shm/frontend.env.tmp
@@ -75,78 +63,58 @@ jobs:
         env:
           PASS_GIT_COMMIT_SHA: ${{ github.sha }}
           REMOTE_REPO_NAME: ${{ secrets.NOMBRE_REPOSITORIO || 'Proyecto' }}
+
         run: |
           export GH_ARG_GIT_COMMIT_SHA="${{ env.PASS_GIT_COMMIT_SHA }}"
           export GH_ARG_REPO_NAME="${{ env.REMOTE_REPO_NAME }}"
-          sshpass -p "${{ secrets.PROD_PASSWORD }}" ssh \
-          -q \
-          -o StrictHostKeyChecking=no \
-          -p ${{ secrets.PROD_PORT }} \
-          ${{ secrets.PROD_USER }}@${{ secrets.PROD_HOST }} \
-          bash -s -- \
-          "$GH_ARG_GIT_COMMIT_SHA" \
-          "$GH_ARG_REPO_NAME" \
-          << 'EOF'
+
+          sshpass -p "${{ secrets.PROD_PASSWORD }}" ssh -q -o StrictHostKeyChecking=no -p ${{ secrets.PROD_PORT }} ${{ secrets.PROD_USER }}@${{ secrets.PROD_HOST }} bash -s -- "$GH_ARG_GIT_COMMIT_SHA" "$GH_ARG_REPO_NAME" << 'EOF'
             set -euo pipefail
 
             ARG_GIT_COMMIT_SHA="$1"
             ARG_REPO_NAME="$2"
-            
+            APP_DIR="$HOME/$ARG_REPO_NAME"
+
+            echo "=== Cargando NVM ==="
             export NVM_DIR="$HOME/.nvm"
             if [ -s "$NVM_DIR/nvm.sh" ]; then
-              echo "Cargando nvm..."
               . "$NVM_DIR/nvm.sh"
+              echo "NVM cargado."
+              nvm use 20 || nvm use 18 || nvm use 16 || true
             else
-              echo "Advertencia: nvm no encontrado. Asumiendo node/npm en PATH."
-            fi
-            
-            if ! command -v npm &> /dev/null; then
-                echo "Error: npm no encontrado."
-                exit 1
+              echo "ERROR: No se encontró NVM en \$NVM_DIR"
+              ls -la "$NVM_DIR"
+              exit 1
             fi
 
-            APP_DIR="$HOME/$ARG_REPO_NAME"
-            
-            # 1. Actualizar código
+            if ! command -v npm >/dev/null; then
+              echo "ERROR: npm no está disponible incluso después de cargar NVM."
+              exit 1
+            fi
+
+            echo "=== Actualizando código ==="
             cd "$APP_DIR"
             git fetch origin
-            git reset --hard "$ARG_GIT_COMMIT_SHA" 
-            
-            # 2. y 3. Los archivos .env ya fueron creados por scp.
-            ENV_FILE_BACKEND="$APP_DIR/backend/src/config/.env"
-            ENV_FILE_FRONTEND="$APP_DIR/frontend/.env"
-            if [ ! -f "$ENV_FILE_BACKEND" ]; then
-              echo "ERROR: El archivo .env de backend no fue encontrado en $ENV_FILE_BACKEND después de scp."
-              exit 1
-            else
-              echo "Archivo .env de backend encontrado en $ENV_FILE_BACKEND."
-            fi
-            if [ ! -f "$ENV_FILE_FRONTEND" ]; then
-              echo "ERROR: El archivo .env de frontend no fue encontrado en $ENV_FILE_FRONTEND después de scp."
-              exit 1
-            else
-              echo "Archivo .env de frontend encontrado en $ENV_FILE_FRONTEND."
-            fi
-            
-            # 4. Instalar dependencias del backend
+            git reset --hard "$ARG_GIT_COMMIT_SHA"
+
+            echo "=== Backend: instalando dependencias ==="
             cd "$APP_DIR/backend"
             npm ci
 
-            # 5. Reiniciar backend
+            echo "=== Backend: reiniciando ==="
             pm2 restart app-backend || pm2 start src/index.js --name "app-backend"
-            
-            # 6. Instalar dependencias y contruir frontend
+
+            echo "=== Frontend: instalando dependencias y build ==="
             cd "$APP_DIR/frontend"
             npm ci
             npm run build
 
-            # 7. Reiniciar frontend
+            echo "=== Frontend: reiniciando ==="
             pm2 restart app-frontend || pm2 start npm --name "app-frontend" -- run preview
-            
-            echo "Despliegue completado en $(date)"
+
+            echo "=== Despliegue completado ==="
           EOF
 
-      - name: Limpieza final (VPN)
+      - name: Limpieza final VPN
         if: always()
-        run: |
-          sudo pkill openvpn || true
+        run: sudo pkill openvpn || true
