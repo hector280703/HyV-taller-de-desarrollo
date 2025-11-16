@@ -265,9 +265,123 @@
     text-align: center;
 }
 
+/* Purchase Section */
+.purchase-section {
+    margin-top: 30px;
+    padding: 25px;
+    background-color: #f8f9fa;
+    border-radius: 12px;
+}
+
+.quantity-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.quantity-selector label {
+    color: #2c3e50;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.quantity-controls-detail {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.qty-btn-detail {
+    background-color: #e67e22;
+    color: white;
+    border: none;
+    width: 45px;
+    height: 45px;
+    border-radius: 8px;
+    font-size: 1.5rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.qty-btn-detail:hover {
+    background-color: #d35400;
+    transform: scale(1.1);
+}
+
+.quantity-input-detail {
+    width: 80px;
+    text-align: center;
+    border: 2px solid #e67e22;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.quantity-input-detail:focus {
+    outline: none;
+    border-color: #d35400;
+}
+
 /* Action Buttons */
 .action-buttons {
-    margin-top: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.btn-add-to-cart,
+.btn-buy-now {
+    width: 100%;
+    padding: 18px 30px;
+    border: none;
+    border-radius: 10px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.btn-add-to-cart {
+    background-color: #e67e22;
+    color: white;
+    box-shadow: 0 4px 15px rgba(230, 126, 34, 0.3);
+}
+
+.btn-add-to-cart:hover {
+    background-color: #d35400;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(230, 126, 34, 0.4);
+}
+
+.btn-buy-now {
+    background-color: #27ae60;
+    color: white;
+    box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+}
+
+.btn-buy-now:hover {
+    background-color: #229954;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(39, 174, 96, 0.4);
+}
+
+.in-cart-notice {
+    background-color: #d4edda;
+    color: #155724;
+    padding: 12px;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: 600;
+    margin-top: 15px;
+    border-left: 4px solid #28a745;
 }
 
 .btn-whatsapp {

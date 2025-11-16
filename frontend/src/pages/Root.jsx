@@ -1,11 +1,14 @@
 import { Outlet } from 'react-router-dom';
 import Navbar from '@components/Navbar';
 import { AuthProvider } from '@context/AuthContext';
+import { CarroComprasProvider } from '@context/CarroComprasContext';
 
 function Root()  {
 return (
     <AuthProvider>
-        <PageRoot/>
+        <CarroComprasProvider>
+            <PageRoot/>
+        </CarroComprasProvider>
     </AuthProvider>
 );
 }

@@ -1,31 +1,31 @@
-@media (max-width: 480px) {
+@media (max-width: 768px) {
     .form {
-        padding-left: 2px;
-		padding-right: 2px;
+        padding: 4vh 3vh;
         width: 90%;
+        max-width: 450px;
     }
 
     .form h1 {
-        font-size: 24px;
-        margin-bottom: 2vh;
+        font-size: 26px;
+        margin-bottom: 3vh;
     }
 
-    .form input, .form select {
+    .form input, .form select, .form textarea {
         padding: 10px;
         font-size: 14px;
     }
 
     .form button {
-        padding: 10px;
+        padding: 12px;
         font-size: 16px;
     }
 
     .form .footerContent {
-        font-size: 12px;
+        font-size: 13px;
     }
     
     .container {
-        padding: 0 10px;
+        padding: 20px 10px;
     }
     
     .toggle-password-icon {
@@ -34,65 +34,99 @@
     }
 }
 
+@media (max-width: 480px) {
+    .form {
+        padding: 3vh 2vh;
+        width: 95%;
+    }
+
+    .form h1 {
+        font-size: 22px;
+        margin-bottom: 2vh;
+    }
+
+    .form input, .form select, .form textarea {
+        padding: 8px;
+        font-size: 14px;
+    }
+
+    .form button {
+        padding: 10px;
+        font-size: 15px;
+    }
+
+    .form .footerContent {
+        font-size: 12px;
+    }
+}
+
 
 .form {
 	background-color: #eef7ff; /*Color del formulario*/
-	padding: 7vh;
+	padding: 5vh 6vh;
 	display: flex;
 	flex-direction: column;
 	border-radius: 24px;
 	align-items: center;
+	max-width: 500px;
+	width: 90%;
+	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 	h1 {
-		color: #003366; /*Color del titulo del formulario*/
-		font-size: 30px;
+		color: #2c3e50; /*Color del titulo del formulario*/
+		font-size: 32px;
 		font-weight: bold;
 		margin: 0;
-		margin-bottom: 4vh;
+		margin-bottom: 3vh;
+		text-align: center;
 	}
 	div {
 		width: 100%;
 		display: flex;
 	}
 	label {
-		color: #003366; /*Color label de inputs del formulario*/
+		color: #2c3e50; /*Color label de inputs del formulario*/
 		font-weight: bold;
 		margin-bottom: 0.7vh;
 	}
 	input {
 		display: flex;
-		border: 3px solid #003366; /*Color del borde de inputs del formulario*/
+		border: 2px solid #e67e22; /*Color del borde de inputs del formulario*/
 		border-radius: 12px;
-		padding: 8px 5px;
+		padding: 12px 40px 12px 12px;
 		background-repeat: no-repeat;
 		margin-bottom: 0.8vh;
-		background-color: #eef7ff;
+		background-color: #ffffff;
 		font-weight: regular;
 		font-size: 16px;
-		color: #003366;
+		color: #2c3e50;
 		border-radius: 12px;
 		background-position: right 10px center;
 		background-size: 25px 25px;
 		box-sizing: border-box;
+		transition: all 0.3s ease;
 	}
 	input::placeholder {
-		color: rgba(0, 51, 102, 0.3);
+		color: rgba(127, 140, 141, 0.6);
 		font-weight: light;
 	}
 	input:focus {
-		background-color: rgba(0, 110, 223, 0.14);
+		background-color: rgba(230, 126, 34, 0.05);
+		border-color: #d35400;
+		outline: none;
 		font-weight: regular;
+		box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.15);
 	}
 	select {
 		display: flex;
-		border: 3px solid #003366; /*Color del borde de selects del formulario*/
+		border: 2px solid #e67e22; /*Color del borde de selects del formulario*/
 		border-radius: 12px;
-		padding: 8px 5px;
+		padding: 12px 40px 12px 12px;
 		background-repeat: no-repeat;
 		margin-bottom: 0.8vh;
-		background-color: #eef7ff;
+		background-color: #ffffff;
 		font-weight: regular;
 		font-size: 16px;
-		color: #003366;
+		color: #2c3e50;
 		border-radius: 12px;
 		background-position: right 30px center;
 		background-size: 25px 25px;
@@ -103,59 +137,77 @@
 		-webkit-appearance: none;
 		-moz-appearance: none;
 		appearance: none;
+		transition: all 0.3s ease;
 	}
 	select::placeholder {
-		color: rgba(0, 51, 102, 0.3);
+		color: rgba(127, 140, 141, 0.6);
 		font-weight: light;
 	}
 	select:focus {
-		background-color: rgba(0, 110, 223, 0.14);
+		background-color: rgba(230, 126, 34, 0.05);
+		border-color: #d35400;
+		outline: none;
 		font-weight: regular;
+		box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.15);
 	}
 	textarea {
 		display: flex;
-		border: 3px solid #003366; /*Color del borde de textareas del formulario*/
+		border: 2px solid #e67e22; /*Color del borde de textareas del formulario*/
 		border-radius: 12px;
-		padding: 8px 5px;
+		padding: 12px;
 		background-repeat: no-repeat;
 		margin-bottom: 0.8vh;
-		background-color: #eef7ff;
+		background-color: #ffffff;
 		font-weight: regular;
 		font-size: 16px;
-		color: #003366;
+		color: #2c3e50;
 		border-radius: 12px;
 		background-position: right 10px center;
 		background-size: 25px 25px;
 		box-sizing: border-box;
+		transition: all 0.3s ease;
+		min-height: 100px;
+		resize: vertical;
 	}
 	textarea::placeholder {
-		color: rgba(0, 51, 102, 0.3);
+		color: rgba(127, 140, 141, 0.6);
 		font-weight: light;
 	}
 	textarea:focus {
-		background-color: rgba(0, 110, 223, 0.14);
+		background-color: rgba(230, 126, 34, 0.05);
+		border-color: #d35400;
+		outline: none;
 		font-weight: regular;
+		box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.15);
 	}
 	button {
-		padding: auto;
+		padding: 14px 0;
 		display: flex;
 		justify-content: center;
-		padding: 1.2vh 0;
+		align-items: center;
 		border-radius: 12px;
 		border: none;
 		width: 100%;
-		background-color: #003366; /*Color del boton del formulario*/
-		color: #eef7ff;
+		background-color: #e67e22; /*Color del boton del formulario*/
+		color: #ffffff;
 		font-weight: bold;
-		font-size: 16px;
-		border: 3px solid #003366; /*Color del borde del boton*/
-		margin-top: 10px;
+		font-size: 17px;
+		border: 2px solid #e67e22; /*Color del borde del boton*/
+		margin-top: 15px;
+		cursor: pointer;
+		transition: all 0.3s ease;
+		box-shadow: 0 4px 12px rgba(230, 126, 34, 0.3);
 	}
 	button:hover{
-		border: 3px solid #003366;
-		background-color: #eef7ff;
-		color: #003366;
-		transition: .3s ease-out;
+		border: 2px solid #e67e22;
+		background-color: #d35400;
+		color: #ffffff;
+		transform: translateY(-2px);
+		box-shadow: 0 6px 16px rgba(230, 126, 34, 0.4);
+	}
+	button:active {
+		transform: translateY(0);
+		box-shadow: 0 2px 8px rgba(230, 126, 34, 0.3);
 	}
 	div {
 		display: flex;
@@ -165,26 +217,45 @@
 	.footerContent {
 		display: flex;
 		align-items: center;
-		margin-top: 10px;
+		justify-content: center;
+		margin-top: 15px;
+		text-align: center;
+	}
+	.footerContent p {
+		color: #2c3e50;
+		font-size: 14px;
+		margin: 0;
+	}
+	.footerContent a {
+		color: #e67e22;
+		font-weight: 600;
+		text-decoration: none;
+		transition: color 0.3s ease;
+	}
+	.footerContent a:hover {
+		color: #d35400;
+		text-decoration: underline;
 	}
 }
 .form .error-message {
     visibility: hidden;
     height: 20px;
-    color: red;
+    color: #dc2626;
     font-size: 13px;
 	padding-left: 5px;
+	font-weight: 500;
 }
 .form .error-message.visible {
     visibility: visible;
 }
 
 .container {
-	height: 100vh;	
-	background: linear-gradient(90deg, #003366, #001a33); /*Color principal para login (gradiente)*/
+	min-height: 100vh;	
+	background: linear-gradient(135deg, #2c3e50 0%, #34495e 50%, #2c3e50 100%); /*Color principal para login (gradiente)*/
 	display: flex;
 	justify-content: center;
 	align-items: center;
+	padding: 40px 20px;
 }
 
 input[type='email'] {
@@ -216,12 +287,18 @@ input {
 
 .toggle-password-icon {
     position: absolute;
-    right: 15px;
+    right: 12px;
     top: 44%;
     transform: translateY(-50%);
     width: 25px;
     height: 25px;
     cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+
+.toggle-password-icon:hover {
+	opacity: 1;
 }
 
 .newPassword span {
@@ -232,4 +309,5 @@ input {
 	width: 25px;
 	height: 25px;
 	margin-top: 4px;
+	pointer-events: none;
 }
