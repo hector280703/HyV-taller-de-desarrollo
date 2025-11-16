@@ -4,7 +4,7 @@ import '@styles/form.css';
 import HideIcon from '../assets/HideIcon.svg';
 import ViewIcon from '../assets/ViewIcon.svg';
 
-const Form = ({ title, fields, buttonText, onSubmit, footerContent, backgroundColor }) => {
+const Form = ({ title, fields, buttonText, onSubmit, footerContent, backgroundColor, isProductForm }) => {
     const { register, handleSubmit, formState: { errors } } = useForm();
     const [showPassword, setShowPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
@@ -23,15 +23,16 @@ const Form = ({ title, fields, buttonText, onSubmit, footerContent, backgroundCo
 
     return (
         <form
-            className="form"
+            className={`form ${isProductForm ? 'product-form' : ''}`}
             style={{ backgroundColor: backgroundColor }}
             onSubmit={handleSubmit(onFormSubmit)}
             autoComplete="off"
         >
             <h1>{title}</h1>
             {fields.map((field, index) => (
-                <div className="container_inputs" key={index}>
+                <div className={`container_inputs ${field.fullWidth ? 'full-width' : ''}`} key={index}>
                     {field.label && <label htmlFor={field.name}>{field.label}</label>}
+                    {field.fieldType === 'custom' && field.component}
                     {field.fieldType === 'input' && (
                         <input
                             {...register(field.name, {

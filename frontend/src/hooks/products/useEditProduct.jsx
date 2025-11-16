@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { updateProduct } from '@services/product.service.js';
 import { showErrorAlert, showSuccessAlert } from '@helpers/sweetAlert.js';
 
-const useEditProduct = (setProducts) => {
+const useEditProduct = (setProducts, fetchProducts) => {
     const [isPopupOpen, setIsPopupOpen] = useState(false);
     const [dataProduct, setDataProduct] = useState([]);
     
@@ -24,12 +24,14 @@ const useEditProduct = (setProducts) => {
 
                 showSuccessAlert('¡Actualizado!', 'El producto ha sido actualizado correctamente.');
                 setIsPopupOpen(false);
-
-                setProducts(prevProducts => prevProducts.map(product => 
-                    product.id === response.data.id ? response.data : product
-                ));
-
                 setDataProduct([]);
+                
+                // Recargar productos desde el servidor
+                if (fetchProducts) {
+                    await fetchProducts();
+                } else {
+                    window.location.reload();
+                }
             } catch (error) {
                 console.error('Error al actualizar el producto:', error);
                 showErrorAlert('Error', 'Ocurrió un error al actualizar el producto.');

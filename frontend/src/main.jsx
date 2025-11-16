@@ -10,6 +10,8 @@ import ProtectedRoute from '@components/ProtectedRoute';
 import '@styles/styles.css';
 
 import Products from '@pages/Products';
+import ProductDetail from '@pages/ProductDetail';
+import CarroCompras from '@pages/CarroCompras';
 
 const router = createBrowserRouter([
   {
@@ -35,11 +37,15 @@ const router = createBrowserRouter([
       },
       {
         path: '/products',
-        element: (
-        <ProtectedRoute allowedRoles={['administrador']}>
-          <Products />
-        </ProtectedRoute>
-        ),
+        element: <Products />,
+      },
+      {
+        path: '/products/:id',
+        element: <ProductDetail />,
+      },
+      {
+        path: '/carroCompras',
+        element: <CarroCompras />,
       },
       {
         path: '/register',
