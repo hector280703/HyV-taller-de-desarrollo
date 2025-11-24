@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { getProduct } from '@services/product.service.js';
 import { useCarroCompras } from '@context/CarroComprasContext';
 import { showSuccessAlert, showErrorAlert } from '@helpers/sweetAlert.js';
+import Reviews from '@components/Reviews';
 import '@styles/productDetail.css';
 
 const ProductDetail = () => {
@@ -290,6 +291,9 @@ const ProductDetail = () => {
             <p>Expertos disponibles para ayudarte</p>
           </div>
         </div>
+
+        {/* Reviews Section */}
+        <Reviews productId={id} user={user} />
 
         {/* Contacto HyV Construcciones */}
         <div className="contact-section">

@@ -73,6 +73,20 @@
     box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
 }
 
+.benefit-image {
+    width: 100px;
+    height: 100px;
+    object-fit: contain;
+    margin: 0 auto 20px;
+    display: block;
+}
+
+.benefit-card:first-child .benefit-image,
+.benefit-card:nth-child(3) .benefit-image {
+    width: 140px;
+    height: 140px;
+}
+
 .benefit-icon {
     font-size: 3rem;
     display: block;
@@ -112,18 +126,31 @@
 
 .category-card {
     background: white;
-    padding: 30px;
+    padding: 0;
     border-radius: 12px;
     text-align: center;
     cursor: pointer;
     transition: all 0.3s ease;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    position: relative;
 }
 
 .category-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 6px 12px rgba(230, 126, 34, 0.3);
     border: 2px solid #e67e22;
+}
+
+.category-image {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    transition: all 0.3s ease;
+}
+
+.category-card:hover .category-image {
+    transform: scale(1.05);
 }
 
 .category-icon {
@@ -136,6 +163,8 @@
     color: #2c3e50;
     font-size: 1.1rem;
     margin: 0;
+    padding: 15px;
+    background: white;
 }
 
 /* Featured Products Section */

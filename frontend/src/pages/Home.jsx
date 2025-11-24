@@ -25,16 +25,16 @@ const Home = () => {
   }, []);
 
   const categories = [
-    { name: 'Cemento y Morteros', icon: '🏗️', value: 'Cemento y Morteros' },
-    { name: 'Ladrillos y Bloques', icon: '🧱', value: 'Ladrillos y Bloques' },
-    { name: 'Fierro y Acero', icon: '⚙️', value: 'Fierro y Acero' },
-    { name: 'Arena y Ripio', icon: '🏔️', value: 'Arena y Ripio' },
-    { name: 'Madera', icon: '🪵', value: 'Madera' },
-    { name: 'Pintura', icon: '🎨', value: 'Pintura' },
-    { name: 'Herramientas', icon: '🔨', value: 'Herramientas' },
-    { name: 'Fontanería', icon: '🚿', value: 'Fontanería' },
-    { name: 'Electricidad', icon: '💡', value: 'Electricidad' },
-    { name: 'Cerámica y Porcelanato', icon: '🎯', value: 'Cerámica y Porcelanato' },
+    { name: 'Cemento y Morteros', image: 'https://www.acepconcretos.com/wp-content/uploads/2021/04/mortero-930x620.jpg', value: 'Cemento y Morteros' },
+    { name: 'Ladrillos y Bloques', image: 'https://www.reformadisimo.es/wp-content/uploads/2019/10/tipos-de-ladrillos.jpg', value: 'Ladrillos y Bloques' },
+    { name: 'Fierro y Acero', image: 'https://grupocasalima.com/wp-content/uploads/2022/04/tipos-de-fierros-de-construccion.webp', value: 'Fierro y Acero' },
+    { name: 'Arena y Ripio', image: 'https://i0.wp.com/www.glosarioarquitectonico.com/wp-content/uploads/2015/12/ripio-1.jpg?resize=300%2C300&ssl=1', value: 'Arena y Ripio' },
+    { name: 'Madera', image: 'https://b1929112.smushcdn.com/1929112/imagenes/2025/03/Tablas-de-madera-para-construccion-y-carpinteria.png?lossy=0&strip=1&webp=1', value: 'Madera' },
+    { name: 'Pintura', image: 'http://www.pinturassuper.com/wp-content/uploads/2019/04/ASPECTOS-A-TENER-EN-CUENTA-PARA-COMPRAR-LA-PINTURA.jpg', value: 'Pintura' },
+    { name: 'Herramientas', image: 'https://cdnx.jumpseller.com/ferreteria-mfs/image/18473713/imprescindibles.jpg.jpg?1629945732', value: 'Herramientas' },
+    { name: 'Fontanería', image: 'https://www.bisermax.com/wp-content/uploads/2024/05/Herramientas-de-fontaneria.jpg', value: 'Fontanería' },
+    { name: 'Electricidad', image: 'https://www.pavezmartinez.cl/wp-content/uploads/2024/11/automaticos.jpg', value: 'Electricidad' },
+    { name: 'Cerámica y Porcelanato', image: 'https://www.rubi.com/es/blog/wp-content/uploads/2021/06/alicatar-una-pared-1.jpg', value: 'Cerámica y Porcelanato' },
   ];
 
   const formatPrice = (price) => {
@@ -66,22 +66,22 @@ const Home = () => {
       {/* Beneficios */}
       <section className="benefits-section">
         <div className="benefit-card">
-          <span className="benefit-icon">🚚</span>
+          <img src="https://transporte-inmediato.com/wp-content/uploads/2020/12/entregas-a-domicilio-1080x675.jpg" alt="Envíos a Todo Chile" className="benefit-image" />
           <h3>Envíos a Todo Chile</h3>
           <p>Despacho rápido y seguro</p>
         </div>
         <div className="benefit-card">
-          <span className="benefit-icon">💳</span>
+          <img src="https://img.freepik.com/vector-gratis/concepto-pago-tarjeta-credito-pagina-inicio_52683-24768.jpg?semt=ais_hybrid&w=740&q=80" alt="Pago Seguro" className="benefit-image" />
           <h3>Pago Seguro</h3>
           <p>Múltiples medios de pago</p>
         </div>
         <div className="benefit-card">
-          <span className="benefit-icon">📞</span>
+          <img src="https://www.securitec.pe/blog/wp-content/uploads/2022/11/atencion-cliente-virtual-redes-sociales-1024x576.jpg" alt="Atención Personalizada" className="benefit-image" />
           <h3>Atención Personalizada</h3>
           <p>Asesoría técnica disponible</p>
         </div>
         <div className="benefit-card">
-          <span className="benefit-icon">✅</span>
+          <img src="https://www.shutterstock.com/image-vector/medal-approved-successful-icon-quality-600nw-2421797193.jpg" alt="Calidad Garantizada" className="benefit-image" />
           <h3>Calidad Garantizada</h3>
           <p>Productos certificados</p>
         </div>
@@ -97,7 +97,7 @@ const Home = () => {
               className="category-card"
               onClick={() => navigate('/products')}
             >
-              <span className="category-icon">{category.icon}</span>
+              <img src={category.image} alt={category.name} className="category-image" />
               <h3>{category.name}</h3>
             </div>
           ))}
