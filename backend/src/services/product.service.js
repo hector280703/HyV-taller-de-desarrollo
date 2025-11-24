@@ -31,6 +31,12 @@ export async function createProductService(body) {
       precio: body.precio,
       stock: body.stock || 0,
       categoria: body.categoria || "",
+      unidadMedida: body.unidadMedida || "unidad",
+      marca: body.marca || null,
+      imagenUrl: body.imagenUrl || null,
+      descuento: body.descuento || 0,
+      peso: body.peso || null,
+      dimensiones: body.dimensiones || null,
       activo: body.activo !== undefined ? body.activo : true,
     });
 
@@ -122,6 +128,12 @@ export async function updateProductService(query, body) {
       precio: body.precio !== undefined ? body.precio : productFound.precio,
       stock: body.stock !== undefined ? body.stock : productFound.stock,
       categoria: body.categoria !== undefined ? body.categoria : productFound.categoria,
+      unidadMedida: body.unidadMedida !== undefined ? body.unidadMedida : productFound.unidadMedida,
+      marca: body.marca !== undefined ? body.marca : productFound.marca,
+      imagenUrl: body.imagenUrl !== undefined ? body.imagenUrl : productFound.imagenUrl,
+      descuento: body.descuento !== undefined ? body.descuento : productFound.descuento,
+      peso: body.peso !== undefined ? body.peso : productFound.peso,
+      dimensiones: body.dimensiones !== undefined ? body.dimensiones : productFound.dimensiones,
       activo: body.activo !== undefined ? body.activo : productFound.activo,
       updatedAt: new Date(),
     };
