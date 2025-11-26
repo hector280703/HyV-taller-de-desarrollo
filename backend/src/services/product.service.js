@@ -15,18 +15,43 @@ export async function createProductService(body) {
       return [null, "Ya existe un producto con ese nombre"];
     }
 
-    // Verificar si ya existe un producto con el mismo código
-    const existingProductByCode = await productRepository.findOne({
-      where: { codigo: body.codigo },
-    });
+    // Generar código automático si no se proporciona o si está vacío
+    let codigo = body.codigo && body.codigo.trim() !== "" ? body.codigo.trim() : null;
+    if (!codigo) {
+      // Generar código basado en el nombre y timestamp
+      const nombreSinEspacios = body.nombre.replace(/\s+/g, '').substring(0, 5).toUpperCase();
+      const timestamp = Date.now().toString().slice(-6);
+      codigo = `${nombreSinEspacios}-${timestamp}`;
+      
+      // Verificar que el código generado sea único
+      let codigoUnico = false;
+      let intento = 0;
+      while (!codigoUnico && intento < 10) {
+        const existingProduct = await productRepository.findOne({
+          where: { codigo },
+        });
+        if (!existingProduct) {
+          codigoUnico = true;
+        } else {
+          // Generar nuevo código con un número adicional
+          intento++;
+          codigo = `${nombreSinEspacios}-${timestamp}${intento}`;
+        }
+      }
+    } else {
+      // Verificar si ya existe un producto con el código proporcionado
+      const existingProductByCode = await productRepository.findOne({
+        where: { codigo: body.codigo },
+      });
 
-    if (existingProductByCode) {
-      return [null, "Ya existe un producto con ese código"];
+      if (existingProductByCode) {
+        return [null, "Ya existe un producto con ese código"];
+      }
     }
 
     const newProduct = productRepository.create({
       nombre: body.nombre,
-      codigo: body.codigo,
+      codigo: codigo,
       descripcion: body.descripcion || "",
       precio: body.precio,
       stock: body.stock || 0,
