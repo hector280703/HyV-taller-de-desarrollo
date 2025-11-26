@@ -100,13 +100,21 @@ export default function Popup({ show, setShow, data, action, isProductForm = fal
             fullWidth: true,
         },
         {
-            label: "Código del producto",
+            label: isCreateMode ? (
+                <span>
+                    Código del producto
+                    <span className='tooltip-icon'>
+                        <img src={QuestionIcon} />
+                        <span className='tooltip-text'>Campo opcional. Se generará automáticamente si no se ingresa</span>
+                    </span>
+                </span>
+            ) : "Código del producto",
             name: "codigo",
             defaultValue: productData.codigo || "",
-            placeholder: 'Ejemplo: CEM-001',
+            placeholder: isCreateMode ? 'Dejar vacío para generar automáticamente' : 'Ejemplo: CEM-001',
             fieldType: 'input',
             type: "text",
-            required: true,
+            required: false,
             minLength: 1,
             maxLength: 50,
         },

@@ -157,13 +157,12 @@ export const productCreateValidation = Joi.object({
   codigo: Joi.string()
     .min(1)
     .max(50)
-    .required()
+    .optional()
+    .allow('')
     .messages({
-      "string.empty": "El código no puede estar vacío.",
       "string.base": "El código debe ser de tipo string.",
       "string.min": "El código debe tener como mínimo 1 caracter.",
       "string.max": "El código debe tener como máximo 50 caracteres.",
-      "any.required": "El código es obligatorio.",
     }),
   descripcion: Joi.string()
     .max(500)
