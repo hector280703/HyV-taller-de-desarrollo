@@ -4,97 +4,226 @@
     bottom: 0;
     left: 0;
     right: 0;
-    background: rgba(18, 19, 18, 0.5);
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 9999;
     overflow-y: auto;
+    animation: fadeIn 0.3s ease-out;
 }
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
 .popup{
     max-height: 90vh;
-    width: 700px;
+    width: 850px;
     background: white;
     position: relative;
-    border-radius: 12px;
+    border-radius: 24px;
     overflow-y: auto;
     margin: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
+
+.popup::-webkit-scrollbar {
+    width: 10px;
+}
+
+.popup::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 0 24px 24px 0;
+}
+
+.popup::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+    border-radius: 10px;
+}
+
+.popup::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #f7931e 0%, #ff6b35 100%);
+}
+
 .close{
     position: absolute;
-    margin-top: 20px;
-    margin-right: 10px;
-    right: 10px;
+    top: 20px;
+    right: 20px;
     cursor: pointer;
-    background-color: white;
-    border: white;
+    background: rgba(255, 107, 53, 0.1);
+    border: 2px solid rgba(255, 107, 53, 0.2);
+    border-radius: 12px;
+    padding: 10px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+}
 
+.close:hover {
+    background: rgba(231, 76, 60, 0.15);
+    border-color: #e74c3c;
+    transform: rotate(90deg) scale(1.1);
+}
+
+.close img {
+    width: 20px;
+    height: 20px;
+    filter: brightness(0) saturate(100%) invert(45%) sepia(85%) saturate(1500%) hue-rotate(340deg);
+    transition: filter 0.3s ease;
+}
+
+.close:hover img {
+    filter: brightness(0) saturate(100%) invert(35%) sepia(95%) saturate(2500%) hue-rotate(345deg);
 }
 .title{
     font-size: 17px;
     font-weight: 700;
 }
 .popup .form {
-    padding: 30px;
+    padding: 45px 40px 40px 40px;
     max-width: 100%;
-    h1 {
-        margin-bottom: 20px;
-        font-size: 1.8rem;
-    }
-    button {
-        margin-top: 10px;
-        grid-column: 1 / -1;
-    }
-    .container_inputs {
-        margin-bottom: 8px;
-    }
-    .tooltip-icon {
-        position: relative;
-        top: 4px;
-        margin-left: 3px;
-        cursor: pointer;
-        display: inline-block;
-    }
-    .tooltip-icon .tooltip-text {
+    background: linear-gradient(to bottom, #ffffff 0%, #f8f9fa 100%);
+    border-radius: 24px;
+}
+
+.popup .form h1 {
+    margin-bottom: 30px;
+    font-size: 2rem;
+    color: #2c3e50;
+    font-weight: 800;
+    text-align: center;
+    position: relative;
+    padding-bottom: 15px;
+}
+
+.popup .form h1::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 4px;
+    background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+    border-radius: 2px;
+}
+
+.popup .form button {
+    margin-top: 20px;
+    grid-column: 1 / -1;
+    background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+    border: none;
+    padding: 16px 32px;
+    font-size: 1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 8px 20px rgba(255, 107, 53, 0.35);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.popup .form button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(255, 107, 53, 0.45);
+}
+
+.popup .form button:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+}
+
+.popup .form .container_inputs {
+    margin-bottom: 12px;
+}
+.popup .form .tooltip-icon {
+    position: relative;
+    top: 4px;
+    margin-left: 6px;
+    cursor: pointer;
+    display: inline-block;
+    transition: transform 0.2s ease;
+}
+
+.popup .form .tooltip-icon:hover {
+    transform: scale(1.15);
+}
+
+.popup .form .tooltip-icon img {
+    width: 18px;
+    height: 18px;
+    filter: brightness(0) saturate(100%) invert(45%) sepia(85%) saturate(1500%) hue-rotate(340deg);
+}
+
+.popup .form .tooltip-icon .tooltip-text {
     visibility: hidden;
-    width: 150px;
-    background-color: rgba(0, 0, 0, 0.75);
+    width: 200px;
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
     color: #fff;
     text-align: center;
-    border-radius: 4px;
-    padding: 5px;
+    border-radius: 10px;
+    padding: 10px 12px;
     position: absolute;
     font-size: 12px;
-    z-index: 1;
-    top: -3px;
-    left: 105%;
+    font-weight: 600;
+    z-index: 1000;
+    top: -8px;
+    left: 110%;
     opacity: 0;
-    transition: opacity 0.3s;
-    }
-    .tooltip-icon .tooltip-text::after {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+    line-height: 1.4;
+}
+
+.popup .form .tooltip-icon .tooltip-text::after {
     content: "";
     position: absolute;
     top: 50%;
     right: 100%;
-    margin-top: -5px;
-    border-width: 5px;
+    margin-top: -6px;
+    border-width: 6px;
     border-style: solid;
-    border-color: transparent rgba(0, 0, 0, 0.75) transparent transparent;
-    }
-    .tooltip-icon:hover .tooltip-text {
+    border-color: transparent #2c3e50 transparent transparent;
+}
+
+.popup .form .tooltip-icon:hover .tooltip-text {
     visibility: visible;
     opacity: 1;
-    }
-    .toggle-password-icon {
-        top: 47.5%;
-    }
+    left: 115%;
+}
+
+.popup .form .toggle-password-icon {
+    top: 47.5%;
 }
 
 /* Layout de dos columnas para formularios de productos */
 .popup .form.product-form {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 15px;
+    gap: 20px 24px;
 }
 
 .popup .form.product-form h1 {
@@ -102,7 +231,7 @@
 }
 
 .popup .form.product-form .container_inputs {
-    margin-bottom: 5px;
+    margin-bottom: 0;
 }
 
 .popup .form.product-form .container_inputs.full-width {
@@ -110,19 +239,83 @@
 }
 
 .popup .form.product-form textarea {
-    min-height: 80px;
+    min-height: 100px;
+    font-family: inherit;
 }
 
 .popup .form.product-form input,
 .popup .form.product-form select,
 .popup .form.product-form textarea {
     font-size: 0.95rem;
-    padding: 10px;
+    padding: 12px 14px;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    background-color: white;
+}
+
+.popup .form.product-form input:focus,
+.popup .form.product-form select:focus,
+.popup .form.product-form textarea:focus {
+    border-color: #ff6b35;
+    box-shadow: 0 0 0 4px rgba(255, 107, 53, 0.1);
+    background-color: rgba(255, 107, 53, 0.02);
+}
+
+.popup .form.product-form input:hover,
+.popup .form.product-form select:hover,
+.popup .form.product-form textarea:hover {
+    border-color: #ff8c5a;
 }
 
 .popup .form.product-form label {
     font-size: 0.9rem;
-    margin-bottom: 5px;
+    margin-bottom: 8px;
+    font-weight: 700;
+    color: #2c3e50;
+    display: flex;
+    align-items: center;
+}
+
+.popup .form.product-form select {
+    cursor: pointer;
+    background-image: url('../assets/ChevronDownIcon.svg');
+    background-repeat: no-repeat;
+    background-position: calc(100% - 12px) center;
+    background-size: 20px;
+    padding-right: 40px;
+}
+
+/* Estilos adicionales para campos específicos */
+.popup .form.product-form input[type="number"] {
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+}
+
+.popup .form.product-form .container_inputs label::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+.popup .form.product-form .error-message {
+    font-size: 0.8rem;
+    color: #e74c3c;
+    font-weight: 600;
+    margin-top: 6px;
+    padding-left: 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.popup .form.product-form .error-message::before {
+    content: '⚠️';
+    font-size: 0.9rem;
 }
 
 /* Responsive para popup */
@@ -130,13 +323,63 @@
     .popup {
         width: 95%;
         max-height: 85vh;
+        margin: 10px;
+        border-radius: 20px;
     }
     
     .popup .form.product-form {
         grid-template-columns: 1fr;
+        gap: 16px;
     }
     
     .popup .form {
-        padding: 20px;
+        padding: 30px 20px;
+    }
+
+    .popup .form h1 {
+        font-size: 1.6rem;
+    }
+
+    .close {
+        width: 40px;
+        height: 40px;
+        top: 15px;
+        right: 15px;
+    }
+
+    .popup .form.product-form .tooltip-icon .tooltip-text {
+        width: 160px;
+        left: auto;
+        right: 110%;
+        top: -8px;
+    }
+
+    .popup .form.product-form .tooltip-icon .tooltip-text::after {
+        left: 100%;
+        right: auto;
+        border-color: transparent transparent transparent #2c3e50;
+    }
+}
+
+@media (max-width: 480px) {
+    .popup {
+        width: 98%;
+        max-height: 90vh;
+    }
+
+    .popup .form {
+        padding: 25px 15px;
+    }
+
+    .popup .form h1 {
+        font-size: 1.4rem;
+        margin-bottom: 20px;
+    }
+
+    .popup .form.product-form input,
+    .popup .form.product-form select,
+    .popup .form.product-form textarea {
+        font-size: 0.9rem;
+        padding: 10px 12px;
     }
 }
