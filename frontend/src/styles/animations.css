@@ -1,3 +1,7 @@
+/* ========================================
+   ANIMACIONES Y EFECTOS GENERALES
+   ======================================== */
+
 @keyframes heartbeat {
 	0% {
 		transform: scaleX(1);
@@ -14,4 +18,304 @@
 	100% {
 		transform: scaleX(1);
 	}
+}
+
+/* Estilos personalizados para SweetAlert2 */
+.swal-confirm-btn {
+    background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%) !important;
+    border: none !important;
+    border-radius: 25px !important;
+    padding: 12px 32px !important;
+    font-weight: 700 !important;
+    font-size: 1rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    box-shadow: 0 4px 16px rgba(255, 107, 53, 0.4) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.swal-confirm-btn:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 24px rgba(255, 107, 53, 0.5) !important;
+}
+
+.swal-cancel-btn {
+    background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%) !important;
+    border: none !important;
+    border-radius: 25px !important;
+    padding: 12px 32px !important;
+    font-weight: 700 !important;
+    font-size: 1rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    box-shadow: 0 4px 16px rgba(149, 165, 166, 0.4) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.swal-cancel-btn:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 24px rgba(149, 165, 166, 0.5) !important;
+}
+
+.swal-success-btn {
+    background: linear-gradient(135deg, #27ae60 0%, #229954 100%) !important;
+    border: none !important;
+    border-radius: 25px !important;
+    padding: 12px 32px !important;
+    font-weight: 700 !important;
+    font-size: 1rem !important;
+    box-shadow: 0 4px 16px rgba(39, 174, 96, 0.4) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.swal-success-btn:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 24px rgba(39, 174, 96, 0.5) !important;
+}
+
+.swal-error-btn {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%) !important;
+    border: none !important;
+    border-radius: 25px !important;
+    padding: 12px 32px !important;
+    font-weight: 700 !important;
+    font-size: 1rem !important;
+    box-shadow: 0 4px 16px rgba(231, 76, 60, 0.4) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.swal-error-btn:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 24px rgba(231, 76, 60, 0.5) !important;
+}
+
+/* Loader personalizado para SweetAlert */
+.custom-loader {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #ff6b35;
+    border-radius: 50%;
+    margin: 20px auto;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ========================================
+   LOADING SKELETONS
+   ======================================== */
+
+.skeleton {
+    background: linear-gradient(
+        90deg,
+        #f0f0f0 25%,
+        #e0e0e0 50%,
+        #f0f0f0 75%
+    );
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+    border-radius: 8px;
+}
+
+@keyframes loading {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+.skeleton-text {
+    height: 16px;
+    margin-bottom: 8px;
+}
+
+.skeleton-title {
+    height: 24px;
+    width: 60%;
+    margin-bottom: 16px;
+}
+
+.skeleton-card {
+    padding: 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.skeleton-image {
+    height: 200px;
+    margin-bottom: 16px;
+}
+
+.skeleton-button {
+    height: 40px;
+    width: 120px;
+    border-radius: 20px;
+}
+
+/* ========================================
+   SCROLL TO TOP BUTTON
+   ======================================== */
+
+.scroll-to-top {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+    color: white;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    box-shadow: 0 4px 16px rgba(255, 107, 53, 0.4);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 999;
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0.8);
+}
+
+.scroll-to-top.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1);
+}
+
+.scroll-to-top:hover {
+    transform: translateY(-5px) scale(1.1);
+    box-shadow: 0 8px 24px rgba(255, 107, 53, 0.6);
+}
+
+.scroll-to-top:active {
+    transform: translateY(-2px) scale(1.05);
+}
+
+/* ========================================
+   ANIMACIONES GENERALES
+   ======================================== */
+
+.fade-in {
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.slide-up {
+    animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(30px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.scale-in {
+    animation: scaleIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.shake {
+    animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+
+@keyframes shake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    10%, 30%, 50%, 70%, 90% {
+        transform: translateX(-10px);
+    }
+    20%, 40%, 60%, 80% {
+        transform: translateX(10px);
+    }
+}
+
+.bounce {
+    animation: bounce 1s ease infinite;
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+/* ========================================
+   HOVER EFFECTS
+   ======================================== */
+
+.hover-lift {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+}
+
+.hover-glow {
+    transition: all 0.3s ease;
+}
+
+.hover-glow:hover {
+    box-shadow: 0 0 20px rgba(255, 107, 53, 0.5);
+}
+
+.hover-scale {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-scale:hover {
+    transform: scale(1.05);
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+
+@media (max-width: 768px) {
+    .scroll-to-top {
+        bottom: 20px;
+        right: 20px;
+        width: 45px;
+        height: 45px;
+        font-size: 1.3rem;
+    }
 }
