@@ -123,3 +123,28 @@ export async function deleteUser(req, res) {
     handleErrorServer(res, 500, error.message);
   }
 }
+
+export async function updateProfile(req, res) {
+  try {
+    const userId = req.user.id;
+    const { body } = req;
+
+    const { error: bodyError } = userBodyValidation.validate(body);
+
+    if (bodyError)
+      return handleErrorClient(
+        res,
+        400,
+        "Error de validación en los datos enviados",
+        bodyError.message,
+      );
+
+    const [user, userError] = await updateUserService({ id: userId }, body);
+
+    if (userError) return handleErrorClient(res, 400, "Error actualizando el perfil", userError);
+
+    handleSuccess(res, 200, "Perfil actualizado correctamente", user);
+  } catch (error) {
+    handleErrorServer(res, 500, error.message);
+  }
+}
