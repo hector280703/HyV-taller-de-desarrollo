@@ -12,6 +12,7 @@ import '@styles/styles.css';
 import Products from '@pages/Products';
 import ProductDetail from '@pages/ProductDetail';
 import CarroCompras from '@pages/CarroCompras';
+import Profile from '@pages/Profile';
 
 const router = createBrowserRouter([
   {
@@ -46,6 +47,14 @@ const router = createBrowserRouter([
       {
         path: '/carroCompras',
         element: <CarroCompras />,
+      },
+      {
+        path: '/profile',
+        element: (
+          <ProtectedRoute allowedRoles={['administrador', 'usuario']}>
+            <Profile />
+          </ProtectedRoute>
+        ),
       },
       {
         path: '/register',

@@ -7,10 +7,15 @@ import {
   getUser,
   getUsers,
   updateUser,
+  updateProfile,
 } from "../controllers/user.controller.js";
 
 const router = Router();
 
+// Ruta pública para actualizar perfil (solo requiere autenticación)
+router.put("/profile", authenticateJwt, updateProfile);
+
+// Rutas de administrador
 router
   .use(authenticateJwt)
   .use(isAdmin);

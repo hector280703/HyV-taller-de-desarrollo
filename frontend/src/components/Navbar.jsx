@@ -2,7 +2,7 @@ import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { logout, login } from '@services/auth.service.js';
 import { useCarroCompras } from '@context/CarroComprasContext';
 import '@styles/navbar.css';
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import useLogin from '@hooks/auth/useLogin.jsx';
 
 const Navbar = () => {
@@ -15,6 +15,10 @@ const Navbar = () => {
     const isAuthenticated = user ? true : false;
     const [menuOpen, setMenuOpen] = useState(false);
     const [showLoginForm, setShowLoginForm] = useState(false);
+    const [scrolled, setScrolled] = useState(false);
+    const [showUserMenu, setShowUserMenu] = useState(false);
+    const [showSearch, setShowSearch] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
     
     const {
         errorEmail,
@@ -23,6 +27,32 @@ const Navbar = () => {
         handleInputChange
     } = useLogin();
 
+    // Efecto para detectar scroll
+    useEffect(() => {
+        const handleScroll = () => {
+            const offset = window.scrollY;
+            setScrolled(offset > 50);
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    // Cerrar menús al hacer clic fuera
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (showUserMenu && !event.target.closest('.user-menu-container')) {
+                setShowUserMenu(false);
+            }
+            if (showSearch && !event.target.closest('.search-container')) {
+                setShowSearch(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [showUserMenu, showSearch]);
+
     const logoutSubmit = () => {
         try {
             logout();
@@ -30,6 +60,15 @@ const Navbar = () => {
             window.location.reload();
         } catch (error) {
             console.error('Error al cerrar sesión:', error);
+        }
+    };
+
+    const handleSearch = (e) => {
+        e.preventDefault();
+        if (searchQuery.trim()) {
+            navigate(`/products?search=${encodeURIComponent(searchQuery)}`);
+            setShowSearch(false);
+            setSearchQuery('');
         }
     };
 
@@ -78,7 +117,30 @@ const Navbar = () => {
     };
 
     return (
-        <nav className="navbar">
+        <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
+            {/* Logo */}
+            <div className="navbar-brand" onClick={() => navigate('/home')}>
+                <span className="logo-icon">🏗️</span>
+                <span className="logo-text">HyV</span>
+            </div>
+
+            {/* Barra de búsqueda expandible */}
+            <div className={`search-container ${showSearch ? 'active' : ''}`}>
+                <form onSubmit={handleSearch} className="search-form">
+                    <input
+                        type="text"
+                        placeholder="Buscar productos..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="search-input"
+                    />
+                    <button type="submit" className="search-btn">
+                        🔍
+                    </button>
+                </form>
+            </div>
+
+            {/* Menú de navegación */}
             <div className={`nav-menu ${menuOpen ? 'activado' : ''}`}>
                 <ul>
                     <li>
@@ -88,9 +150,10 @@ const Navbar = () => {
                                 setMenuOpen(false); 
                                 addActiveClass();
                             }} 
-                            activeClassName="active"
+                            className={({ isActive }) => isActive ? 'active' : ''}
                         >
-                            Inicio
+                            <span className="nav-icon">🏠</span>
+                            <span>Inicio</span>
                         </NavLink>
                     </li>
                     <li>
@@ -100,9 +163,10 @@ const Navbar = () => {
                                 setMenuOpen(false); 
                                 addActiveClass();
                             }} 
-                            activeClassName="active"
+                            className={({ isActive }) => isActive ? 'active' : ''}
                         >
-                            Productos
+                            <span className="nav-icon">📦</span>
+                            <span>Productos</span>
                         </NavLink>
                     </li>
                     <li>
@@ -112,10 +176,10 @@ const Navbar = () => {
                                 setMenuOpen(false); 
                                 addActiveClass();
                             }} 
-                            activeClassName="active"
-                            className="cart-nav-link"
+                            className={({ isActive }) => `cart-nav-link ${isActive ? 'active' : ''}`}
                         >
-                            🛒 Carrito
+                            <span className="nav-icon">🛒</span>
+                            <span>Carrito</span>
                             {cantidadItemsCarrito > 0 && (
                                 <span className="cart-badge">{cantidadItemsCarrito}</span>
                             )}
@@ -129,35 +193,111 @@ const Navbar = () => {
                                     setMenuOpen(false); 
                                     addActiveClass();
                                 }} 
-                                activeClassName="active"
+                                className={({ isActive }) => isActive ? 'active' : ''}
                             >
-                                Usuarios
+                                <span className="nav-icon">👥</span>
+                                <span>Usuarios</span>
                             </NavLink>
                         </li>
                     )}
-                    {!isAuthenticated ? (
-                        <li className="login-nav-item">
-                            <button 
-                                className="login-btn" 
-                                onClick={() => setShowLoginForm(!showLoginForm)}
-                            >
-                                {showLoginForm ? 'Cerrar' : 'Iniciar Sesión'}
-                            </button>
-                        </li>
-                    ) : (
-                        <li>
-                            <button 
-                                className="logout-btn"
-                                onClick={() => { 
-                                    logoutSubmit(); 
-                                    setMenuOpen(false); 
-                                }} 
-                            >
-                                Cerrar sesión
-                            </button>
-                        </li>
-                    )}
                 </ul>
+            </div>
+
+            {/* Acciones del navbar */}
+            <div className="navbar-actions">
+                {/* Botón de búsqueda */}
+                <button 
+                    className={`action-btn search-toggle-btn ${showSearch ? 'active' : ''}`}
+                    onClick={() => setShowSearch(!showSearch)}
+                    title="Buscar"
+                >
+                    🔍
+                </button>
+
+                {/* Usuario autenticado */}
+                {isAuthenticated ? (
+                    <div className="user-menu-container">
+                        <button 
+                            className="user-menu-btn"
+                            onClick={() => setShowUserMenu(!showUserMenu)}
+                        >
+                            <span className="user-avatar">
+                                {user.nombreCompleto?.charAt(0).toUpperCase() || '👤'}
+                            </span>
+                            <span className="user-name">{user.nombreCompleto || 'Usuario'}</span>
+                            <span className={`dropdown-arrow ${showUserMenu ? 'open' : ''}`}>▼</span>
+                        </button>
+                        
+                        {showUserMenu && (
+                            <div className="user-dropdown">
+                                <div className="user-info">
+                                    <div className="user-avatar-large">
+                                        {user.nombreCompleto?.charAt(0).toUpperCase() || '👤'}
+                                    </div>
+                                    <div className="user-details">
+                                        <p className="user-name-large">{user.nombreCompleto}</p>
+                                        <p className="user-email">{user.email}</p>
+                                        <span className={`user-role-badge ${userRole}`}>
+                                            {userRole === 'administrador' ? '👑 Admin' : '👤 Usuario'}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="dropdown-divider"></div>
+                                <button 
+                                    className="dropdown-item"
+                                    onClick={() => {
+                                        navigate('/profile');
+                                        setShowUserMenu(false);
+                                    }}
+                                >
+                                    <span>👤</span>
+                                    Mi Perfil
+                                </button>
+                                <button 
+                                    className="dropdown-item"
+                                    onClick={() => {
+                                        navigate('/carroCompras');
+                                        setShowUserMenu(false);
+                                    }}
+                                >
+                                    <span>🛒</span>
+                                    Mis Compras
+                                </button>
+                                {userRole === 'administrador' && (
+                                    <button 
+                                        className="dropdown-item"
+                                        onClick={() => {
+                                            navigate('/users');
+                                            setShowUserMenu(false);
+                                        }}
+                                    >
+                                        <span>⚙️</span>
+                                        Administrar
+                                    </button>
+                                )}
+                                <div className="dropdown-divider"></div>
+                                <button 
+                                    className="dropdown-item logout"
+                                    onClick={() => {
+                                        logoutSubmit();
+                                        setShowUserMenu(false);
+                                    }}
+                                >
+                                    <span>🚪</span>
+                                    Cerrar Sesión
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                ) : (
+                    <button 
+                        className="login-btn" 
+                        onClick={() => setShowLoginForm(!showLoginForm)}
+                    >
+                        <span>🔑</span>
+                        <span>{showLoginForm ? 'Cerrar' : 'Iniciar Sesión'}</span>
+                    </button>
+                )}
             </div>
             
             {showLoginForm && !isAuthenticated && (
@@ -203,7 +343,8 @@ const Navbar = () => {
                 </div>
             )}
             
-            <div className="hamburger" onClick={toggleMenu}>
+            {/* Hamburger menu */}
+            <div className={`hamburger ${menuOpen ? 'activado' : ''}`} onClick={toggleMenu}>
                 <span className="bar"></span>
                 <span className="bar"></span>
                 <span className="bar"></span>
