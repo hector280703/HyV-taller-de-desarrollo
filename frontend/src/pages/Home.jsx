@@ -112,7 +112,12 @@ const Home = () => {
         ) : featuredProducts.length > 0 ? (
           <div className="products-grid">
             {featuredProducts.map((product) => (
-              <div key={product.id} className="product-card">
+              <div 
+                key={product.id} 
+                className="product-card"
+                onClick={() => navigate(`/products/${product.id}`)}
+                style={{ cursor: 'pointer' }}
+              >
                 {product.imagenUrl ? (
                   <img src={product.imagenUrl} alt={product.nombre} className="product-image" />
                 ) : (
