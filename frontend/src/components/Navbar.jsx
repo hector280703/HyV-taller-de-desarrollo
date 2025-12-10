@@ -8,7 +8,7 @@ import useLogin from '@hooks/auth/useLogin.jsx';
 const Navbar = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { obtenerCantidadItems } = useCarroCompras();
+    const { obtenerCantidadItems, limpiarCarritoUsuario } = useCarroCompras();
     const cantidadItemsCarrito = obtenerCantidadItems();
     const user = JSON.parse(sessionStorage.getItem('usuario')) || '';
     const userRole = user?.rol;
