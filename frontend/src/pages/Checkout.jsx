@@ -214,7 +214,7 @@ export default function Checkout() {
             <div className="checkout-actions">
               <button
                 type="button"
-                onClick={() => navigate('/carro')}
+                onClick={() => navigate('/carroCompras')}
                 className="btn-secondary"
                 disabled={loading}
               >
