@@ -17,7 +17,7 @@ export default function Orders() {
   const loadOrders = async () => {
     setLoading(true);
     try {
-      const response = await getOrders();
+      const response = await getOrders({ onlyOwn: true });
       setOrders(response.data || []);
     } catch (error) {
       console.error('Error al cargar órdenes:', error);

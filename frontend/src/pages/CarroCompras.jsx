@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useCarroCompras } from '@context/CarroComprasContext';
-import { showSuccessAlert, showErrorAlert } from '@helpers/sweetAlert.js';
+import { showSuccessAlert, showErrorAlert, showConfirmAlert } from '@helpers/sweetAlert.js';
 import '@styles/carroCompras.css';
 
 const CarroCompras = () => {
@@ -19,20 +19,42 @@ const CarroCompras = () => {
     return price - (price * discount / 100);
   };
 
-  const handleQuantityChange = (productId, newQuantity) => {
-    if (newQuantity < 1) return;
+  const handleQuantityChange = (productId, newQuantity, maxStock) => {
+    if (newQuantity < 1) {
+      showErrorAlert('Cantidad inválida', 'La cantidad debe ser al menos 1');
+      return;
+    }
+    if (newQuantity > maxStock) {
+      showErrorAlert('Stock insuficiente', `Solo hay ${maxStock} unidades disponibles`);
+      return;
+    }
     actualizarCantidad(productId, newQuantity);
   };
 
-  const handleRemoveItem = (productId, productName) => {
-    eliminarDelCarrito(productId);
-    showSuccessAlert('Eliminado', `${productName} ha sido eliminado del carrito`);
+  const handleRemoveItem = async (productId, productName) => {
+    const confirmed = await showConfirmAlert(
+      '¿Eliminar producto?',
+      `¿Estás seguro de eliminar ${productName} del carrito?`
+    );
+    
+    if (confirmed) {
+      eliminarDelCarrito(productId);
+      showSuccessAlert('Eliminado', `${productName} ha sido eliminado del carrito`);
+    }
   };
 
-  const handleClearCart = () => {
+  const handleClearCart = async () => {
     if (carroCompras.length === 0) return;
-    vaciarCarrito();
-    showSuccessAlert('Carrito vacío', 'Se han eliminado todos los productos del carrito');
+    
+    const confirmed = await showConfirmAlert(
+      '¿Vaciar carrito?',
+      `Se eliminarán todos los ${carroCompras.length} producto(s) del carrito. Esta acción no se puede deshacer.`
+    );
+    
+    if (confirmed) {
+      vaciarCarrito();
+      showSuccessAlert('Carrito vacío', 'Se han eliminado todos los productos del carrito');
+    }
   };
 
   const handleCheckout = () => {
@@ -108,8 +130,9 @@ const CarroCompras = () => {
                     <div className="quantity-controls">
                       <button 
                         className="qty-btn"
-                        onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
+                        onClick={() => handleQuantityChange(item.id, item.quantity - 1, item.stock)}
                         disabled={item.quantity <= 1}
+                        title="Disminuir cantidad"
                       >
                         -
                       </button>
@@ -118,18 +141,29 @@ const CarroCompras = () => {
                         value={item.quantity}
                         min="1"
                         max={item.stock}
-                        onChange={(e) => handleQuantityChange(item.id, parseInt(e.target.value) || 1)}
+                        onChange={(e) => handleQuantityChange(item.id, parseInt(e.target.value) || 1, item.stock)}
                         className="quantity-input"
+                        title={`Máximo ${item.stock} unidades`}
                       />
                       <button 
                         className="qty-btn"
-                        onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                        onClick={() => handleQuantityChange(item.id, item.quantity + 1, item.stock)}
                         disabled={item.quantity >= item.stock}
+                        title="Aumentar cantidad"
                       >
                         +
                       </button>
                     </div>
-                    <p className="stock-info">Stock disponible: {item.stock}</p>
+                    <p className="stock-info">
+                      {item.stock > 0 ? (
+                        <span className={item.stock <= 5 ? 'low-stock' : ''}>
+                          Stock disponible: {item.stock}
+                          {item.stock <= 5 && ' ⚠️'}
+                        </span>
+                      ) : (
+                        <span className="no-stock">Sin stock ❌</span>
+                      )}
+                    </p>
                   </div>
 
                   <div className="cart-item-price">

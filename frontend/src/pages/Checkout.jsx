@@ -28,18 +28,44 @@ export default function Checkout() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // Validación de carrito vacío
     if (carrito.length === 0) {
-      showErrorAlert('El carrito está vacío', 'Agrega productos antes de finalizar la compra');
+      showErrorAlert('Carrito vacío', 'Agrega productos antes de finalizar la compra');
       return;
     }
 
-    if (!formData.direccionEnvio || formData.direccionEnvio.length < 10) {
-      showErrorAlert('Dirección inválida', 'La dirección debe tener al menos 10 caracteres');
+    // Validación de dirección
+    const direccion = formData.direccionEnvio.trim();
+    if (!direccion || direccion.length < 10) {
+      showErrorAlert('Dirección inválida', 'La dirección debe tener al menos 10 caracteres y ser descriptiva (calle, número, comuna, ciudad)');
+      return;
+    }
+    if (direccion.length > 500) {
+      showErrorAlert('Dirección muy larga', 'La dirección no debe exceder 500 caracteres');
       return;
     }
 
-    if (!formData.telefonoContacto || !/^\+?[\d\s-]{8,15}$/.test(formData.telefonoContacto)) {
-      showErrorAlert('Teléfono inválido', 'Ingresa un número de teléfono válido');
+    // Validación de teléfono mejorada
+    const telefono = formData.telefonoContacto.trim();
+    if (!telefono) {
+      showErrorAlert('Teléfono requerido', 'Debes ingresar un teléfono de contacto');
+      return;
+    }
+    // Acepta formatos: +56912345678, 912345678, +56 9 1234 5678, 9-1234-5678
+    if (!/^\+?[\d\s-]{8,20}$/.test(telefono)) {
+      showErrorAlert('Teléfono inválido', 'Ingresa un número de teléfono válido (ej: +56 9 1234 5678)');
+      return;
+    }
+
+    // Validación de método de pago
+    if (!formData.metodoPago) {
+      showErrorAlert('Método de pago requerido', 'Selecciona un método de pago');
+      return;
+    }
+
+    // Validación de notas (opcional)
+    if (formData.notas && formData.notas.length > 1000) {
+      showErrorAlert('Notas muy largas', 'Las notas no deben exceder 1000 caracteres');
       return;
     }
 
@@ -54,9 +80,9 @@ export default function Checkout() {
       const orderData = {
         items,
         metodoPago: formData.metodoPago,
-        direccionEnvio: formData.direccionEnvio,
-        telefonoContacto: formData.telefonoContacto,
-        notas: formData.notas || undefined,
+        direccionEnvio: direccion,
+        telefonoContacto: telefono,
+        notas: formData.notas?.trim() || undefined,
       };
 
       const response = await createOrder(orderData);
@@ -64,17 +90,15 @@ export default function Checkout() {
       vaciarCarrito();
       
       showSuccessAlert(
-        '¡Pedido realizado!',
-        `Tu orden ${response.data.numeroOrden} ha sido creada exitosamente`
+        '¡Pedido realizado exitosamente!',
+        `Tu orden #${response.data.numeroOrden} ha sido creada. Pronto recibirás confirmación.`
       );
       
       navigate('/orders');
     } catch (error) {
       console.error('Error al crear orden:', error);
-      showErrorAlert(
-        'Error al procesar pedido',
-        error.message || 'Ocurrió un error al procesar tu pedido'
-      );
+      const errorMessage = error.message || error.details || 'Ocurrió un error al procesar tu pedido. Por favor intenta nuevamente.';
+      showErrorAlert('Error al procesar pedido', errorMessage);
     } finally {
       setLoading(false);
     }
@@ -164,10 +188,15 @@ export default function Checkout() {
                 name="direccionEnvio"
                 value={formData.direccionEnvio}
                 onChange={handleChange}
-                placeholder="Calle, número, departamento, comuna, ciudad"
+                placeholder="Ej: Av. Libertador 1234, Depto 501, Viña del Mar, Región de Valparaíso"
                 required
+                minLength={10}
+                maxLength={500}
                 rows={3}
               />
+              <small className="form-help">
+                Incluye calle, número, depto/casa, comuna y ciudad ({formData.direccionEnvio.length}/500)
+              </small>
             </div>
 
             <div className="form-group">
@@ -180,7 +209,11 @@ export default function Checkout() {
                 onChange={handleChange}
                 placeholder="+56 9 1234 5678"
                 required
+                maxLength={20}
               />
+              <small className="form-help">
+                Formato: +56 9 XXXX XXXX (incluye código de país)
+              </small>
             </div>
 
             <div className="form-group">
@@ -192,11 +225,14 @@ export default function Checkout() {
                 onChange={handleChange}
                 required
               >
-                <option value="efectivo">Efectivo</option>
-                <option value="transferencia">Transferencia Bancaria</option>
-                <option value="tarjeta">Tarjeta de Crédito</option>
-                <option value="debito">Tarjeta de Débito</option>
+                <option value="efectivo">💵 Efectivo (pago contra entrega)</option>
+                <option value="transferencia">🏦 Transferencia Bancaria</option>
+                <option value="tarjeta">💳 Tarjeta de Crédito</option>
+                <option value="debito">💳 Tarjeta de Débito</option>
               </select>
+              <small className="form-help">
+                Selecciona tu forma de pago preferida
+              </small>
             </div>
 
             <div className="form-group">
@@ -206,9 +242,13 @@ export default function Checkout() {
                 name="notas"
                 value={formData.notas}
                 onChange={handleChange}
-                placeholder="Indicaciones adicionales para la entrega"
+                placeholder="Indicaciones adicionales para la entrega, horario preferido, etc."
+                maxLength={1000}
                 rows={3}
               />
+              <small className="form-help">
+                Información adicional para el repartidor ({formData.notas.length}/1000)
+              </small>
             </div>
 
             <div className="checkout-actions">

@@ -81,6 +81,9 @@ export const orderQueryValidation = Joi.object({
   fechaHasta: Joi.date().messages({
     "date.base": "La fecha hasta debe ser una fecha válida",
   }),
+  onlyOwn: Joi.boolean().messages({
+    "boolean.base": "El parámetro onlyOwn debe ser booleano",
+  }),
 }).messages({
   "object.base": "Los filtros deben ser un objeto válido",
 });

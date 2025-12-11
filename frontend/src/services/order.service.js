@@ -16,6 +16,7 @@ export async function getOrders(filters = {}) {
     if (filters.estado) params.append('estado', filters.estado);
     if (filters.fechaDesde) params.append('fechaDesde', filters.fechaDesde);
     if (filters.fechaHasta) params.append('fechaHasta', filters.fechaHasta);
+    if (filters.onlyOwn !== undefined) params.append('onlyOwn', filters.onlyOwn);
 
     const queryString = params.toString();
     const url = queryString ? `/orders?${queryString}` : '/orders';

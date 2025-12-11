@@ -120,8 +120,9 @@ export async function getOrdersService(userId, userRole, filters = {}) {
     
     const whereConditions = {};
 
-    // Si no es admin, solo puede ver sus propias órdenes
-    if (userRole !== "administrador") {
+    // Si onlyOwn es true, solo mostrar órdenes del usuario actual
+    // Si no es admin O si onlyOwn es true, solo puede ver sus propias órdenes
+    if (userRole !== "administrador" || filters.onlyOwn === "true" || filters.onlyOwn === true) {
       whereConditions.user = { id: userId };
     }
 

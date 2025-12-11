@@ -54,10 +54,40 @@ const Profile = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        // Validaciones básicas
+        if (!formData.nombreCompleto || formData.nombreCompleto.trim().length < 3) {
+            setPasswordError('El nombre debe tener al menos 3 caracteres');
+            return;
+        }
+
+        if (!formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+            setPasswordError('Ingresa un email válido');
+            return;
+        }
+
+        if (!formData.rut || formData.rut.trim().length < 9) {
+            setPasswordError('Ingresa un RUT válido');
+            return;
+        }
+
+        if (formData.telefono && !/^\+?[\d\s-]{8,20}$/.test(formData.telefono)) {
+            setPasswordError('Ingresa un teléfono válido');
+            return;
+        }
+
+        if (formData.direccion && formData.direccion.length > 500) {
+            setPasswordError('La dirección no debe exceder 500 caracteres');
+            return;
+        }
+
         // Validar contraseñas si se está cambiando
         if (showPasswordSection) {
             if (!formData.currentPassword) {
                 setPasswordError('Debes ingresar tu contraseña actual');
+                return;
+            }
+            if (formData.currentPassword.length < 8) {
+                setPasswordError('La contraseña actual debe tener al menos 8 caracteres');
                 return;
             }
             if (formData.newPassword && formData.newPassword !== formData.confirmPassword) {
@@ -68,14 +98,18 @@ const Profile = () => {
                 setPasswordError('La nueva contraseña debe tener al menos 8 caracteres');
                 return;
             }
+            if (formData.newPassword && formData.newPassword === formData.currentPassword) {
+                setPasswordError('La nueva contraseña debe ser diferente a la actual');
+                return;
+            }
         }
 
         const dataToUpdate = {
-            nombreCompleto: formData.nombreCompleto,
-            email: formData.email,
-            rut: formData.rut,
-            telefono: formData.telefono,
-            direccion: formData.direccion
+            nombreCompleto: formData.nombreCompleto.trim(),
+            email: formData.email.trim(),
+            rut: formData.rut.trim(),
+            telefono: formData.telefono?.trim() || '',
+            direccion: formData.direccion?.trim() || ''
         };
 
         if (showPasswordSection && formData.newPassword) {
@@ -89,11 +123,11 @@ const Profile = () => {
             // Actualizar sessionStorage con los nuevos datos
             const updatedUser = {
                 ...user,
-                nombreCompleto: formData.nombreCompleto,
-                email: formData.email,
-                rut: formData.rut,
-                telefono: formData.telefono,
-                direccion: formData.direccion
+                nombreCompleto: formData.nombreCompleto.trim(),
+                email: formData.email.trim(),
+                rut: formData.rut.trim(),
+                telefono: formData.telefono?.trim() || '',
+                direccion: formData.direccion?.trim() || ''
             };
             sessionStorage.setItem('usuario', JSON.stringify(updatedUser));
             
