@@ -200,6 +200,7 @@ export const CarroComprasProvider = ({ children }) => {
   return (
     <CarroComprasContext.Provider
       value={{
+        carrito: carroCompras,
         carroCompras,
         agregarAlCarrito,
         eliminarDelCarrito,
@@ -207,6 +208,7 @@ export const CarroComprasProvider = ({ children }) => {
         vaciarCarrito,
         limpiarCarritoUsuario,
         obtenerTotal,
+        totalCarrito: obtenerTotal(),
         obtenerCantidadItems,
         estaEnCarrito,
         obtenerCantidadItem,

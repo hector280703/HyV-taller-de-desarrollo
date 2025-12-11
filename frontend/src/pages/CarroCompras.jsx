@@ -40,10 +40,7 @@ const CarroCompras = () => {
       showErrorAlert('Carrito vacío', 'Agrega productos al carrito antes de finalizar la compra');
       return;
     }
-    showSuccessAlert(
-      'Pedido en proceso',
-      'Por favor contacta con nosotros para completar tu pedido'
-    );
+    navigate('/checkout');
   };
 
   if (carroCompras.length === 0) {
