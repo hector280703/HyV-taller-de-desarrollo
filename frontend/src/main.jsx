@@ -13,6 +13,10 @@ import Products from '@pages/Products';
 import ProductDetail from '@pages/ProductDetail';
 import CarroCompras from '@pages/CarroCompras';
 import Profile from '@pages/Profile';
+import Checkout from '@pages/Checkout';
+import Orders from '@pages/Orders';
+import OrderDetail from '@pages/OrderDetail';
+import AdminOrders from '@pages/AdminOrders';
 
 const router = createBrowserRouter([
   {
@@ -37,6 +41,14 @@ const router = createBrowserRouter([
         ),
       },
       {
+        path: '/admin/orders',
+        element: (
+        <ProtectedRoute allowedRoles={['administrador']}>
+          <AdminOrders />
+        </ProtectedRoute>
+        ),
+      },
+      {
         path: '/products',
         element: <Products />,
       },
@@ -53,6 +65,30 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute allowedRoles={['administrador', 'usuario']}>
             <Profile />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: '/checkout',
+        element: (
+          <ProtectedRoute allowedRoles={['administrador', 'usuario']}>
+            <Checkout />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: '/orders',
+        element: (
+          <ProtectedRoute allowedRoles={['administrador', 'usuario']}>
+            <Orders />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: '/orders/:id',
+        element: (
+          <ProtectedRoute allowedRoles={['administrador', 'usuario']}>
+            <OrderDetail />
           </ProtectedRoute>
         ),
       },

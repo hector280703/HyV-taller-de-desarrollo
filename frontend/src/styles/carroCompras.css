@@ -261,6 +261,16 @@
   margin: 0;
 }
 
+.stock-info .low-stock {
+  color: #e74c3c;
+  font-weight: 600;
+}
+
+.stock-info .no-stock {
+  color: #c0392b;
+  font-weight: 700;
+}
+
 /* Price */
 .cart-item-price {
   display: flex;
