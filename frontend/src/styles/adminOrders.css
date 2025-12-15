@@ -1,0 +1,393 @@
+.admin-orders-container {
+  min-height: 100vh;
+  padding: 90px 2rem 2rem 2rem;
+  background: linear-gradient(135deg,#c9cfe7 0%, #ca7112 100%);
+}
+
+.loading {
+  text-align: center;
+  color: white;
+  font-size: 1.5rem;
+  padding: 3rem;
+}
+
+.admin-header {
+  max-width: 1600px;
+  margin: 0 auto 2rem auto;
+  text-align: center;
+  color: white;
+}
+
+.admin-header h1 {
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.admin-subtitle {
+  font-size: 1.2rem;
+  opacity: 0.9;
+}
+
+.stats-grid {
+  max-width: 1600px;
+  margin: 0 auto 2rem auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+}
+
+.stat-icon {
+  font-size: 3rem;
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-label {
+  color: #7f8c8d;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.5rem;
+}
+
+.stat-value {
+  color: #2c3e50;
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.states-card {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.states-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.state-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mini-badge {
+  padding: 0.3rem 0.8rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.state-count {
+  color: #2c3e50;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.orders-section {
+  max-width: 1600px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.section-header h2 {
+  color: #2c3e50;
+  font-size: 2rem;
+}
+
+.orders-filters {
+  display: flex;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  padding: 0.6rem 1.2rem;
+  border: 2px solid #ecf0f1;
+  background: white;
+  color: #2c3e50;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.filter-btn:hover {
+  background: #f8f9fa;
+  border-color: #bdc3c7;
+}
+
+.filter-btn.active {
+  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+  color: white;
+  border-color: #ff6b35;
+  box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
+}
+
+.no-orders {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: #7f8c8d;
+  font-size: 1.2rem;
+}
+
+.orders-table-container {
+  overflow-x: auto;
+}
+
+.orders-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.orders-table thead {
+  background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+}
+
+.orders-table th {
+  color: white;
+  padding: 1rem;
+  text-align: left;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.orders-table th:first-child {
+  border-top-left-radius: 12px;
+}
+
+.orders-table th:last-child {
+  border-top-right-radius: 12px;
+}
+
+.orders-table tbody tr {
+  border-bottom: 1px solid #ecf0f1;
+  transition: background-color 0.2s ease;
+}
+
+.orders-table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.orders-table td {
+  padding: 1rem;
+  color: #2c3e50;
+}
+
+.order-number {
+  font-weight: bold;
+  color: #ff6b35;
+}
+
+.customer-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.customer-name {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.customer-email {
+  font-size: 0.85rem;
+  color: #7f8c8d;
+}
+
+.total-cell {
+  font-weight: bold;
+  font-size: 1.1rem;
+  color: #27ae60;
+}
+
+.table-badge {
+  padding: 0.4rem 1rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  display: inline-block;
+}
+
+.badge-pending {
+  background: #f39c12;
+  color: white;
+}
+
+.badge-processing {
+  background: #3498db;
+  color: white;
+}
+
+.badge-shipped {
+  background: #9b59b6;
+  color: white;
+}
+
+.badge-delivered {
+  background: #27ae60;
+  color: white;
+}
+
+.badge-cancelled {
+  background: #e74c3c;
+  color: white;
+}
+
+.badge-default {
+  background: #95a5a6;
+  color: white;
+}
+
+.actions-cell {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.status-select {
+  padding: 0.5rem;
+  border: 2px solid #ecf0f1;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: #2c3e50;
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.status-select:hover {
+  border-color: #ff6b35;
+}
+
+.status-select:focus {
+  outline: none;
+  border-color: #ff6b35;
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+}
+
+.btn-view {
+  padding: 0.5rem 0.8rem;
+  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+  border: none;
+  border-radius: 8px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
+}
+
+.btn-view:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.5);
+}
+
+@media (max-width: 1024px) {
+  .admin-header h1 {
+    font-size: 2.5rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-orders-container {
+    padding: 80px 1rem 1rem 1rem;
+  }
+
+  .admin-header h1 {
+    font-size: 2rem;
+  }
+
+  .admin-subtitle {
+    font-size: 1rem;
+  }
+
+  .stat-card {
+    padding: 1.5rem;
+  }
+
+  .stat-icon {
+    font-size: 2rem;
+  }
+
+  .stat-value {
+    font-size: 1.5rem;
+  }
+
+  .orders-section {
+    padding: 1.5rem;
+  }
+
+  .section-header h2 {
+    font-size: 1.5rem;
+  }
+
+  .filter-btn {
+    font-size: 0.85rem;
+    padding: 0.5rem 1rem;
+  }
+
+  .orders-table {
+    font-size: 0.85rem;
+  }
+
+  .orders-table th,
+  .orders-table td {
+    padding: 0.8rem 0.5rem;
+  }
+
+  .actions-cell {
+    flex-direction: column;
+  }
+
+  .status-select {
+    width: 100%;
+  }
+}
