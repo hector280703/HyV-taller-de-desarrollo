@@ -1,0 +1,48 @@
+services:
+  database:
+    image: postgres:15
+    container_name: hyv_taller_db
+    environment:
+      POSTGRES_DB: hyv_taller_desarrollo
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin1234
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: hyv_taller_backend
+    environment:
+      - NODE_ENV=production
+      - HOST=0.0.0.0
+      - PORT=3000
+      - DB_HOST=database
+      - DB_USERNAME=postgres
+      - PASSWORD=admin1234
+      - DATABASE=hyv_taller_desarrollo
+    ports:
+      - "3000:3000"
+    depends_on:
+      - database
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: hyv_taller_frontend
+    environment:
+      - NODE_ENV=production
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
