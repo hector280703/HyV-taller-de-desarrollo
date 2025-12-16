@@ -20,7 +20,7 @@ services:
     environment:
       - NODE_ENV=production
       - HOST=0.0.0.0
-      - PORT=3000
+      - PORT=3500
       - DB_HOST=database
       - DB_USERNAME=postgres
       - PASSWORD=admin1234
@@ -28,7 +28,7 @@ services:
       - ACCESS_TOKEN_SECRET=cTyPgiwvIVADBgOavKoLMUQqoFlhaScuWyCVBDpga7q9ZBvCmU20xTzvPxcMEMvfskzPFJjwY2h2AIZ6trcdpkamZerKg7d0FQiI7z2QEAP6y4B4WvZuOKk2OEFXP51a
       - cookieKey=KSGXogsKotXZy0afzFVwk9yy0WY2DNbscCEVMBJ5mp8PcusXKkWFgqIcMpONs6PTiOSFMHweBFjOwMtmVCsuAXDW81fYj6t7p2hMz3cjFpOjXXJ3wJnJCn2ZLVcPdNCS
     ports:
-      - "3000:3000"
+      - "3500:3500"
     depends_on:
       - database
     restart: unless-stopped
