@@ -164,12 +164,12 @@ sudo docker-compose ps
 echo "🔍 Verificando logs..."
 if sudo docker-compose logs frontend | grep -q "error\|Error\|ERROR\|emerg"; then
     echo "⚠️  Errores detectados en frontend:"
-    sudo docker-compose logs frontend --tail=10
+    sudo docker-compose logs --tail=10 frontend
 fi
 
 if sudo docker-compose logs backend | grep -q "error\|Error\|ERROR"; then
     echo "⚠️  Errores detectados en backend:"
-    sudo docker-compose logs backend --tail=10
+    sudo docker-compose logs --tail=10 backend
 fi
 
 # Mostrar puertos abiertos
