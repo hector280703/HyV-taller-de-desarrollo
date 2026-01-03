@@ -264,24 +264,46 @@ const Navbar = () => {
                                 <button 
                                     className="dropdown-item"
                                     onClick={() => {
+                                        navigate('/orders');
+                                        setShowUserMenu(false);
+                                    }}
+                                >
+                                    <span>📦</span>
+                                    Mis Pedidos
+                                </button>
+                                <button 
+                                    className="dropdown-item"
+                                    onClick={() => {
                                         navigate('/carroCompras');
                                         setShowUserMenu(false);
                                     }}
                                 >
                                     <span>🛒</span>
-                                    Mis Compras
+                                    Mi Carrito
                                 </button>
                                 {userRole === 'administrador' && (
-                                    <button 
-                                        className="dropdown-item"
-                                        onClick={() => {
-                                            navigate('/users');
-                                            setShowUserMenu(false);
-                                        }}
-                                    >
-                                        <span>⚙️</span>
-                                        Administrar
-                                    </button>
+                                    <>
+                                        <button 
+                                            className="dropdown-item"
+                                            onClick={() => {
+                                                navigate('/users');
+                                                setShowUserMenu(false);
+                                            }}
+                                        >
+                                            <span>👥</span>
+                                            Administrar Usuarios
+                                        </button>
+                                        <button 
+                                            className="dropdown-item"
+                                            onClick={() => {
+                                                navigate('/admin/orders');
+                                                setShowUserMenu(false);
+                                            }}
+                                        >
+                                            <span>📊</span>
+                                            Administrar Pedidos
+                                        </button>
+                                    </>
                                 )}
                                 <div className="dropdown-divider"></div>
                                 <button 

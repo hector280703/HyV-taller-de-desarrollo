@@ -56,24 +56,48 @@ const ProductDetail = () => {
   };
 
   const handleAddToCart = () => {
-    if (product.stock === 0) {
-      showErrorAlert('Sin stock', 'Este producto no está disponible');
+    if (!product || product.stock === 0) {
+      showErrorAlert('Sin stock', 'Este producto no está disponible en este momento');
+      return;
+    }
+    
+    if (quantity < 1) {
+      showErrorAlert('Cantidad inválida', 'Debes seleccionar al menos 1 unidad');
+      return;
+    }
+    
+    const cantidadEnCarrito = obtenerCantidadItem(product.id);
+    const totalConCarrito = cantidadEnCarrito + quantity;
+    
+    if (totalConCarrito > product.stock) {
+      const disponible = product.stock - cantidadEnCarrito;
+      if (disponible <= 0) {
+        showErrorAlert('Stock insuficiente', `Ya tienes el máximo disponible (${product.stock}) en tu carrito`);
+      } else {
+        showErrorAlert('Stock insuficiente', `Solo puedes agregar ${disponible} unidad(es) más. Ya tienes ${cantidadEnCarrito} en el carrito.`);
+      }
+      return;
+    }
+
+    agregarAlCarrito(product, quantity);
+    showSuccessAlert('¡Agregado!', `${quantity} x ${product.nombre} agregado${quantity > 1 ? 's' : ''} al carrito`);
+    setQuantity(1); // Reset cantidad después de agregar
+  };
+
+  const handleBuyNow = () => {
+    if (!product || product.stock === 0) {
+      showErrorAlert('Sin stock', 'Este producto no está disponible en este momento');
+      return;
+    }
+    
+    if (quantity < 1) {
+      showErrorAlert('Cantidad inválida', 'Debes seleccionar al menos 1 unidad');
       return;
     }
     
     const cantidadEnCarrito = obtenerCantidadItem(product.id);
     if (cantidadEnCarrito + quantity > product.stock) {
       showErrorAlert('Stock insuficiente', `Solo hay ${product.stock} unidades disponibles`);
-      return;
-    }
-
-    agregarAlCarrito(product, quantity);
-    showSuccessAlert('¡Agregado!', `${product.nombre} agregado al carrito`);
-  };
-
-  const handleBuyNow = () => {
-    if (product.stock === 0) {
-      showErrorAlert('Sin stock', 'Este producto no está disponible');
       return;
     }
     
@@ -194,6 +218,8 @@ const ProductDetail = () => {
                     <button 
                       className="qty-btn-detail"
                       onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      disabled={quantity <= 1}
+                      title="Disminuir cantidad"
                     >
                       -
                     </button>
@@ -202,23 +228,45 @@ const ProductDetail = () => {
                       value={quantity}
                       min="1"
                       max={product.stock}
-                      onChange={(e) => setQuantity(Math.min(product.stock, Math.max(1, parseInt(e.target.value) || 1)))}
+                      onChange={(e) => {
+                        const value = parseInt(e.target.value) || 1;
+                        setQuantity(Math.min(product.stock, Math.max(1, value)));
+                      }}
                       className="quantity-input-detail"
+                      title={`Máximo ${product.stock} unidades disponibles`}
                     />
                     <button 
                       className="qty-btn-detail"
                       onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
+                      disabled={quantity >= product.stock}
+                      title="Aumentar cantidad"
                     >
                       +
                     </button>
                   </div>
+                  <small className="quantity-info">
+                    {quantity === product.stock && 'Cantidad máxima seleccionada'}
+                    {obtenerCantidadItem(product.id) > 0 && (
+                      <span className="cart-info"> • Ya tienes {obtenerCantidadItem(product.id)} en el carrito</span>
+                    )}
+                  </small>
                 </div>
 
                 <div className="action-buttons">
-                  <button className="btn-add-to-cart" onClick={handleAddToCart}>
+                  <button 
+                    className="btn-add-to-cart" 
+                    onClick={handleAddToCart}
+                    disabled={quantity < 1}
+                    title="Agregar al carrito de compras"
+                  >
                     🛒 Agregar al Carrito
                   </button>
-                  <button className="btn-buy-now" onClick={handleBuyNow}>
+                  <button 
+                    className="btn-buy-now" 
+                    onClick={handleBuyNow}
+                    disabled={quantity < 1}
+                    title="Ir directo al checkout"
+                  >
                     ⚡ Comprar Ahora
                   </button>
                 </div>
