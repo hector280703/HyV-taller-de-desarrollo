@@ -14,6 +14,10 @@ export async function login(dataUser) {
             const { nombreCompleto, email, rut, rol } = jwtDecode(data.data.token);
             const userData = { nombreCompleto, email, rut, rol };
             sessionStorage.setItem('usuario', JSON.stringify(userData));
+            
+            // Disparar evento para que el carrito se sincronice con el nuevo usuario
+            window.dispatchEvent(new Event('userSessionChanged'));
+            
             axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
             cookies.set('jwt-auth', data.data.token, {path:'/'});
             return response.data
@@ -41,8 +45,16 @@ export async function register(data) {
 
 export async function logout() {
     try {
-        await axios.post('/auth/logout');
+        // Remover usuario del sessionStorage
         sessionStorage.removeItem('usuario');
+        
+        // Disparar evento de cambio de sesión
+        window.dispatchEvent(new Event('userSessionChanged'));
+        
+        // Llamar al endpoint de logout
+        await axios.post('/auth/logout');
+        
+        // Remover cookies
         cookies.remove('jwt');
         cookies.remove('jwt-auth');
     } catch (error) {

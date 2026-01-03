@@ -19,16 +19,21 @@ export const CarroComprasProvider = ({ children }) => {
     return user ? JSON.parse(user) : null;
   };
 
-  // Estado para rastrear el ID del usuario actual
+  // Estado para rastrear el identificador del usuario actual (email o rut)
   const [currentUserId, setCurrentUserId] = useState(() => {
     const user = getCurrentUser();
-    return user?.id || null;
+    return user?.email || user?.rut || null;
   });
 
   // Obtener la clave del localStorage específica para el usuario
   const getCarritoKey = () => {
     const user = getCurrentUser();
-    return user ? `carroCompras_${user.id}` : 'carroCompras_guest';
+    if (user?.email) {
+      return `carroCompras_${user.email}`;
+    } else if (user?.rut) {
+      return `carroCompras_${user.rut}`;
+    }
+    return 'carroCompras_guest';
   };
 
   const [carroCompras, setCarroCompras] = useState(() => {
@@ -106,11 +111,11 @@ export const CarroComprasProvider = ({ children }) => {
   useEffect(() => {
     const checkUserChange = async () => {
       const user = getCurrentUser();
-      const newUserId = user?.id || null;
+      const newUserId = user?.email || user?.rut || null;
       
       if (newUserId !== currentUserId) {
         setCurrentUserId(newUserId);
-        const carritoKey = user ? `carroCompras_${user.id}` : 'carroCompras_guest';
+        const carritoKey = getCarritoKey();
         const savedCarroCompras = localStorage.getItem(carritoKey);
         
         if (savedCarroCompras) {
@@ -125,7 +130,26 @@ export const CarroComprasProvider = ({ children }) => {
 
     // Verificar cambios periódicamente
     const interval = setInterval(checkUserChange, 500);
-    return () => clearInterval(interval);
+    
+    // Escuchar eventos de cambio de sesión
+    const handleStorageChange = (e) => {
+      if (e.key === 'userSessionChanged' || e.key === 'usuario') {
+        checkUserChange();
+      }
+    };
+    
+    const handleCustomEvent = () => {
+      checkUserChange();
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('userSessionChanged', handleCustomEvent);
+    
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('userSessionChanged', handleCustomEvent);
+    };
   }, [currentUserId]);
 
   const agregarAlCarrito = (product, quantity = 1) => {

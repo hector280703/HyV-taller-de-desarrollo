@@ -55,8 +55,16 @@ const Navbar = () => {
 
     const logoutSubmit = () => {
         try {
-            logout();
+            // Limpiar el sessionStorage del usuario
             sessionStorage.removeItem('usuario');
+            
+            // Disparar evento personalizado para que el carrito se actualice inmediatamente
+            window.dispatchEvent(new Event('userSessionChanged'));
+            
+            // Llamar al servicio de logout
+            logout();
+            
+            // Recargar la página para refrescar todo el estado
             window.location.reload();
         } catch (error) {
             console.error('Error al cerrar sesión:', error);
