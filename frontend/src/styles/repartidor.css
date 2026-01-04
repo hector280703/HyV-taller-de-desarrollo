@@ -105,6 +105,19 @@
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
+.logout-btn {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+  color: white !important;
+  border-color: transparent !important;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+  margin-left: auto;
+}
+
+.logout-btn:active {
+  transform: scale(0.96);
+  box-shadow: 0 1px 4px rgba(239, 68, 68, 0.2);
+}
+
 /* Contenido */
 .repartidor-content {
   padding: 10px;

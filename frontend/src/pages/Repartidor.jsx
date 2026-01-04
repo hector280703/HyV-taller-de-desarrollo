@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getOrders, updateOrderStatus } from '@services/order.service';
+import { logout } from '@services/auth.service';
 import { showErrorAlert, showSuccessAlert, showConfirmAlert } from '@helpers/sweetAlert';
 import '@styles/repartidor.css';
 
@@ -131,6 +132,13 @@ function Repartidor() {
     return ['pendiente', 'procesando', 'enviado'].includes(status);
   };
 
+  const handleLogout = () => {
+    sessionStorage.removeItem('usuario');
+    window.dispatchEvent(new Event('userSessionChanged'));
+    logout();
+    window.location.href = '/';
+  };
+
   return (
     <div className="repartidor-container">
       <div className="repartidor-header">
@@ -169,6 +177,12 @@ function Repartidor() {
           onClick={() => setFilter('todas')}
         >
           📦 Todas
+        </button>
+        <button
+          className="filter-btn logout-btn"
+          onClick={handleLogout}
+        >
+          🚪 Salir
         </button>
       </div>
 
