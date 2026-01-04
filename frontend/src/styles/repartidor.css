@@ -172,6 +172,7 @@
   flex-direction: column;
   gap: 12px;
   margin-top: 4px;
+  touch-action: pan-y;
 }
 
 /* Tarjeta de orden */
@@ -185,6 +186,7 @@
   position: relative;
   overflow: visible;
   -webkit-tap-highlight-color: transparent;
+  touch-action: pan-y;
 }
 
 .order-card:active {
@@ -196,6 +198,8 @@
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
   overflow: visible;
   max-height: none;
+  cursor: auto;
+  touch-action: pan-y;
 }
 
 .order-card-header {
@@ -323,6 +327,8 @@
   padding-top: 14px;
   border-top: 1.5px solid #f7fafc;
   animation: slideDown 0.25s ease;
+  touch-action: pan-y;
+  pointer-events: auto;
   overflow: visible;
 }
 
