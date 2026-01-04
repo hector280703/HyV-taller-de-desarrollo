@@ -1,4 +1,5 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
 import Navbar from '@components/Navbar';
 import { AuthProvider } from '@context/AuthContext';
 import { CarroComprasProvider } from '@context/CarroComprasContext';
@@ -14,12 +15,27 @@ return (
 }
 
 function PageRoot() {
-return (
-    <>
-        <Navbar />
-        <Outlet />
-    </>
-);
+    const navigate = useNavigate();
+    const location = useLocation();
+    
+    useEffect(() => {
+        const user = JSON.parse(sessionStorage.getItem('usuario'));
+        
+        // Si es repartidor, solo puede acceder a /repartidor
+        if (user && user.rol === 'repartidor') {
+            const allowedPaths = ['/repartidor'];
+            if (!allowedPaths.includes(location.pathname)) {
+                navigate('/repartidor', { replace: true });
+            }
+        }
+    }, [location.pathname, navigate]);
+
+    return (
+        <>
+            <Navbar />
+            <Outlet />
+        </>
+    );
 }
 
 export default Root;

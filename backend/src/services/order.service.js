@@ -121,8 +121,8 @@ export async function getOrdersService(userId, userRole, filters = {}) {
     const whereConditions = {};
 
     // Si onlyOwn es true, solo mostrar órdenes del usuario actual
-    // Si no es admin O si onlyOwn es true, solo puede ver sus propias órdenes
-    if (userRole !== "administrador" || filters.onlyOwn === "true" || filters.onlyOwn === true) {
+    // Admin y repartidor pueden ver todas las órdenes, usuarios normales solo las propias
+    if ((userRole !== "administrador" && userRole !== "repartidor") || filters.onlyOwn === "true" || filters.onlyOwn === true) {
       whereConditions.user = { id: userId };
     }
 
@@ -182,8 +182,8 @@ export async function getOrderByIdService(orderId, userId, userRole) {
 
 export async function updateOrderStatusService(orderId, newStatus, userId, userRole) {
   try {
-    if (userRole !== "administrador") {
-      return [null, "Solo los administradores pueden cambiar el estado de las órdenes"];
+    if (userRole !== "administrador" && userRole !== "repartidor") {
+      return [null, "No tienes permisos para cambiar el estado de las órdenes"];
     }
 
     const orderRepository = AppDataSource.getRepository(Order);

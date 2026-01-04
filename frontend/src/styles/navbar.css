@@ -396,6 +396,12 @@
 	box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
 }
 
+.user-role-badge.repartidor {
+	background: linear-gradient(135deg, #16a085 0%, #27ae60 100%);
+	color: white;
+	box-shadow: 0 2px 8px rgba(22, 160, 133, 0.3);
+}
+
 .dropdown-divider {
 	height: 1px;
 	background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.1), transparent);

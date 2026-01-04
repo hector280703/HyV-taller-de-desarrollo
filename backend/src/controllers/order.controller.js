@@ -93,6 +93,11 @@ export async function updateOrderStatus(req, res) {
       return handleErrorClient(res, 400, "ID de orden inválido");
     }
 
+    // Validar que sea admin o repartidor
+    if (userRole !== "administrador" && userRole !== "repartidor") {
+      return handleErrorClient(res, 403, "No tienes permisos para actualizar estados de órdenes");
+    }
+
     const { error } = orderStatusValidation.validate({ estado });
     if (error) {
       return handleErrorClient(res, 400, error.message);

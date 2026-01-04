@@ -151,48 +151,52 @@ const Navbar = () => {
             {/* Menú de navegación */}
             <div className={`nav-menu ${menuOpen ? 'activado' : ''}`}>
                 <ul>
-                    <li>
-                        <NavLink 
-                            to="/home" 
-                            onClick={() => { 
-                                setMenuOpen(false); 
-                                addActiveClass();
-                            }} 
-                            className={({ isActive }) => isActive ? 'active' : ''}
-                        >
-                            <span className="nav-icon">🏠</span>
-                            <span>Inicio</span>
-                        </NavLink>
-                    </li>
-                    <li>
-                        <NavLink 
-                            to="/products" 
-                            onClick={() => { 
-                                setMenuOpen(false); 
-                                addActiveClass();
-                            }} 
-                            className={({ isActive }) => isActive ? 'active' : ''}
-                        >
-                            <span className="nav-icon">📦</span>
-                            <span>Productos</span>
-                        </NavLink>
-                    </li>
-                    <li>
-                        <NavLink 
-                            to="/carroCompras" 
-                            onClick={() => { 
-                                setMenuOpen(false); 
-                                addActiveClass();
-                            }} 
-                            className={({ isActive }) => `cart-nav-link ${isActive ? 'active' : ''}`}
-                        >
-                            <span className="nav-icon">🛒</span>
-                            <span>Carrito</span>
-                            {cantidadItemsCarrito > 0 && (
-                                <span className="cart-badge">{cantidadItemsCarrito}</span>
-                            )}
-                        </NavLink>
-                    </li>
+                    {userRole !== 'repartidor' && (
+                        <>
+                            <li>
+                                <NavLink 
+                                    to="/home" 
+                                    onClick={() => { 
+                                        setMenuOpen(false); 
+                                        addActiveClass();
+                                    }} 
+                                    className={({ isActive }) => isActive ? 'active' : ''}
+                                >
+                                    <span className="nav-icon">🏠</span>
+                                    <span>Inicio</span>
+                                </NavLink>
+                            </li>
+                            <li>
+                                <NavLink 
+                                    to="/products" 
+                                    onClick={() => { 
+                                        setMenuOpen(false); 
+                                        addActiveClass();
+                                    }} 
+                                    className={({ isActive }) => isActive ? 'active' : ''}
+                                >
+                                    <span className="nav-icon">📦</span>
+                                    <span>Productos</span>
+                                </NavLink>
+                            </li>
+                            <li>
+                                <NavLink 
+                                    to="/carroCompras" 
+                                    onClick={() => { 
+                                        setMenuOpen(false); 
+                                        addActiveClass();
+                                    }} 
+                                    className={({ isActive }) => `cart-nav-link ${isActive ? 'active' : ''}`}
+                                >
+                                    <span className="nav-icon">🛒</span>
+                                    <span>Carrito</span>
+                                    {cantidadItemsCarrito > 0 && (
+                                        <span className="cart-badge">{cantidadItemsCarrito}</span>
+                                    )}
+                                </NavLink>
+                            </li>
+                        </>
+                    )}
                     {isAuthenticated && userRole === 'administrador' && (
                         <li>
                             <NavLink 
@@ -208,19 +212,36 @@ const Navbar = () => {
                             </NavLink>
                         </li>
                     )}
+                    {isAuthenticated && userRole === 'repartidor' && (
+                        <li>
+                            <NavLink 
+                                to="/repartidor" 
+                                onClick={() => { 
+                                    setMenuOpen(false); 
+                                    addActiveClass();
+                                }} 
+                                className={({ isActive }) => isActive ? 'active' : ''}
+                            >
+                                <span className="nav-icon">🚚</span>
+                                <span>Mis Entregas</span>
+                            </NavLink>
+                        </li>
+                    )}
                 </ul>
             </div>
 
             {/* Acciones del navbar */}
             <div className="navbar-actions">
                 {/* Botón de búsqueda */}
-                <button 
-                    className={`action-btn search-toggle-btn ${showSearch ? 'active' : ''}`}
-                    onClick={() => setShowSearch(!showSearch)}
-                    title="Buscar"
-                >
-                    🔍
-                </button>
+                {userRole !== 'repartidor' && (
+                    <button 
+                        className={`action-btn search-toggle-btn ${showSearch ? 'active' : ''}`}
+                        onClick={() => setShowSearch(!showSearch)}
+                        title="Buscar"
+                    >
+                        🔍
+                    </button>
+                )}
 
                 {/* Usuario autenticado */}
                 {isAuthenticated ? (
@@ -246,41 +267,59 @@ const Navbar = () => {
                                         <p className="user-name-large">{user.nombreCompleto}</p>
                                         <p className="user-email">{user.email}</p>
                                         <span className={`user-role-badge ${userRole}`}>
-                                            {userRole === 'administrador' ? '👑 Admin' : '👤 Usuario'}
+                                            {userRole === 'administrador' ? '👑 Admin' : userRole === 'repartidor' ? '🚚 Repartidor' : '👤 Usuario'}
                                         </span>
                                     </div>
                                 </div>
                                 <div className="dropdown-divider"></div>
-                                <button 
-                                    className="dropdown-item"
-                                    onClick={() => {
-                                        navigate('/profile');
-                                        setShowUserMenu(false);
-                                    }}
-                                >
-                                    <span>👤</span>
-                                    Mi Perfil
-                                </button>
-                                <button 
-                                    className="dropdown-item"
-                                    onClick={() => {
-                                        navigate('/orders');
-                                        setShowUserMenu(false);
-                                    }}
-                                >
-                                    <span>📦</span>
-                                    Mis Pedidos
-                                </button>
-                                <button 
-                                    className="dropdown-item"
-                                    onClick={() => {
-                                        navigate('/carroCompras');
-                                        setShowUserMenu(false);
-                                    }}
-                                >
-                                    <span>🛒</span>
-                                    Mi Carrito
-                                </button>
+                                {userRole !== 'repartidor' && (
+                                    <button 
+                                        className="dropdown-item"
+                                        onClick={() => {
+                                            navigate('/profile');
+                                            setShowUserMenu(false);
+                                        }}
+                                    >
+                                        <span>👤</span>
+                                        Mi Perfil
+                                    </button>
+                                )}
+                                {userRole !== 'repartidor' && (
+                                    <button 
+                                        className="dropdown-item"
+                                        onClick={() => {
+                                            navigate('/orders');
+                                            setShowUserMenu(false);
+                                        }}
+                                    >
+                                        <span>📦</span>
+                                        Mis Pedidos
+                                    </button>
+                                )}
+                                {userRole !== 'repartidor' && (
+                                    <button 
+                                        className="dropdown-item"
+                                        onClick={() => {
+                                            navigate('/carroCompras');
+                                            setShowUserMenu(false);
+                                        }}
+                                    >
+                                        <span>🛒</span>
+                                        Mi Carrito
+                                    </button>
+                                )}
+                                {userRole === 'repartidor' && (
+                                    <button 
+                                        className="dropdown-item"
+                                        onClick={() => {
+                                            navigate('/repartidor');
+                                            setShowUserMenu(false);
+                                        }}
+                                    >
+                                        <span>🚚</span>
+                                        Panel de Repartidor
+                                    </button>
+                                )}
                                 {userRole === 'administrador' && (
                                     <>
                                         <button 

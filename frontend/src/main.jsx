@@ -17,6 +17,7 @@ import Checkout from '@pages/Checkout';
 import Orders from '@pages/Orders';
 import OrderDetail from '@pages/OrderDetail';
 import AdminOrders from '@pages/AdminOrders';
+import Repartidor from '@pages/Repartidor';
 
 const router = createBrowserRouter([
   {
@@ -45,6 +46,14 @@ const router = createBrowserRouter([
         element: (
         <ProtectedRoute allowedRoles={['administrador']}>
           <AdminOrders />
+        </ProtectedRoute>
+        ),
+      },
+      {
+        path: '/repartidor',
+        element: (
+        <ProtectedRoute allowedRoles={['repartidor']}>
+          <Repartidor />
         </ProtectedRoute>
         ),
       },

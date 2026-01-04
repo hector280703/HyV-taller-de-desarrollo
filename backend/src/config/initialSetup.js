@@ -29,14 +29,23 @@ async function createUsers() {
           rol: "usuario",
         })
       ),
-        userRepository.save(
-          userRepository.create({
-            nombreCompleto: "Vicente Manuel Díaz Fernández",
-            rut: "24.396.686-8",
-            email: "usuario2.2024@gmail.cl",
-            password: await encryptPassword("user1234"),
-            rol: "usuario",
-          }),
+      userRepository.save(
+        userRepository.create({
+          nombreCompleto: "Vicente Manuel Díaz Fernández",
+          rut: "24.396.686-8",
+          email: "usuario2.2024@gmail.cl",
+          password: await encryptPassword("user1234"),
+          rol: "usuario",
+        }),
+      ),
+      userRepository.save(
+        userRepository.create({
+          nombreCompleto: "Carlos Andrés Rojas Vargas",
+          rut: "18.234.567-9",
+          email: "repartidor2024@gmail.cl",
+          password: await encryptPassword("repartidor1234"),
+          rol: "repartidor",
+        }),
       )
     ]);
     console.log("* => Usuarios creados exitosamente");
