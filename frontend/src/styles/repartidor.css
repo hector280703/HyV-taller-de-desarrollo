@@ -120,11 +120,14 @@
 /* Contenido */
 .repartidor-content {
   padding: 10px;
+  padding-bottom: 20px;
   flex: 1;
-  overflow-y: auto;
+  overflow-y: scroll;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
+  position: relative;
+  min-height: 0;
 }
 
 /* Loading */
@@ -172,7 +175,7 @@
   flex-direction: column;
   gap: 12px;
   margin-top: 4px;
-  touch-action: pan-y;
+  padding-bottom: 40px;
 }
 
 /* Tarjeta de orden */
@@ -183,15 +186,13 @@
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
   transition: all 0.2s ease;
   position: relative;
-  overflow: visible;
   -webkit-tap-highlight-color: transparent;
-  touch-action: pan-y;
+  margin-bottom: 4px;
 }
 
 .order-card.expanded {
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
-  overflow: visible;
-  max-height: none;
+  margin-bottom: 20px;
 }
 
 .order-card-header {
