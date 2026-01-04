@@ -17,10 +17,10 @@ return (
 function PageRoot() {
     const navigate = useNavigate();
     const location = useLocation();
+    const user = JSON.parse(sessionStorage.getItem('usuario'));
+    const isRepartidor = user?.rol === 'repartidor';
     
     useEffect(() => {
-        const user = JSON.parse(sessionStorage.getItem('usuario'));
-        
         // Si es repartidor, solo puede acceder a /repartidor
         if (user && user.rol === 'repartidor') {
             const allowedPaths = ['/repartidor'];
@@ -32,7 +32,7 @@ function PageRoot() {
 
     return (
         <>
-            <Navbar />
+            {!isRepartidor && <Navbar />}
             <Outlet />
         </>
     );
