@@ -203,9 +203,11 @@ function Repartidor() {
               <div
                 key={order.id}
                 className={`order-card ${selectedOrder?.id === order.id ? 'expanded' : ''}`}
-                onClick={() => setSelectedOrder(selectedOrder?.id === order.id ? null : order)}
               >
-                <div className="order-card-header">
+                <div 
+                  className="order-card-header"
+                  onClick={() => setSelectedOrder(selectedOrder?.id === order.id ? null : order)}
+                >
                   <div className="order-number">
                     <span className="status-icon">{getStatusIcon(order.estado)}</span>
                     <span className="numero-orden">{order.numeroOrden}</span>
