@@ -32,7 +32,7 @@ export default function Popup({ show, setShow, data, action, isProductForm = fal
             label: "Correo electrónico",
             name: "email",
             defaultValue: userData.email || "",
-            placeholder: 'example@gmail.cl',
+            placeholder: 'example@gmail.com',
             fieldType: 'input',
             type: "email",
             required: true,

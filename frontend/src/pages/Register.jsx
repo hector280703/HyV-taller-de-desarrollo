@@ -53,7 +53,7 @@ const patternRut = new RegExp(/^(?:(?:[1-9]\d{0}|[1-2]\d{1})(\.\d{3}){2}|[1-9]\d
                     {
                         label: "Correo electrónico",
                         name: "email",
-                        placeholder: "example@gmail.cl",
+                        placeholder: "example@gmail.com",
                         fieldType: 'input',
                         type: "email",
                         required: true,
@@ -61,7 +61,7 @@ const patternRut = new RegExp(/^(?:(?:[1-9]\d{0}|[1-2]\d{1})(\.\d{3}){2}|[1-9]\d
                         maxLength: 35,
                         errorMessageData: errorEmail,
                         validate: {
-                            emailDomain: (value) => value.endsWith('@gmail.cl') || 'El correo debe terminar en @gmail.cl'
+                            emailDomain: (value) => value.endsWith('@gmail.cl') || value.endsWith('@gmail.com') || 'El correo debe terminar en @gmail.cl o @gmail.com'
                         },
                         onChange: (e) => handleInputChange('email', e.target.value)
                     },

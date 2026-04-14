@@ -5,6 +5,7 @@ import Product from "../entity/product.entity.js";
 import User from "../entity/user.entity.js";
 import { AppDataSource } from "../config/configDb.js";
 import { Between, MoreThanOrEqual, LessThanOrEqual } from "typeorm";
+import { sendOrderConfirmationEmail } from "./email.service.js";
 
 export async function createOrderService(userId, orderData) {
   try {
@@ -105,6 +106,11 @@ export async function createOrderService(userId, orderData) {
     const orderComplete = await orderRepository.findOne({
       where: { id: savedOrder.id },
       relations: ["orderItems", "orderItems.product", "user"],
+    });
+
+    // Enviar email de confirmación al cliente (no bloquea la respuesta)
+    sendOrderConfirmationEmail(orderComplete).catch((err) => {
+      console.error("Error al enviar email de confirmación:", err);
     });
 
     return [orderComplete, null];
