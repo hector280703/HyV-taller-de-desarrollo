@@ -175,3 +175,174 @@ export async function sendOrderConfirmationEmail(order) {
     return [null, error.message];
   }
 }
+
+/**
+ * Envía un email al cliente cuando el estado de su orden cambia.
+ * @param {object} order - La orden completa con relaciones (user, orderItems).
+ * @param {string} oldStatus - El estado anterior de la orden.
+ */
+export async function sendOrderStatusUpdateEmail(order, oldStatus) {
+  try {
+    const { user, numeroOrden, total, estado: newStatus } = order;
+
+    // Configuración visual por estado
+    const statusConfig = {
+      procesando: {
+        icon: "⚙️",
+        label: "Procesando",
+        color: "#3498db",
+        gradient: "linear-gradient(135deg, #3498db 0%, #2980b9 100%)",
+        message: "Tu pedido está siendo preparado. Te notificaremos cuando sea enviado.",
+        subject: "🔄 Tu pedido está siendo procesado",
+      },
+      enviado: {
+        icon: "🚚",
+        label: "Enviado",
+        color: "#f39c12",
+        gradient: "linear-gradient(135deg, #f39c12 0%, #e67e22 100%)",
+        message: "¡Tu pedido va en camino! Pronto lo recibirás en tu dirección.",
+        subject: "📦 ¡Tu pedido ha sido enviado!",
+      },
+      entregado: {
+        icon: "✅",
+        label: "Entregado",
+        color: "#27ae60",
+        gradient: "linear-gradient(135deg, #27ae60 0%, #2ecc71 100%)",
+        message: "Tu pedido ha sido entregado exitosamente. ¡Gracias por tu compra!",
+        subject: "🎉 ¡Tu pedido fue entregado!",
+      },
+      cancelado: {
+        icon: "❌",
+        label: "Cancelado",
+        color: "#e74c3c",
+        gradient: "linear-gradient(135deg, #e74c3c 0%, #c0392b 100%)",
+        message: "Tu pedido ha sido cancelado. Si tienes dudas, no dudes en contactarnos.",
+        subject: "🚫 Tu pedido ha sido cancelado",
+      },
+    };
+
+    const config = statusConfig[newStatus] || {
+      icon: "📋",
+      label: newStatus,
+      color: "#7f8c8d",
+      gradient: "linear-gradient(135deg, #7f8c8d 0%, #95a5a6 100%)",
+      message: "El estado de tu pedido ha sido actualizado.",
+      subject: `📋 Actualización de tu pedido`,
+    };
+
+    // Generar pasos del timeline
+    const steps = ["pendiente", "procesando", "enviado", "entregado"];
+    const isCanceled = newStatus === "cancelado";
+    const currentStepIndex = steps.indexOf(newStatus);
+
+    const timelineSteps = steps.map((step, index) => {
+      const stepLabels = { pendiente: "Pendiente", procesando: "Procesando", enviado: "Enviado", entregado: "Entregado" };
+      const stepIcons = { pendiente: "📋", procesando: "⚙️", enviado: "🚚", entregado: "✅" };
+      let bgColor = "#ecf0f1";
+      let textColor = "#bdc3c7";
+
+      if (isCanceled) {
+        bgColor = "#ecf0f1";
+        textColor = "#bdc3c7";
+      } else if (index <= currentStepIndex) {
+        bgColor = config.color;
+        textColor = "#ffffff";
+      }
+
+      return `
+        <td style="text-align: center; padding: 0 4px; width: 25%;">
+          <div style="width: 40px; height: 40px; border-radius: 50%; background: ${bgColor}; color: ${textColor}; display: inline-flex; align-items: center; justify-content: center; font-size: 18px; margin-bottom: 6px;">${stepIcons[step]}</div>
+          <p style="color: ${index <= currentStepIndex && !isCanceled ? '#2c3e50' : '#bdc3c7'}; font-size: 11px; margin: 0; font-weight: ${index <= currentStepIndex && !isCanceled ? '700' : '400'};">${stepLabels[step]}</p>
+        </td>`;
+    }).join("");
+
+    const htmlContent = `
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+      <div style="max-width: 640px; margin: 0 auto; padding: 20px;">
+
+        <!-- Header -->
+        <div style="background: linear-gradient(135deg, #2c3e50 0%, #34495e 50%, #2c3e50 100%); border-radius: 20px 20px 0 0; padding: 40px 32px; text-align: center;">
+          <div style="font-size: 48px; margin-bottom: 12px;">${config.icon}</div>
+          <h1 style="color: #ffffff; font-size: 26px; margin: 0 0 8px 0; font-weight: 800;">Actualización de Pedido</h1>
+          <p style="margin: 0;">
+            <span style="background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%); color: white; padding: 6px 18px; border-radius: 20px; font-size: 14px; font-weight: 700; display: inline-block;">Orden ${numeroOrden}</span>
+          </p>
+        </div>
+
+        <!-- Body -->
+        <div style="background: #ffffff; padding: 32px; border-left: 1px solid #ecf0f1; border-right: 1px solid #ecf0f1;">
+
+          <!-- Greeting -->
+          <p style="color: #2c3e50; font-size: 16px; margin: 0 0 24px 0; line-height: 1.6;">
+            Hola <strong style="color: #ff6b35;">${user.nombreCompleto}</strong>, el estado de tu pedido ha sido actualizado.
+          </p>
+
+          <!-- Status Change Card -->
+          <div style="background: #f8f9fa; border-radius: 16px; padding: 24px; margin-bottom: 24px; text-align: center; border: 1px solid #ecf0f1;">
+            <p style="color: #7f8c8d; font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; margin: 0 0 16px 0; font-weight: 600;">Nuevo estado</p>
+            <div style="display: inline-block; ${config.gradient}; background: ${config.color}; color: #ffffff; padding: 14px 36px; border-radius: 30px; font-size: 18px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; box-shadow: 0 4px 16px rgba(0,0,0,0.15);">
+              ${config.icon} ${config.label}
+            </div>
+            <p style="color: #2c3e50; font-size: 14px; margin: 20px 0 0 0; line-height: 1.6;">${config.message}</p>
+          </div>
+
+          <!-- Timeline -->
+          ${!isCanceled ? `
+          <div style="margin-bottom: 24px;">
+            <h3 style="color: #2c3e50; font-size: 14px; margin: 0 0 16px 0; text-align: center; font-weight: 700;">Progreso del pedido</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr>${timelineSteps}</tr>
+            </table>
+          </div>` : ""}
+
+          <!-- Order Summary -->
+          <div style="background: #f8f9fa; border-left: 4px solid #ff6b35; border-radius: 0 12px 12px 0; padding: 16px 20px; margin-bottom: 8px;">
+            <table style="width: 100%;">
+              <tr>
+                <td style="color: #7f8c8d; font-size: 13px; padding: 3px 0;">Nº de Orden:</td>
+                <td style="color: #2c3e50; font-size: 13px; padding: 3px 0; text-align: right; font-weight: 700;">${numeroOrden}</td>
+              </tr>
+              <tr>
+                <td style="color: #7f8c8d; font-size: 13px; padding: 3px 0;">Total:</td>
+                <td style="color: #ff6b35; font-size: 13px; padding: 3px 0; text-align: right; font-weight: 700;">$${parseFloat(total).toLocaleString("es-CL")}</td>
+              </tr>
+            </table>
+          </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div style="background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%); border-radius: 0 0 20px 20px; padding: 24px 32px; text-align: center;">
+          <p style="color: rgba(255, 255, 255, 0.6); font-size: 12px; margin: 0 0 8px 0;">
+            Este correo fue enviado automáticamente. No respondas a este mensaje.
+          </p>
+          <p style="color: rgba(255, 255, 255, 0.35); font-size: 11px; margin: 0;">
+            © ${new Date().getFullYear()} HyV Taller de Desarrollo. Todos los derechos reservados.
+          </p>
+        </div>
+
+      </div>
+    </body>
+    </html>`;
+
+    const mailOptions = {
+      from: `"HyV Tienda" <${EMAIL_USER}>`,
+      to: user.email,
+      subject: `${config.subject} - Orden ${numeroOrden}`,
+      html: htmlContent,
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`📧 Email de actualización (${newStatus}) enviado a ${user.email} - MessageId: ${info.messageId}`);
+    return [info, null];
+  } catch (error) {
+    console.error("Error al enviar email de actualización de estado:", error);
+    return [null, error.message];
+  }
+}
