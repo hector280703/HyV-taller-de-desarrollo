@@ -5,9 +5,10 @@ import HideIcon from '../assets/HideIcon.svg';
 import ViewIcon from '../assets/ViewIcon.svg';
 
 const Form = ({ title, fields, buttonText, onSubmit, footerContent, backgroundColor, isProductForm }) => {
-    const { register, handleSubmit, formState: { errors } } = useForm();
+    const { register, handleSubmit, formState: { errors }, setValue } = useForm();
     const [showPassword, setShowPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
+    const [creatableMode, setCreatableMode] = useState({}); // { fieldName: true/false }
 
     const togglePasswordVisibility = () => {
         setShowPassword(!showPassword);
@@ -19,6 +20,18 @@ const Form = ({ title, fields, buttonText, onSubmit, footerContent, backgroundCo
 
     const onFormSubmit = (data) => {
         onSubmit(data);
+    };
+
+    const handleCreatableSelect = (fieldName, value) => {
+        if (value === '___new___') {
+            setCreatableMode(prev => ({ ...prev, [fieldName]: true }));
+            setValue(fieldName, '');
+        }
+    };
+
+    const handleCancelCreatable = (fieldName, defaultValue) => {
+        setCreatableMode(prev => ({ ...prev, [fieldName]: false }));
+        setValue(fieldName, defaultValue || '');
     };
 
     return (
@@ -86,6 +99,55 @@ const Form = ({ title, fields, buttonText, onSubmit, footerContent, backgroundCo
                                 </option>
                             ))}
                         </select>
+                    )}
+                    {field.fieldType === 'select-creatable' && (
+                        <>
+                            {creatableMode[field.name] ? (
+                                <div className="creatable-input-wrapper">
+                                    <input
+                                        {...register(field.name, {
+                                            required: field.required ? 'Este campo es obligatorio' : false,
+                                            minLength: field.minLength ? { value: field.minLength, message: `Debe tener al menos ${field.minLength} caracteres` } : false,
+                                            maxLength: field.maxLength ? { value: field.maxLength, message: `Debe tener máximo ${field.maxLength} caracteres` } : false,
+                                        })}
+                                        name={field.name}
+                                        placeholder={field.creatablePlaceholder || 'Escribe el nuevo valor...'}
+                                        type="text"
+                                        autoFocus
+                                    />
+                                    <button
+                                        type="button"
+                                        className="creatable-cancel-btn"
+                                        onClick={() => handleCancelCreatable(field.name, field.defaultValue)}
+                                        title="Volver a la lista"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                            ) : (
+                                <select
+                                    {...register(field.name, {
+                                        required: field.required ? 'Este campo es obligatorio' : false,
+                                        validate: field.validate || {},
+                                    })}
+                                    name={field.name}
+                                    defaultValue={field.defaultValue || ''}
+                                    disabled={field.disabled}
+                                    onChange={(e) => {
+                                        handleCreatableSelect(field.name, e.target.value);
+                                        if (field.onChange) field.onChange(e);
+                                    }}
+                                >
+                                    <option value="">Seleccionar opción</option>
+                                    {field.options && field.options.map((option, optIndex) => (
+                                        <option className="options-class" key={optIndex} value={option.value}>
+                                            {option.label}
+                                        </option>
+                                    ))}
+                                    <option value="___new___">➕ Agregar nueva...</option>
+                                </select>
+                            )}
+                        </>
                     )}
                     {field.type === 'password' && field.name === 'password' && (
                         <span className="toggle-password-icon" onClick={togglePasswordVisibility}>

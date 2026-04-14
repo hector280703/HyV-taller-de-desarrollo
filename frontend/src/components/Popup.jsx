@@ -132,7 +132,7 @@ export default function Popup({ show, setShow, data, action, isProductForm = fal
         {
             label: "Categoría",
             name: "categoria",
-            fieldType: 'select',
+            fieldType: 'select-creatable',
             options: [
                 { value: 'Cemento y Morteros', label: 'Cemento y Morteros' },
                 { value: 'Ladrillos y Bloques', label: 'Ladrillos y Bloques' },
@@ -148,11 +148,14 @@ export default function Popup({ show, setShow, data, action, isProductForm = fal
             ],
             required: false,
             defaultValue: productData.categoria || "",
+            creatablePlaceholder: 'Escribe la nueva categoría...',
+            minLength: 2,
+            maxLength: 50,
         },
         {
             label: "Unidad de Medida",
             name: "unidadMedida",
-            fieldType: 'select',
+            fieldType: 'select-creatable',
             options: [
                 { value: 'unidad', label: 'Unidad' },
                 { value: 'kg', label: 'Kilogramo (kg)' },
@@ -166,6 +169,9 @@ export default function Popup({ show, setShow, data, action, isProductForm = fal
             ],
             required: true,
             defaultValue: productData.unidadMedida || "unidad",
+            creatablePlaceholder: 'Escribe la nueva unidad...',
+            minLength: 1,
+            maxLength: 20,
         },
         {
             label: "Marca",

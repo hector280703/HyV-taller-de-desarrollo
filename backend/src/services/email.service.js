@@ -1,6 +1,6 @@
 "use strict";
 import nodemailer from "nodemailer";
-import { EMAIL_USER, EMAIL_PASS } from "../config/configEnv.js";
+import { EMAIL_USER, EMAIL_PASS, ADMIN_EMAIL } from "../config/configEnv.js";
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -343,6 +343,103 @@ export async function sendOrderStatusUpdateEmail(order, oldStatus) {
     return [info, null];
   } catch (error) {
     console.error("Error al enviar email de actualización de estado:", error);
+    return [null, error.message];
+  }
+}
+
+/**
+ * Envía un email de alerta de stock bajo al administrador.
+ * @param {Array} products - Lista de productos con stock bajo [{nombre, codigo, stock, categoria}].
+ */
+export async function sendLowStockAlertEmail(products) {
+  try {
+    if (!ADMIN_EMAIL) {
+      console.warn("⚠️ ADMIN_EMAIL no configurado, no se enviará alerta de stock bajo.");
+      return [null, "ADMIN_EMAIL no configurado"];
+    }
+
+    const productRows = products
+      .map((p) => {
+        const stockColor = p.stock === 0 ? "#e74c3c" : "#f39c12";
+        const stockLabel = p.stock === 0 ? "SIN STOCK" : `${p.stock} unidades`;
+        return `
+          <tr>
+            <td style="padding: 12px 16px; border-bottom: 1px solid #ecf0f1; color: #2c3e50; font-weight: 600;">${p.nombre}</td>
+            <td style="padding: 12px 16px; border-bottom: 1px solid #ecf0f1; color: #7f8c8d;">${p.codigo}</td>
+            <td style="padding: 12px 16px; border-bottom: 1px solid #ecf0f1; color: #7f8c8d;">${p.categoria || "—"}</td>
+            <td style="padding: 12px 16px; border-bottom: 1px solid #ecf0f1; text-align: center;">
+              <span style="background: ${stockColor}; color: white; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 700;">${stockLabel}</span>
+            </td>
+          </tr>`;
+      })
+      .join("");
+
+    const htmlContent = `
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+      <div style="max-width: 640px; margin: 0 auto; padding: 20px;">
+
+        <!-- Header -->
+        <div style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); border-radius: 20px 20px 0 0; padding: 40px 32px; text-align: center;">
+          <div style="font-size: 48px; margin-bottom: 12px;">⚠️</div>
+          <h1 style="color: #ffffff; font-size: 26px; margin: 0 0 8px 0; font-weight: 800;">Alerta de Stock Bajo</h1>
+          <p style="color: rgba(255,255,255,0.8); font-size: 14px; margin: 0;">${products.length} producto${products.length > 1 ? "s" : ""} con stock bajo</p>
+        </div>
+
+        <!-- Body -->
+        <div style="background: #ffffff; padding: 32px; border-left: 1px solid #ecf0f1; border-right: 1px solid #ecf0f1;">
+
+          <p style="color: #2c3e50; font-size: 15px; margin: 0 0 24px 0; line-height: 1.6;">
+            Los siguientes productos necesitan reposición de inventario:
+          </p>
+
+          <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr style="background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);">
+                <th style="padding: 12px 16px; text-align: left; color: #fff; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Producto</th>
+                <th style="padding: 12px 16px; text-align: left; color: #fff; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Código</th>
+                <th style="padding: 12px 16px; text-align: left; color: #fff; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Categoría</th>
+                <th style="padding: 12px 16px; text-align: center; color: #fff; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Stock</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${productRows}
+            </tbody>
+          </table>
+
+        </div>
+
+        <!-- Footer -->
+        <div style="background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%); border-radius: 0 0 20px 20px; padding: 24px 32px; text-align: center;">
+          <p style="color: rgba(255, 255, 255, 0.6); font-size: 12px; margin: 0 0 8px 0;">
+            Este correo fue enviado automáticamente. Repón el inventario lo antes posible.
+          </p>
+          <p style="color: rgba(255, 255, 255, 0.35); font-size: 11px; margin: 0;">
+            © ${new Date().getFullYear()} HyV Taller de Desarrollo.
+          </p>
+        </div>
+
+      </div>
+    </body>
+    </html>`;
+
+    const mailOptions = {
+      from: `"HyV Tienda - Alerta" <${EMAIL_USER}>`,
+      to: ADMIN_EMAIL,
+      subject: `🚨 Alerta: ${products.length} producto${products.length > 1 ? "s" : ""} con stock bajo`,
+      html: htmlContent,
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log(`🚨 Email de alerta de stock bajo enviado a ${ADMIN_EMAIL} - MessageId: ${info.messageId}`);
+    return [info, null];
+  } catch (error) {
+    console.error("Error al enviar email de alerta de stock bajo:", error);
     return [null, error.message];
   }
 }
