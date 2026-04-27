@@ -5,6 +5,7 @@ import authRoutes from "./auth.routes.js";
 import productRoutes from "./product.routes.js";
 import reviewRoutes from "./review.routes.js";
 import orderRoutes from "./order.routes.js";
+import uploadRoutes from "./upload.routes.js";
 
 const router = Router();
 
@@ -13,6 +14,7 @@ router
     .use("/user", userRoutes)
     .use("/product", productRoutes)
     .use("/review", reviewRoutes)
-    .use("/orders", orderRoutes);
+    .use("/orders", orderRoutes)
+    .use("/upload", uploadRoutes);
 
 export default router;
