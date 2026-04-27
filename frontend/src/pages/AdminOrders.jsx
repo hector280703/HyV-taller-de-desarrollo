@@ -58,6 +58,11 @@ export default function AdminOrders() {
     ? orders.filter(order => order.estado === filter)
     : orders;
 
+  // Calcular la altura máxima de las barras del gráfico
+  const maxVenta = stats?.ventasSemana?.length > 0
+    ? Math.max(...stats.ventasSemana.map(v => v.total))
+    : 0;
+
   if (loading) {
     return (
       <div className="admin-orders-container">
@@ -69,56 +74,136 @@ export default function AdminOrders() {
   return (
     <div className="admin-orders-container">
       <div className="admin-header">
-        <h1>📊 Panel de Pedidos</h1>
-        <p className="admin-subtitle">Administración y seguimiento de órdenes</p>
+        <h1>📊 Panel de Administración</h1>
+        <p className="admin-subtitle">Estadísticas, seguimiento de órdenes y rendimiento</p>
       </div>
 
       {stats && (
-        <div className="stats-grid">
-          <div className="stat-card">
-            <div className="stat-icon">💰</div>
-            <div className="stat-content">
-              <p className="stat-label">Ventas Hoy</p>
-              <p className="stat-value">${stats.ventasHoy?.toLocaleString('es-CL')}</p>
+        <>
+          {/* Stats Cards */}
+          <div className="stats-grid">
+            <div className="stat-card">
+              <div className="stat-icon">💰</div>
+              <div className="stat-content">
+                <p className="stat-label">Ventas Hoy</p>
+                <p className="stat-value">${stats.ventasHoy?.toLocaleString('es-CL')}</p>
+              </div>
+            </div>
+
+            <div className="stat-card">
+              <div className="stat-icon">💎</div>
+              <div className="stat-content">
+                <p className="stat-label">Ventas Totales</p>
+                <p className="stat-value">${stats.ventasTotales?.toLocaleString('es-CL')}</p>
+              </div>
+            </div>
+
+            <div className="stat-card">
+              <div className="stat-icon">📦</div>
+              <div className="stat-content">
+                <p className="stat-label">Pedidos Hoy</p>
+                <p className="stat-value">{stats.pedidosHoy || 0}</p>
+              </div>
+            </div>
+
+            <div className="stat-card">
+              <div className="stat-icon">📋</div>
+              <div className="stat-content">
+                <p className="stat-label">Total Pedidos</p>
+                <p className="stat-value">{stats.totalPedidos || 0}</p>
+              </div>
             </div>
           </div>
 
-          <div className="stat-card">
-            <div className="stat-icon">📦</div>
-            <div className="stat-content">
-              <p className="stat-label">Pedidos Hoy</p>
-              <p className="stat-value">{stats.pedidosHoy || 0}</p>
+          {/* Charts Row */}
+          <div className="charts-grid">
+            {/* Weekly Sales Chart */}
+            <div className="chart-card">
+              <h3 className="chart-title">📈 Ventas Últimos 7 Días</h3>
+              <div className="bar-chart">
+                {stats.ventasSemana?.map((dia, index) => (
+                  <div key={index} className="bar-group">
+                    <div className="bar-value">
+                      {dia.total > 0 ? `$${Math.round(dia.total).toLocaleString('es-CL')}` : '-'}
+                    </div>
+                    <div className="bar-wrapper">
+                      <div
+                        className="bar"
+                        style={{
+                          height: maxVenta > 0 ? `${Math.max((dia.total / maxVenta) * 100, 4)}%` : '4%',
+                        }}
+                      >
+                        {dia.cantidad > 0 && (
+                          <span className="bar-orders">{dia.cantidad}</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="bar-label">{dia.dia}</div>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
 
-          <div className="stat-card">
-            <div className="stat-icon">📋</div>
-            <div className="stat-content">
-              <p className="stat-label">Total Pedidos</p>
-              <p className="stat-value">{stats.totalPedidos || 0}</p>
+            {/* Top Products */}
+            <div className="chart-card">
+              <h3 className="chart-title">🏆 Productos Más Vendidos</h3>
+              {stats.topProductos?.length > 0 ? (
+                <div className="top-products-list">
+                  {stats.topProductos.map((product, index) => {
+                    const maxSold = stats.topProductos[0]?.totalVendido || 1;
+                    const widthPercent = (product.totalVendido / maxSold) * 100;
+                    return (
+                      <div key={index} className="top-product-item">
+                        <div className="top-product-rank">#{index + 1}</div>
+                        <div className="top-product-info">
+                          <div className="top-product-header">
+                            <span className="top-product-name">{product.nombre}</span>
+                            <span className="top-product-sold">{product.totalVendido} uds</span>
+                          </div>
+                          <div className="top-product-bar-bg">
+                            <div
+                              className="top-product-bar-fill"
+                              style={{ width: `${widthPercent}%` }}
+                            ></div>
+                          </div>
+                          <span className="top-product-revenue">${product.totalIngresos?.toLocaleString('es-CL')}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="no-data">No hay datos de productos aún</div>
+              )}
             </div>
-          </div>
 
-          <div className="stat-card states-card">
-            <div className="stat-icon">📊</div>
-            <div className="stat-content">
-              <p className="stat-label">Por Estado</p>
-              <div className="states-list">
+            {/* Orders by Status */}
+            <div className="chart-card">
+              <h3 className="chart-title">📊 Pedidos por Estado</h3>
+              <div className="status-chart">
                 {stats.pedidosPorEstado?.map((item) => {
                   const badge = getEstadoBadge(item.estado);
+                  const percent = stats.totalPedidos > 0 ? ((parseInt(item.cantidad) / stats.totalPedidos) * 100).toFixed(1) : 0;
                   return (
-                    <div key={item.estado} className="state-item">
-                      <span className={`mini-badge ${badge.class}`}>{badge.text}</span>
-                      <span className="state-count">{item.cantidad}</span>
+                    <div key={item.estado} className="status-chart-item">
+                      <div className="status-chart-header">
+                        <span className={`mini-badge ${badge.class}`}>{badge.text}</span>
+                        <span className="status-chart-count">{item.cantidad}</span>
+                      </div>
+                      <div className="status-chart-bar-bg">
+                        <div className={`status-chart-bar-fill ${badge.class}`} style={{ width: `${percent}%` }}></div>
+                      </div>
+                      <span className="status-chart-percent">{percent}%</span>
                     </div>
                   );
                 })}
               </div>
             </div>
           </div>
-        </div>
+        </>
       )}
 
+      {/* Orders Table */}
       <div className="orders-section">
         <div className="section-header">
           <h2>Listado de Pedidos</h2>

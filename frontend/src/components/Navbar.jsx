@@ -378,7 +378,7 @@ const Navbar = () => {
                                 type="text"
                                 id="email"
                                 name="email"
-                                placeholder="example@gmail.cl"
+                                placeholder="example@gmail.com"
                                 required
                                 autoComplete="new-password"
                                 autoCorrect="off"

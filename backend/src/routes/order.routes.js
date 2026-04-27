@@ -9,6 +9,7 @@ import {
   getOrderStats,
 } from "../controllers/order.controller.js";
 import { authenticateJwt } from "../middlewares/authentication.middleware.js";
+import { orderCreateLimiter } from "../middlewares/rateLimit.middleware.js";
 
 const router = Router();
 
@@ -16,7 +17,7 @@ const router = Router();
 router.use(authenticateJwt);
 
 // Crear orden
-router.post("/", createOrder);
+router.post("/", orderCreateLimiter, createOrder);
 
 // Obtener órdenes (admin: todas, usuario: propias)
 router.get("/", getOrders);

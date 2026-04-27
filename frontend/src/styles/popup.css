@@ -318,6 +318,56 @@
     font-size: 0.9rem;
 }
 
+/* Creatable select - input para agregar nueva opción */
+.creatable-input-wrapper {
+    display: flex;
+    gap: 8px;
+    align-items: stretch;
+}
+
+.creatable-input-wrapper input {
+    flex: 1;
+    border: 2px solid #ff6b35 !important;
+    background-color: rgba(255, 107, 53, 0.04) !important;
+    box-shadow: 0 0 0 4px rgba(255, 107, 53, 0.1);
+    animation: creatablePulse 0.3s ease-out;
+}
+
+@keyframes creatablePulse {
+    from { transform: scaleX(0.95); opacity: 0.5; }
+    to { transform: scaleX(1); opacity: 1; }
+}
+
+.creatable-cancel-btn {
+    width: 42px;
+    min-width: 42px;
+    height: auto;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: 2px solid #ecf0f1 !important;
+    border-radius: 12px !important;
+    background: #f8f9fa !important;
+    color: #7f8c8d;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: none !important;
+    text-transform: none !important;
+    letter-spacing: 0 !important;
+    font-weight: 400 !important;
+}
+
+.creatable-cancel-btn:hover {
+    background: #fee2e2 !important;
+    border-color: #e74c3c !important;
+    color: #e74c3c;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
 /* Responsive para popup */
 @media (max-width: 768px) {
     .popup {

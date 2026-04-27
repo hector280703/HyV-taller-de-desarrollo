@@ -5,6 +5,8 @@ import Product from "../entity/product.entity.js";
 import User from "../entity/user.entity.js";
 import { AppDataSource } from "../config/configDb.js";
 import { Between, MoreThanOrEqual, LessThanOrEqual } from "typeorm";
+import { sendOrderConfirmationEmail, sendOrderStatusUpdateEmail, sendLowStockAlertEmail } from "./email.service.js";
+import { LOW_STOCK_THRESHOLD } from "../config/configEnv.js";
 
 export async function createOrderService(userId, orderData) {
   try {
@@ -59,6 +61,14 @@ export async function createOrderService(userId, orderData) {
       // Reducir stock
       product.stock -= item.cantidad;
       await productRepository.save(product);
+
+      // Verificar stock bajo
+      if (product.stock <= LOW_STOCK_THRESHOLD) {
+        orderItemsData[orderItemsData.length - 1].lowStock = true;
+        orderItemsData[orderItemsData.length - 1].currentStock = product.stock;
+        orderItemsData[orderItemsData.length - 1].productCode = product.codigo;
+        orderItemsData[orderItemsData.length - 1].productCategory = product.categoria;
+      }
     }
 
     const total = subtotal - descuentoTotal;
@@ -106,6 +116,27 @@ export async function createOrderService(userId, orderData) {
       where: { id: savedOrder.id },
       relations: ["orderItems", "orderItems.product", "user"],
     });
+
+    // Enviar email de confirmación al cliente (no bloquea la respuesta)
+    sendOrderConfirmationEmail(orderComplete).catch((err) => {
+      console.error("Error al enviar email de confirmación:", err);
+    });
+
+    // Verificar y alertar productos con stock bajo
+    const lowStockProducts = orderItemsData
+      .filter((item) => item.lowStock)
+      .map((item) => ({
+        nombre: item.nombreProducto,
+        codigo: item.productCode,
+        stock: item.currentStock,
+        categoria: item.productCategory,
+      }));
+
+    if (lowStockProducts.length > 0) {
+      sendLowStockAlertEmail(lowStockProducts).catch((err) => {
+        console.error("Error al enviar alerta de stock bajo:", err);
+      });
+    }
 
     return [orderComplete, null];
   } catch (error) {
@@ -218,6 +249,11 @@ export async function updateOrderStatusService(orderId, newStatus, userId, userR
       relations: ["orderItems", "orderItems.product", "user"],
     });
 
+    // Enviar email de actualización de estado al cliente (no bloquea la respuesta)
+    sendOrderStatusUpdateEmail(orderComplete, oldStatus).catch((err) => {
+      console.error("Error al enviar email de actualización de estado:", err);
+    });
+
     return [orderComplete, null];
   } catch (error) {
     console.error("Error al actualizar estado:", error);
@@ -270,6 +306,7 @@ export async function cancelOrderService(orderId, userId, userRole) {
 export async function getOrderStatsService() {
   try {
     const orderRepository = AppDataSource.getRepository(Order);
+    const orderItemRepository = AppDataSource.getRepository(OrderItem);
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -303,11 +340,61 @@ export async function getOrderStatsService() {
       .andWhere("order.createdAt < :tomorrow", { tomorrow })
       .getCount();
 
+    // Ventas totales (todas las órdenes no canceladas)
+    const ventasTotales = await orderRepository
+      .createQueryBuilder("order")
+      .select("SUM(order.total)", "total")
+      .where("order.estado != :cancelado", { cancelado: "cancelado" })
+      .getRawOne();
+
+    // Ventas de los últimos 7 días (para gráfico)
+    const ventasSemana = [];
+    for (let i = 6; i >= 0; i--) {
+      const dayStart = new Date(today);
+      dayStart.setDate(dayStart.getDate() - i);
+      const dayEnd = new Date(dayStart);
+      dayEnd.setDate(dayEnd.getDate() + 1);
+
+      const ventaDia = await orderRepository
+        .createQueryBuilder("order")
+        .select("SUM(order.total)", "total")
+        .addSelect("COUNT(*)", "cantidad")
+        .where("order.createdAt >= :dayStart", { dayStart })
+        .andWhere("order.createdAt < :dayEnd", { dayEnd })
+        .andWhere("order.estado != :cancelado", { cancelado: "cancelado" })
+        .getRawOne();
+
+      ventasSemana.push({
+        fecha: dayStart.toISOString().split("T")[0],
+        dia: dayStart.toLocaleDateString("es-CL", { weekday: "short" }),
+        total: parseFloat(ventaDia.total) || 0,
+        cantidad: parseInt(ventaDia.cantidad) || 0,
+      });
+    }
+
+    // Top 5 productos más vendidos
+    const topProductos = await orderItemRepository
+      .createQueryBuilder("item")
+      .select("item.nombreProducto", "nombre")
+      .addSelect("SUM(item.cantidad)", "totalVendido")
+      .addSelect("SUM(item.subtotal)", "totalIngresos")
+      .groupBy("item.nombreProducto")
+      .orderBy("SUM(item.cantidad)", "DESC")
+      .limit(5)
+      .getRawMany();
+
     const stats = {
       ventasHoy: parseFloat(ventasHoy.total) || 0,
+      ventasTotales: parseFloat(ventasTotales.total) || 0,
       pedidosPorEstado,
       totalPedidos,
       pedidosHoy,
+      ventasSemana,
+      topProductos: topProductos.map((p) => ({
+        nombre: p.nombre,
+        totalVendido: parseInt(p.totalVendido) || 0,
+        totalIngresos: parseFloat(p.totalIngresos) || 0,
+      })),
     };
 
     return [stats, null];

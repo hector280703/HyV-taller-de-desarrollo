@@ -76,7 +76,7 @@ const Home = () => {
           <p>Múltiples medios de pago</p>
         </div>
         <div className="benefit-card">
-          <img src="https://www.securitec.pe/blog/wp-content/uploads/2022/11/atencion-cliente-virtual-redes-sociales-1024x576.jpg" alt="Atención Personalizada" className="benefit-image" />
+          <img src="https://www.supermercadosruizgalan.es/documents/10180/2672051/logo+atencion.png/5fd21c0a-0bc7-48b1-8388-867085a84538?t=1612256921229" alt="Atención Personalizada" className="benefit-image" />
           <h3>Atención Personalizada</h3>
           <p>Asesoría técnica disponible</p>
         </div>
@@ -92,8 +92,8 @@ const Home = () => {
         <h2>Nuestras Categorías</h2>
         <div className="categories-grid">
           {categories.map((category, index) => (
-            <div 
-              key={index} 
+            <div
+              key={index}
               className="category-card"
               onClick={() => navigate('/products')}
             >
@@ -112,8 +112,8 @@ const Home = () => {
         ) : featuredProducts.length > 0 ? (
           <div className="products-grid">
             {featuredProducts.map((product) => (
-              <div 
-                key={product.id} 
+              <div
+                key={product.id}
                 className="product-card"
                 onClick={() => navigate(`/products/${product.id}`)}
                 style={{ cursor: 'pointer' }}
