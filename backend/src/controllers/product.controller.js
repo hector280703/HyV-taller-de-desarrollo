@@ -64,13 +64,18 @@ export async function getProduct(req, res) {
 
 export async function getProducts(req, res) {
   try {
-    const [products, errorProducts] = await getProductsService();
+    const { search, categoria, page, limit } = req.query;
+
+    const [data, errorProducts] = await getProductsService({
+      search,
+      categoria,
+      page,
+      limit,
+    });
 
     if (errorProducts) return handleErrorClient(res, 404, errorProducts);
 
-    products.length === 0
-      ? handleSuccess(res, 204)
-      : handleSuccess(res, 200, "Productos encontrados", products);
+    handleSuccess(res, 200, "Productos encontrados", data);
   } catch (error) {
     handleErrorServer(res, 500, error.message);
   }

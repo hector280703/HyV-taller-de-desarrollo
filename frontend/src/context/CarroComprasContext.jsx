@@ -45,7 +45,8 @@ export const CarroComprasProvider = ({ children }) => {
   // Validar stock al cargar el carrito
   const validarStockCarrito = async (carrito, carritoKey) => {
     try {
-      const productos = await getProducts();
+      const response = await getProducts({ limit: 100 });
+      const productos = response.products || [];
       const productosEliminados = [];
       const carritoActualizado = [];
 

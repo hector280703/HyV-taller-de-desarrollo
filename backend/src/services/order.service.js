@@ -296,7 +296,18 @@ export async function cancelOrderService(orderId, userId, userRole) {
     order.estado = "cancelado";
     const canceledOrder = await orderRepository.save(order);
 
-    return [canceledOrder, null];
+    // Obtener orden completa con relaciones para el email
+    const orderComplete = await orderRepository.findOne({
+      where: { id: canceledOrder.id },
+      relations: ["orderItems", "orderItems.product", "user"],
+    });
+
+    // Enviar email de cancelación al cliente (no bloquea la respuesta)
+    sendOrderStatusUpdateEmail(orderComplete, "pendiente").catch((err) => {
+      console.error("Error al enviar email de cancelación:", err);
+    });
+
+    return [orderComplete, null];
   } catch (error) {
     console.error("Error al cancelar orden:", error);
     return [null, "Error interno del servidor"];

@@ -1,13 +1,21 @@
 import axios from './root.service.js';
 
-export async function getProducts() {
+export async function getProducts(filters = {}) {
     try {
-        const { data } = await axios.get('/product/');
-        // Asegurarse de devolver siempre un array
-        return Array.isArray(data.data) ? data.data : [];
+        const params = new URLSearchParams();
+        if (filters.search) params.append('search', filters.search);
+        if (filters.categoria) params.append('categoria', filters.categoria);
+        if (filters.page) params.append('page', filters.page);
+        if (filters.limit) params.append('limit', filters.limit);
+
+        const queryString = params.toString();
+        const url = `/product/${queryString ? `?${queryString}` : ''}`;
+
+        const { data } = await axios.get(url);
+        return data.data || { products: [], total: 0, page: 1, totalPages: 0 };
     } catch (error) {
         console.error('Error en getProducts:', error);
-        return [];
+        return { products: [], total: 0, page: 1, totalPages: 0 };
     }
 }
 

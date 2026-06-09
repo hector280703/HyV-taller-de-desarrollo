@@ -93,19 +93,48 @@ export async function getProductService(query) {
   }
 }
 
-export async function getProductsService() {
+export async function getProductsService(filters = {}) {
   try {
     const productRepository = AppDataSource.getRepository(Product);
+    const { search, categoria, page = 1, limit = 12 } = filters;
 
-    const products = await productRepository.find({
-      order: {
-        createdAt: "DESC",
-      },
-    });
+    const queryBuilder = productRepository.createQueryBuilder("product");
 
-    if (!products || products.length === 0) return [null, "No hay productos"];
+    // Búsqueda por nombre o código (ILIKE para case-insensitive)
+    if (search && search.trim() !== "") {
+      queryBuilder.andWhere(
+        "(product.nombre ILIKE :search OR product.codigo ILIKE :search)",
+        { search: `%${search.trim()}%` }
+      );
+    }
 
-    return [products, null];
+    // Filtro por categoría
+    if (categoria && categoria.trim() !== "") {
+      queryBuilder.andWhere("product.categoria = :categoria", { categoria: categoria.trim() });
+    }
+
+    // Ordenar por fecha de creación descendente
+    queryBuilder.orderBy("product.createdAt", "DESC");
+
+    // Contar total antes de paginar
+    const total = await queryBuilder.getCount();
+
+    // Aplicar paginación
+    const pageNum = Math.max(1, parseInt(page));
+    const limitNum = Math.max(1, Math.min(100, parseInt(limit)));
+    const totalPages = Math.ceil(total / limitNum);
+
+    queryBuilder.skip((pageNum - 1) * limitNum).take(limitNum);
+
+    const products = await queryBuilder.getMany();
+
+    return [{
+      products,
+      total,
+      page: pageNum,
+      totalPages,
+      limit: limitNum,
+    }, null];
   } catch (error) {
     console.error("Error al obtener los productos:", error);
     return [null, "Error interno del servidor"];

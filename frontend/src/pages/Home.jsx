@@ -12,9 +12,9 @@ const Home = () => {
   useEffect(() => {
     const fetchFeaturedProducts = async () => {
       try {
-        const products = await getProducts();
+        const response = await getProducts({ limit: 6 });
         // Obtener los primeros 6 productos para la sección destacada
-        setFeaturedProducts(products.slice(0, 6));
+        setFeaturedProducts(response.products || []);
       } catch (error) {
         console.error('Error al cargar productos:', error);
       } finally {
