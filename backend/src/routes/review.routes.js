@@ -6,12 +6,14 @@ import {
   getUserReviewForProduct,
   updateReview,
   deleteReview,
+  canReviewProduct,
 } from "../controllers/review.controller.js";
 import { authenticateJwt } from "../middlewares/authentication.middleware.js";
 
 const router = Router();
 
 router
+  .get("/can-review/:productId", authenticateJwt, canReviewProduct)
   .post("/", authenticateJwt, createReview)
   .get("/product/:productId", getReviewsByProduct)
   .get("/product/:productId/user", authenticateJwt, getUserReviewForProduct)

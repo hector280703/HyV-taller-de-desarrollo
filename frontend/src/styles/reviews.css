@@ -279,6 +279,22 @@
   margin: 0;
 }
 
+/* Review Not Eligible */
+.review-not-eligible {
+  text-align: center;
+  padding: 1.5rem 2rem;
+  background: #e8f4fd;
+  border: 1px solid #bee5eb;
+  border-radius: 8px;
+}
+
+.review-not-eligible p {
+  font-size: 1.05rem;
+  color: #0c5460;
+  margin: 0;
+  font-weight: 500;
+}
+
 /* Reviews List */
 .reviews-list {
   margin-top: 2rem;

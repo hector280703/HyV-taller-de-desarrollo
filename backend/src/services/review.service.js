@@ -3,6 +3,43 @@ import { AppDataSource } from "../config/configDb.js";
 import ReviewSchema from "../entity/review.entity.js";
 import ProductSchema from "../entity/product.entity.js";
 import UserSchema from "../entity/user.entity.js";
+import OrderSchema from "../entity/order.entity.js";
+import OrderItemSchema from "../entity/orderItem.entity.js";
+
+async function hasReceivedProduct(userId, productId) {
+  const orderRepository = AppDataSource.getRepository(OrderSchema);
+
+  const deliveredOrder = await orderRepository
+    .createQueryBuilder("order")
+    .innerJoin("order.orderItems", "item")
+    .where("order.user.id = :userId", { userId })
+    .andWhere("order.estado = :estado", { estado: "entregado" })
+    .andWhere("item.product.id = :productId", { productId })
+    .getOne();
+
+  return !!deliveredOrder;
+}
+
+export async function canUserReviewService(userId, productId) {
+  try {
+    const productRepository = AppDataSource.getRepository(ProductSchema);
+
+    const product = await productRepository.findOne({
+      where: { id: productId },
+    });
+
+    if (!product) {
+      return [null, "El producto no existe"];
+    }
+
+    const received = await hasReceivedProduct(userId, productId);
+
+    return [{ canReview: received }, null];
+  } catch (error) {
+    console.error("Error al verificar elegibilidad de reseña:", error);
+    return [null, "Error interno del servidor"];
+  }
+}
 
 export async function createReviewService(reviewData, userId) {
   try {
@@ -24,6 +61,13 @@ export async function createReviewService(reviewData, userId) {
 
     if (!user) {
       return [null, "El usuario no existe"];
+    }
+
+    // Verificar que el usuario haya recibido el producto antes de poder reseñar
+    const received = await hasReceivedProduct(userId, reviewData.productId);
+
+    if (!received) {
+      return [null, "Debes haber recibido este producto para poder dejar una reseña"];
     }
 
     const existingReview = await reviewRepository.findOne({

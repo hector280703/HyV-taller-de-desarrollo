@@ -8,6 +8,7 @@ import {
   getUserReviewForProduct,
   updateReview,
   deleteReview,
+  canReviewProduct,
 } from '@services/review.service.js';
 import '@styles/reviews.css';
 
@@ -19,6 +20,7 @@ const Reviews = ({ productId, user }) => {
   const [submitting, setSubmitting] = useState(false);
   const [avgRating, setAvgRating] = useState(0);
   const [totalReviews, setTotalReviews] = useState(0);
+  const [canReview, setCanReview] = useState(false);
   
   const [formData, setFormData] = useState({
     calificacion: 0,
@@ -29,6 +31,7 @@ const Reviews = ({ productId, user }) => {
     fetchReviews();
     if (user) {
       fetchUserReview();
+      fetchCanReview();
     }
   }, [productId, user]);
 
@@ -58,6 +61,16 @@ const Reviews = ({ productId, user }) => {
       }
     } catch (error) {
       console.error('Error al cargar reseña del usuario:', error);
+    }
+  };
+
+  const fetchCanReview = async () => {
+    try {
+      const data = await canReviewProduct(productId);
+      setCanReview(data?.canReview || false);
+    } catch (error) {
+      console.error('Error al verificar elegibilidad:', error);
+      setCanReview(false);
     }
   };
 
@@ -167,10 +180,16 @@ const Reviews = ({ productId, user }) => {
 
       {user ? (
         <div className="user-review-section">
-          {!userReview && !showForm && (
+          {!userReview && !showForm && canReview && (
             <button className="btn-write-review" onClick={() => setShowForm(true)}>
               ✍️ Escribir una reseña
             </button>
+          )}
+
+          {!userReview && !showForm && !canReview && (
+            <div className="review-not-eligible">
+              <p>📦 Debes haber recibido este producto para poder dejar una reseña</p>
+            </div>
           )}
 
           {userReview && !showForm && (

@@ -49,3 +49,13 @@ export async function deleteReview(reviewId) {
     throw error;
   }
 }
+
+export async function canReviewProduct(productId) {
+  try {
+    const { data } = await axios.get(`/review/can-review/${productId}`);
+    return data.data;
+  } catch (error) {
+    console.error('Error al verificar elegibilidad de reseña:', error);
+    throw error;
+  }
+}

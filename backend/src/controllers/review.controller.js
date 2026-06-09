@@ -5,6 +5,7 @@ import {
   getUserReviewForProductService,
   updateReviewService,
   deleteReviewService,
+  canUserReviewService,
 } from "../services/review.service.js";
 import {
   reviewBodyValidation,
@@ -180,6 +181,37 @@ export async function deleteReview(req, res) {
     }
 
     handleSuccess(res, 200, "Reseña eliminada correctamente", result);
+  } catch (error) {
+    handleErrorServer(res, 500, error.message);
+  }
+}
+
+export async function canReviewProduct(req, res) {
+  try {
+    const { productId } = req.params;
+    const userId = req.user.id;
+
+    const { error } = productIdValidation.validate({ productId: parseInt(productId) });
+
+    if (error) {
+      return handleErrorClient(
+        res,
+        400,
+        "Error de validación",
+        error.message
+      );
+    }
+
+    const [result, errorCheck] = await canUserReviewService(
+      userId,
+      parseInt(productId)
+    );
+
+    if (errorCheck) {
+      return handleErrorClient(res, 400, errorCheck);
+    }
+
+    handleSuccess(res, 200, "Verificación completada", result);
   } catch (error) {
     handleErrorServer(res, 500, error.message);
   }
