@@ -1,15 +1,27 @@
+import { useState } from 'react';
 import Form from './Form';
+import ImageUpload from './ImageUpload';
 import '@styles/popup.css';
 import CloseIcon from '@assets/XIcon.svg';
 import QuestionIcon from '@assets/QuestionCircleIcon.svg';
+
 
 export default function Popup({ show, setShow, data, action, isProductForm = false, isCreateMode = false }) {
     const userData = data && data.length > 0 ? data[0] : {};
     const productData = data && data.length > 0 ? data[0] : {};
 
+    // Estado para la URL de imagen (Cloudinary)
+    const [uploadedImageUrl, setUploadedImageUrl] = useState(productData.imagenUrl || '');
+    const [isUploading, setIsUploading] = useState(false);
+
     const handleSubmit = (formData) => {
-        action(formData);
+        // Inyectar la URL de la imagen subida a Cloudinary
+        const finalData = isProductForm
+            ? { ...formData, imagenUrl: uploadedImageUrl }
+            : formData;
+        action(finalData);
     };
+
 
     const patternRut = new RegExp(/^(?:(?:[1-9]\d{0}|[1-2]\d{1})(\.\d{3}){2}|[1-9]\d{6}|[1-2]\d{7}|29\.999\.999|29999999)-[\dkK]$/);
     
@@ -238,14 +250,19 @@ export default function Popup({ show, setShow, data, action, isProductForm = fal
             maxLength: 100,
         },
         {
-            label: "URL de Imagen",
+            label: "Imagen del producto",
             name: "imagenUrl",
-            defaultValue: productData.imagenUrl || "",
-            placeholder: 'https://ejemplo.com/imagen.jpg',
-            fieldType: 'input',
-            type: "text",
-            required: false,
+            fieldType: 'custom',
             fullWidth: true,
+            component: (
+                <ImageUpload
+                    key={productData.id || 'create'}
+                    currentImageUrl={productData.imagenUrl || ''}
+                    onImageUploaded={(url) => setUploadedImageUrl(url)}
+                    onUploadStart={() => setIsUploading(true)}
+                    onUploadEnd={() => setIsUploading(false)}
+                />
+            ),
         },
         {
             label: "Estado",

@@ -1,0 +1,153 @@
+/* ─── Image Upload Component ──────────────────────────────────────────────── */
+
+.image-upload-wrapper {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+/* ─── Drop Zone ─────────────────────────────────────────────────────────── */
+.image-upload-dropzone {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    min-height: 140px;
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    background: #f8fafc;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease, transform 0.15s ease;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.image-upload-dropzone:hover {
+    border-color: #6366f1;
+    background: #f0f0ff;
+}
+
+.image-upload-dropzone.drag-over {
+    border-color: #6366f1;
+    background: #ede9fe;
+    transform: scale(1.01);
+}
+
+.image-upload-dropzone.uploading {
+    cursor: default;
+    border-color: #a5b4fc;
+    background: #f0f0ff;
+}
+
+.image-upload-icon {
+    font-size: 2.2rem;
+    line-height: 1;
+    filter: grayscale(0.2);
+}
+
+.image-upload-text {
+    font-size: 0.88rem;
+    color: #475569;
+    text-align: center;
+    margin: 0;
+}
+
+.image-upload-link {
+    color: #6366f1;
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+.image-upload-hint {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    text-align: center;
+    margin: 0;
+}
+
+/* ─── Preview Container ─────────────────────────────────────────────────── */
+.image-upload-preview-container {
+    position: relative;
+    width: 100%;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    max-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.image-upload-preview {
+    width: 100%;
+    max-height: 200px;
+    object-fit: contain;
+    display: block;
+}
+
+/* ─── Overlay mientras se sube ──────────────────────────────────────────── */
+.image-upload-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.82);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 0.85rem;
+    color: #6366f1;
+    font-weight: 600;
+    backdrop-filter: blur(2px);
+}
+
+/* ─── Spinner ───────────────────────────────────────────────────────────── */
+.image-upload-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid #e0e7ff;
+    border-top-color: #6366f1;
+    border-radius: 50%;
+    animation: spin 0.75s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ─── Remove Button ─────────────────────────────────────────────────────── */
+.image-upload-remove-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(0, 0, 0, 0.55);
+    color: #fff;
+    font-size: 0.8rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.image-upload-remove-btn:hover {
+    background: #ef4444;
+    transform: scale(1.1);
+}
+
+/* ─── Error message ─────────────────────────────────────────────────────── */
+.image-upload-error {
+    font-size: 0.78rem;
+    color: #ef4444;
+    margin: 0;
+    padding-left: 4px;
+}
