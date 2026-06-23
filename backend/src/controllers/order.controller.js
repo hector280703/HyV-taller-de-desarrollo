@@ -6,6 +6,8 @@ import {
   updateOrderStatusService,
   cancelOrderService,
   getOrderStatsService,
+  calcularCostoEnvio,
+  getZonasEnvio,
 } from "../services/order.service.js";
 import {
   handleErrorClient,
@@ -158,6 +160,35 @@ export async function getOrderStats(req, res) {
     }
 
     handleSuccess(res, 200, "Estadísticas obtenidas exitosamente", stats);
+  } catch (error) {
+    handleErrorServer(res, 500, error.message);
+  }
+}
+
+export async function getShippingZones(req, res) {
+  try {
+    const zonas = getZonasEnvio();
+    handleSuccess(res, 200, "Zonas de envío obtenidas", zonas);
+  } catch (error) {
+    handleErrorServer(res, 500, error.message);
+  }
+}
+
+export async function calculateShipping(req, res) {
+  try {
+    const { zona, pesoTotal } = req.query;
+
+    if (!zona || !pesoTotal) {
+      return handleErrorClient(res, 400, "Se requiere zona y pesoTotal");
+    }
+
+    const resultado = calcularCostoEnvio(zona, parseFloat(pesoTotal));
+
+    if (resultado.error) {
+      return handleErrorClient(res, 400, resultado.error);
+    }
+
+    handleSuccess(res, 200, "Costo de envío calculado", resultado);
   } catch (error) {
     handleErrorServer(res, 500, error.message);
   }

@@ -48,6 +48,18 @@ export const orderCreateValidation = Joi.object({
   notas: Joi.string().max(1000).allow("", null).messages({
     "string.max": "Las notas no deben exceder 1000 caracteres",
   }),
+  zonaEnvio: Joi.string()
+    .valid("local", "arauco", "biobio", "regional", "nacional")
+    .allow("", null)
+    .messages({
+      "any.only": "La zona de envío debe ser: local, arauco, biobio, regional o nacional",
+    }),
+  tipoEntrega: Joi.string()
+    .valid("retiro", "envio")
+    .default("envio")
+    .messages({
+      "any.only": "El tipo de entrega debe ser: retiro o envio",
+    }),
 }).messages({
   "object.base": "Los datos del pedido deben ser un objeto válido",
 });

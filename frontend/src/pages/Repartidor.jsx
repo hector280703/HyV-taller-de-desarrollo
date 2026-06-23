@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { getOrders, updateOrderStatus } from '@services/order.service';
 import { logout } from '@services/auth.service';
 import { showErrorAlert, showSuccessAlert, showConfirmAlert } from '@helpers/sweetAlert';
+import { formatPrice } from '@helpers/formatData';
 import '@styles/repartidor.css';
 
 function Repartidor() {
@@ -113,10 +114,7 @@ function Repartidor() {
   };
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('es-CL', {
-      style: 'currency',
-      currency: 'CLP',
-    }).format(amount);
+    return formatPrice(amount);
   };
 
   const getNextStatus = (currentStatus) => {
@@ -130,6 +128,16 @@ function Repartidor() {
 
   const canUpdateStatus = (status) => {
     return ['pendiente', 'procesando', 'enviado'].includes(status);
+  };
+
+  const getMetodoPagoText = (metodo) => {
+    const metodos = {
+      efectivo: '💵 Efectivo (Pago contra entrega)',
+      transferencia: '🏦 Transferencia Bancaria',
+      tarjeta: '💳 Tarjeta de Crédito',
+      debito: '💳 Tarjeta de Débito',
+    };
+    return metodos[metodo] || metodo;
   };
 
   const handleLogout = () => {
@@ -212,12 +220,21 @@ function Repartidor() {
                     <span className="status-icon">{getStatusIcon(order.estado)}</span>
                     <span className="numero-orden">{order.numeroOrden}</span>
                   </div>
-                  <span className={`status-badge status-${order.estado}`}>
-                    {getStatusText(order.estado)}
-                  </span>
+                  <div className="header-badge-wrapper">
+                    <span className={`status-badge status-${order.estado}`}>
+                      {getStatusText(order.estado)}
+                    </span>
+                    <span className={`chevron-indicator ${selectedOrder?.id === order.id ? 'open' : ''}`}>▼</span>
+                  </div>
                 </div>
 
                 <div className="order-card-info">
+                  <div className="info-row">
+                    <span className="info-label">📦 Entrega:</span>
+                    <span className="info-value">
+                      <strong>{order.tipoEntrega === 'retiro' ? '🏢 Retiro en Tienda' : '🚚 Despacho a Domicilio'}</strong>
+                    </span>
+                  </div>
                   <div className="info-row">
                     <span className="info-label">👤 Cliente:</span>
                     <span className="info-value">{order.user?.nombreCompleto}</span>
@@ -229,7 +246,7 @@ function Repartidor() {
                     </span>
                   </div>
                   <div className="info-row">
-                    <span className="info-label">📍 Dirección:</span>
+                    <span className="info-label">📍 {order.tipoEntrega === 'retiro' ? 'Lugar de Retiro' : 'Dirección'}:</span>
                     <span className="info-value">{order.direccionEnvio}</span>
                   </div>
                   <div className="info-row">
@@ -268,6 +285,12 @@ function Repartidor() {
                             <span>-{formatCurrency(order.descuentoTotal)}</span>
                           </div>
                         )}
+                        {order.costoEnvio !== undefined && order.costoEnvio !== null && parseFloat(order.costoEnvio) > 0 && (
+                          <div className="total-row shipping">
+                            <span>Envío {order.zonaEnvio ? `(${order.zonaEnvio})` : ''}:</span>
+                            <span>{formatCurrency(order.costoEnvio)}</span>
+                          </div>
+                        )}
                         <div className="total-row final">
                           <span>Total:</span>
                           <span>{formatCurrency(order.total)}</span>
@@ -284,7 +307,7 @@ function Repartidor() {
 
                     <div className="order-payment">
                       <h3>💳 Método de Pago</h3>
-                      <p className="payment-method">{order.metodoPago}</p>
+                      <p className="payment-method">{getMetodoPagoText(order.metodoPago)}</p>
                     </div>
 
                     {canUpdateStatus(order.estado) && (

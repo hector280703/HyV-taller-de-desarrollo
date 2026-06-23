@@ -90,12 +90,21 @@
   transform: translateX(5px);
 }
 
-.order-item img {
+.order-item img,
+.order-item-placeholder {
   width: 80px;
   height: 80px;
   object-fit: cover;
   border-radius: 10px;
   flex-shrink: 0;
+}
+
+.order-item-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+  font-size: 2.2rem;
 }
 
 .item-details {
@@ -230,6 +239,162 @@
   border-color: #27ae60;
 }
 
+/* ===== Map Section ===== */
+.map-search-container {
+  position: relative;
+  margin-bottom: 0.8rem;
+}
+
+.map-search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.map-search-icon {
+  position: absolute;
+  left: 12px;
+  font-size: 1rem;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.map-search-input {
+  width: 100%;
+  padding: 0.85rem 2.5rem 0.85rem 2.5rem;
+  border: 2px solid #ecf0f1;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.map-search-input:focus {
+  outline: none;
+  border-color: #ff6b35;
+  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+}
+
+.map-search-loading {
+  position: absolute;
+  right: 40px;
+  font-size: 1rem;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.map-search-clear {
+  position: absolute;
+  right: 10px;
+  background: #ecf0f1;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.75rem;
+  color: #7f8c8d;
+  transition: all 0.2s ease;
+}
+
+.map-search-clear:hover {
+  background: #e74c3c;
+  color: white;
+}
+
+.map-search-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 2px solid #ecf0f1;
+  border-top: none;
+  border-radius: 0 0 12px 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.map-search-result-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.8rem 1rem;
+  border: none;
+  background: white;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  font-size: 0.88rem;
+  color: #2c3e50;
+  font-family: inherit;
+  border-bottom: 1px solid #f1f1f1;
+}
+
+.map-search-result-item:last-child {
+  border-bottom: none;
+}
+
+.map-search-result-item:hover {
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.08) 0%, rgba(247, 147, 30, 0.08) 100%);
+}
+
+.result-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.result-text {
+  line-height: 1.4;
+}
+
+.map-wrapper {
+  border-radius: 14px;
+  overflow: hidden;
+  border: 2px solid #ecf0f1;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  transition: border-color 0.3s ease;
+}
+
+.map-wrapper:hover {
+  border-color: #bdc3c7;
+}
+
+.checkout-map {
+  height: 320px;
+  width: 100%;
+  cursor: crosshair !important;
+  z-index: 1;
+}
+
+.map-hint {
+  padding: 0.7rem 1rem;
+  text-align: center;
+  font-size: 0.85rem;
+  background: #f8f9fa;
+  border-top: 1px solid #ecf0f1;
+}
+
+.map-hint-default {
+  color: #7f8c8d;
+}
+
+.map-hint-selected {
+  color: #27ae60;
+  font-weight: 600;
+}
+
 /* Checkout Actions */
 .checkout-actions {
   display: flex;
@@ -306,12 +471,160 @@
     font-size: 1.5rem;
   }
 
-  .order-item img {
+  .order-item img,
+  .order-item-placeholder {
     width: 60px;
     height: 60px;
+    font-size: 1.6rem;
   }
 
   .checkout-actions {
     flex-direction: column;
+  }
+
+  .checkout-map {
+    height: 250px;
+  }
+
+  .map-search-input {
+    font-size: 0.85rem;
+    padding: 0.7rem 2.2rem;
+  }
+}
+
+.total-row.shipping {
+  color: #2c3e50;
+  border-top: 1px dashed #ecf0f1;
+  padding-top: 0.5rem;
+}
+
+.shipping-detail-info {
+  text-align: right;
+  color: #7f8c8d;
+  font-size: 0.8rem;
+  margin-top: -0.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.loading-spinner-small {
+  animation: spin 1s linear infinite;
+  display: inline-block;
+}
+
+.text-muted {
+  color: #95a5a6;
+}
+
+/* Delivery Type Selector */
+.delivery-type-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.delivery-type-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 1.2rem 1rem;
+  border: 2px solid #ecf0f1;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.delivery-type-option input[type="radio"] {
+  margin-top: 0.3rem;
+  cursor: pointer;
+  accent-color: #ff6b35;
+}
+
+.delivery-type-option:hover {
+  border-color: #ff6b35;
+  background: #fffcf9;
+}
+
+.delivery-type-option.active {
+  border-color: #ff6b35;
+  background: #fffcf9;
+  box-shadow: 0 4px 15px rgba(255, 107, 53, 0.08);
+}
+
+.option-content {
+  display: flex;
+  gap: 0.8rem;
+}
+
+.option-icon {
+  font-size: 1.8rem;
+}
+
+.option-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.option-title {
+  font-weight: bold;
+  color: #2c3e50;
+  font-size: 1rem;
+}
+
+.option-desc {
+  font-size: 0.8rem;
+  color: #7f8c8d;
+  line-height: 1.3;
+}
+
+/* Pickup Address Card */
+.pickup-address-card {
+  background: #f8f9fa;
+  border: 2px solid #ecf0f1;
+  border-radius: 12px;
+  padding: 1.5rem;
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.pickup-address-text {
+  font-size: 1.1rem;
+  color: #2c3e50;
+  margin-bottom: 0.3rem;
+}
+
+.pickup-address-subtext {
+  color: #555;
+  font-size: 0.95rem;
+  margin-bottom: 0.8rem;
+}
+
+.pickup-schedule {
+  font-size: 0.85rem;
+  color: #7f8c8d;
+  background: #fff;
+  padding: 0.6rem;
+  border-radius: 8px;
+  border: 1px solid #ecf0f1;
+  line-height: 1.4;
+}
+
+.pickup-badge {
+  display: inline-block;
+  margin-top: 0.8rem;
+  background: #27ae60;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+@media (max-width: 600px) {
+  .delivery-type-selector {
+    grid-template-columns: 1fr;
   }
 }

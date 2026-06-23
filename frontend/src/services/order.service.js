@@ -68,3 +68,23 @@ export async function getOrderStats() {
     throw error.response?.data || error;
   }
 }
+
+export async function getShippingZones() {
+  try {
+    const response = await axios.get('/orders/shipping/zones');
+    return response.data;
+  } catch (error) {
+    console.error('Error al obtener zonas de envío:', error);
+    throw error.response?.data || error;
+  }
+}
+
+export async function calculateShipping(zona, pesoTotal) {
+  try {
+    const response = await axios.get(`/orders/shipping/calculate?zona=${zona}&pesoTotal=${pesoTotal}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error al calcular envío:', error);
+    throw error.response?.data || error;
+  }
+}

@@ -1,21 +1,290 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCarroCompras } from '../context/CarroComprasContext';
-import { createOrder } from '../services/order.service.js';
+import { createOrder, calculateShipping } from '../services/order.service.js';
 import { showErrorAlert, showSuccessAlert } from '../helpers/sweetAlert.js';
+import { formatPrice } from '../helpers/formatData.js';
+import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import '../styles/checkout.css';
+
+// Fix para el ícono de Leaflet que no carga por defecto en bundlers
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+});
+
+// Ícono personalizado para el marcador de entrega
+const deliveryIcon = new L.Icon({
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+});
+
+// Componente para manejar clicks en el mapa
+function MapClickHandler({ onMapClick }) {
+  useMapEvents({
+    click: (e) => {
+      onMapClick(e.latlng);
+    },
+  });
+  return null;
+}
+
+// Componente para mover el mapa a una ubicación
+function FlyToLocation({ position }) {
+  const map = useMap();
+  useEffect(() => {
+    if (position) {
+      map.flyTo(position, 16, { duration: 1.5 });
+    }
+  }, [position, map]);
+  return null;
+}
+
+// Coordenadas del centro de Laraquete
+const LARAQUETE_COORDS = { lat: -37.1653, lng: -73.1835 };
+
+// Calcular distancia en Km entre dos puntos usando la fórmula de Haversine
+function getDistanceKm(lat1, lon1, lat2, lon2) {
+  const R = 6371; // Radio de la Tierra en km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+// Determinar la zona de entrega basándose en la distancia y los detalles de la dirección
+function determinarZona(lat, lng, addressObj = {}) {
+  const dist = getDistanceKm(lat, lng, LARAQUETE_COORDS.lat, LARAQUETE_COORDS.lng);
+  
+  const county = (addressObj.county || '').toLowerCase();
+  const state = (addressObj.state || '').toLowerCase();
+  const city = (addressObj.city || addressObj.town || addressObj.village || addressObj.suburb || '').toLowerCase();
+
+  // 1. Local (Laraquete): distancia <= 6 km o ciudad/pueblo es Laraquete
+  if (city.includes('laraquete') || dist <= 6) {
+    return 'local';
+  }
+
+  // 2. Provincia de Arauco: si el county/comuna explícitamente dice Arauco
+  // o si está en la Región del Bío Bío y dist <= 35 km
+  if (county.includes('arauco') || ((state.includes('bío') || state.includes('bio')) && dist <= 35)) {
+    return 'arauco';
+  }
+
+  // Fallback de distancia corta si no hay detalles de dirección
+  if (!addressObj.country && dist <= 40) {
+    return 'arauco';
+  }
+
+  // 3. Región del Bío Bío: si el estado es Biobío / Bío Bío o la distancia es <= 180 km
+  if (state.includes('bío') || state.includes('bio') || dist <= 180) {
+    return 'biobio';
+  }
+
+  // Fallback si no hay dirección pero está dentro de 180 km
+  if (!addressObj.country && dist <= 180) {
+    return 'biobio';
+  }
+
+  // 4. Regional: Otras regiones cercanas a Biobío (distancia <= 500 km)
+  if (dist <= 500) {
+    return 'regional';
+  }
+
+  // 5. Nacional: Todo lo demás
+  return 'nacional';
+}
 
 export default function Checkout() {
   const navigate = useNavigate();
   const { carrito, totalCarrito, vaciarCarrito } = useCarroCompras();
   const [loading, setLoading] = useState(false);
   
+  // Estado del mapa
+  const [mapPosition, setMapPosition] = useState(null);
+  const [mapCenter] = useState([-37.1653, -73.1835]); // Laraquete, Chile
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showResults, setShowResults] = useState(false);
+  const searchTimeoutRef = useRef(null);
+  const searchContainerRef = useRef(null);
+
+  // Estados de costo de envío
+  const [shippingCost, setShippingCost] = useState(0);
+  const [shippingZone, setShippingZone] = useState('');
+  const [shippingZoneName, setShippingZoneName] = useState('');
+  const [shippingDetails, setShippingDetails] = useState(null);
+  const [loadingShipping, setLoadingShipping] = useState(false);
+
   const [formData, setFormData] = useState({
     direccionEnvio: '',
     telefonoContacto: '',
     metodoPago: 'efectivo',
     notas: '',
   });
+
+  const [tipoEntrega, setTipoEntrega] = useState('envio');
+
+  const calcularPesoTotal = () => {
+    return carrito.reduce((acc, item) => {
+      const peso = item.peso ? parseFloat(item.peso) : 1;
+      return acc + (peso * (item.quantity || item.cantidad));
+    }, 0);
+  };
+
+  // Cerrar resultados al hacer click fuera
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target)) {
+        setShowResults(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Escuchar cambios de mapPosition para geocodificación inversa y cálculo de envío
+  useEffect(() => {
+    if (tipoEntrega === 'retiro') {
+      setShippingCost(0);
+      setShippingZone('');
+      setShippingZoneName('Retiro en tienda');
+      setShippingDetails(null);
+      return;
+    }
+
+    if (mapPosition) {
+      const [lat, lng] = mapPosition;
+      
+      const fetchAddressAndCalculate = async () => {
+        setLoadingShipping(true);
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=es`,
+            { headers: { 'User-Agent': 'HyV-Construcciones-App' } }
+          );
+          
+          let address = {};
+          let displayName = `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`;
+          
+          if (response.ok) {
+            const data = await response.json();
+            address = data?.address || {};
+            displayName = data?.display_name || displayName;
+          }
+          
+          setFormData(prev => ({
+            ...prev,
+            direccionEnvio: displayName,
+          }));
+          setSearchQuery(displayName);
+
+          const pesoTotal = calcularPesoTotal();
+          const zona = determinarZona(lat, lng, address);
+          setShippingZone(zona);
+          
+          const res = await calculateShipping(zona, pesoTotal);
+          if (res && res.data) {
+            setShippingCost(parseFloat(res.data.costoEnvio));
+            setShippingZoneName(res.data.zona);
+            setShippingDetails(res.data.detalle);
+          }
+        } catch (error) {
+          console.error('Error al actualizar envío:', error);
+          // Fallback con sólo distancia si falla el geocoding
+          const pesoTotal = calcularPesoTotal();
+          const zona = determinarZona(lat, lng, {});
+          setShippingZone(zona);
+          try {
+            const res = await calculateShipping(zona, pesoTotal);
+            if (res && res.data) {
+              setShippingCost(parseFloat(res.data.costoEnvio));
+              setShippingZoneName(res.data.zona);
+              setShippingDetails(res.data.detalle);
+            }
+          } catch (innerError) {
+            console.error('Error en cálculo de envío fallback:', innerError);
+          }
+        } finally {
+          setLoadingShipping(false);
+        }
+      };
+
+      fetchAddressAndCalculate();
+    } else {
+      setShippingCost(0);
+      setShippingZone('');
+      setShippingZoneName('');
+      setShippingDetails(null);
+    }
+  }, [mapPosition, tipoEntrega]);
+
+  // Búsqueda de direcciones con Nominatim
+  const searchAddress = useCallback(async (query) => {
+    if (!query || query.trim().length < 3) {
+      setSearchResults([]);
+      setShowResults(false);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query + ', Chile')}&limit=5&addressdetails=1&accept-language=es`,
+        { headers: { 'User-Agent': 'HyV-Construcciones-App' } }
+      );
+      const data = await response.json();
+      setSearchResults(data || []);
+      setShowResults(data && data.length > 0);
+    } catch (error) {
+      console.error('Error buscando dirección:', error);
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  }, []);
+
+  // Debounce para la búsqueda
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    searchTimeoutRef.current = setTimeout(() => {
+      searchAddress(value);
+    }, 500);
+  };
+
+  // Seleccionar resultado de búsqueda
+  const handleSelectResult = (result) => {
+    const lat = parseFloat(result.lat);
+    const lng = parseFloat(result.lon);
+    setMapPosition([lat, lng]);
+    setShowResults(false);
+    setSearchResults([]);
+  };
+
+  // Click en el mapa
+  const handleMapClick = (latlng) => {
+    setMapPosition([latlng.lat, latlng.lng]);
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -34,14 +303,25 @@ export default function Checkout() {
       return;
     }
 
-    // Validación de dirección
-    const direccion = formData.direccionEnvio.trim();
-    if (!direccion || direccion.length < 10) {
-      showErrorAlert('Dirección inválida', 'La dirección debe tener al menos 10 caracteres y ser descriptiva (calle, número, comuna, ciudad)');
-      return;
+    // Dirección de envío / retiro
+    let direccion = '';
+    if (tipoEntrega === 'retiro') {
+      direccion = "Retiro en Tienda: La Cantera N°5, Laraquete, Arauco, Región del Bío Bío";
+    } else {
+      direccion = formData.direccionEnvio.trim();
+      if (!direccion || direccion.length < 10) {
+        showErrorAlert('Dirección inválida', 'La dirección debe tener al menos 10 caracteres. Usa el mapa o escribe la dirección completa.');
+        return;
+      }
+      if (direccion.length > 500) {
+        showErrorAlert('Dirección muy larga', 'La dirección no debe exceder 500 caracteres');
+        return;
+      }
     }
-    if (direccion.length > 500) {
-      showErrorAlert('Dirección muy larga', 'La dirección no debe exceder 500 caracteres');
+
+    // Validación de ubicación en mapa (solo si es envío)
+    if (tipoEntrega === 'envio' && !mapPosition) {
+      showErrorAlert('Ubicación requerida', 'Haz clic en el mapa o busca una dirección para marcar el punto de entrega.');
       return;
     }
 
@@ -77,12 +357,19 @@ export default function Checkout() {
         cantidad: item.quantity || item.cantidad
       }));
 
+      // Incluir coordenadas en la dirección si es despacho a domicilio
+      const coordsInfo = (tipoEntrega === 'envio' && mapPosition)
+        ? ` [📍 ${mapPosition[0].toFixed(6)}, ${mapPosition[1].toFixed(6)}]`
+        : '';
+
       const orderData = {
         items,
         metodoPago: formData.metodoPago,
-        direccionEnvio: direccion,
+        direccionEnvio: direccion + coordsInfo,
         telefonoContacto: telefono,
         notas: formData.notas?.trim() || undefined,
+        zonaEnvio: tipoEntrega === 'envio' ? (shippingZone || undefined) : undefined,
+        tipoEntrega,
       };
 
       const response = await createOrder(orderData);
@@ -139,7 +426,11 @@ export default function Checkout() {
               const precioConDescuento = item.precio - (item.precio * (item.descuento || 0) / 100);
               return (
                 <div key={item.id} className="order-item">
-                  <img src={item.imagenes?.[0] || '/placeholder.png'} alt={item.nombre} />
+                  {item.imagenUrl ? (
+                    <img src={item.imagenUrl} alt={item.nombre} />
+                  ) : (
+                    <div className="order-item-placeholder">📦</div>
+                  )}
                   <div className="item-details">
                     <h4>{item.nombre}</h4>
                     <p>Cantidad: {item.quantity || item.cantidad}</p>
@@ -149,10 +440,10 @@ export default function Checkout() {
                   </div>
                   <div className="item-price">
                     {item.descuento > 0 && (
-                      <span className="price-original">${item.precio.toLocaleString('es-CL')}</span>
+                      <span className="price-original">{formatPrice(item.precio)}</span>
                     )}
                     <span className="price-final">
-                      ${precioConDescuento.toLocaleString('es-CL')}
+                      {formatPrice(precioConDescuento)}
                     </span>
                   </div>
                 </div>
@@ -163,41 +454,200 @@ export default function Checkout() {
           <div className="order-totals">
             <div className="total-row">
               <span>Subtotal:</span>
-              <span>${calcularSubtotal().toLocaleString('es-CL')}</span>
+              <span>{formatPrice(calcularSubtotal())}</span>
             </div>
             {calcularDescuentos() > 0 && (
               <div className="total-row discount">
                 <span>Descuentos:</span>
-                <span>-${calcularDescuentos().toLocaleString('es-CL')}</span>
+                <span>-{formatPrice(calcularDescuentos())}</span>
+              </div>
+            )}
+            <div className="total-row shipping">
+              <span>Envío ({shippingZoneName || 'No seleccionado'}):</span>
+              <span>
+                {loadingShipping ? (
+                  <span className="loading-spinner-small">⏳</span>
+                ) : tipoEntrega === 'retiro' ? (
+                  formatPrice(0)
+                ) : mapPosition ? (
+                  formatPrice(shippingCost)
+                ) : (
+                  <em className="text-muted">Seleccione ubicación</em>
+                )}
+              </span>
+            </div>
+            {shippingDetails && tipoEntrega !== 'retiro' && (
+              <div className="shipping-detail-info">
+                <small>
+                  Peso total: {shippingDetails.pesoTotal?.toFixed(2)} kg 
+                  {shippingDetails.pesoGratis > 0 && ` (Incluye ${shippingDetails.pesoGratis} kg gratis)`}
+                </small>
               </div>
             )}
             <div className="total-row total">
-              <span>Total:</span>
-              <span>${totalCarrito.toLocaleString('es-CL')}</span>
+              <span>Total a Pagar:</span>
+              <span>{formatPrice(totalCarrito + (tipoEntrega === 'retiro' ? 0 : shippingCost))}</span>
             </div>
           </div>
         </div>
 
         <div className="checkout-form-container">
-          <h2>Información de Envío</h2>
+          <h2>Información de Envío / Entrega</h2>
           <form onSubmit={handleSubmit} className="checkout-form">
+            
+            {/* Método de Entrega */}
             <div className="form-group">
-              <label htmlFor="direccionEnvio">Dirección de Envío *</label>
-              <textarea
-                id="direccionEnvio"
-                name="direccionEnvio"
-                value={formData.direccionEnvio}
-                onChange={handleChange}
-                placeholder="Ej: Av. Libertador 1234, Depto 501, Viña del Mar, Región de Valparaíso"
-                required
-                minLength={10}
-                maxLength={500}
-                rows={3}
-              />
-              <small className="form-help">
-                Incluye calle, número, depto/casa, comuna y ciudad ({formData.direccionEnvio.length}/500)
-              </small>
+              <label>📦 Método de Entrega *</label>
+              <div className="delivery-type-selector">
+                <label className={`delivery-type-option ${tipoEntrega === 'envio' ? 'active' : ''}`}>
+                  <input
+                    type="radio"
+                    name="tipoEntrega"
+                    value="envio"
+                    checked={tipoEntrega === 'envio'}
+                    onChange={() => setTipoEntrega('envio')}
+                  />
+                  <div className="option-content">
+                    <span className="option-icon">🚚</span>
+                    <div className="option-text">
+                      <span className="option-title">Despacho a Domicilio</span>
+                      <span className="option-desc">Recibe en tu dirección (costo según zona y peso)</span>
+                    </div>
+                  </div>
+                </label>
+                
+                <label className={`delivery-type-option ${tipoEntrega === 'retiro' ? 'active' : ''}`}>
+                  <input
+                    type="radio"
+                    name="tipoEntrega"
+                    value="retiro"
+                    checked={tipoEntrega === 'retiro'}
+                    onChange={() => setTipoEntrega('retiro')}
+                  />
+                  <div className="option-content">
+                    <span className="option-icon">🏢</span>
+                    <div className="option-text">
+                      <span className="option-title">Retiro en Tienda</span>
+                      <span className="option-desc">Retira gratis en nuestro local (Laraquete)</span>
+                    </div>
+                  </div>
+                </label>
+              </div>
             </div>
+
+            {tipoEntrega === 'envio' ? (
+              <>
+                {/* Sección del Mapa */}
+                <div className="form-group">
+                  <label>📍 Ubicación de Entrega *</label>
+                  <div className="map-search-container" ref={searchContainerRef}>
+                    <div className="map-search-input-wrapper">
+                      <span className="map-search-icon">🔍</span>
+                      <input
+                        type="text"
+                        className="map-search-input"
+                        value={searchQuery}
+                        onChange={handleSearchChange}
+                        onFocus={() => searchResults.length > 0 && setShowResults(true)}
+                        placeholder="Buscar dirección... (ej: Av. O'Higgins 500, Concepción)"
+                      />
+                      {isSearching && <span className="map-search-loading">⏳</span>}
+                      {searchQuery && (
+                        <button
+                          type="button"
+                          className="map-search-clear"
+                          onClick={() => {
+                            setSearchQuery('');
+                            setSearchResults([]);
+                            setShowResults(false);
+                          }}
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+                    
+                    {/* Resultados de búsqueda */}
+                    {showResults && searchResults.length > 0 && (
+                      <div className="map-search-results">
+                        {searchResults.map((result, index) => (
+                          <button
+                            key={index}
+                            type="button"
+                            className="map-search-result-item"
+                            onClick={() => handleSelectResult(result)}
+                          >
+                            <span className="result-icon">📍</span>
+                            <span className="result-text">{result.display_name}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="map-wrapper">
+                    <MapContainer
+                      center={mapCenter}
+                      zoom={13}
+                      className="checkout-map"
+                      scrollWheelZoom={true}
+                    >
+                      <TileLayer
+                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      />
+                      <MapClickHandler onMapClick={handleMapClick} />
+                      {mapPosition && (
+                        <>
+                          <FlyToLocation position={mapPosition} />
+                          <Marker position={mapPosition} icon={deliveryIcon} />
+                        </>
+                      )}
+                    </MapContainer>
+                    <div className="map-hint">
+                      {mapPosition ? (
+                        <span className="map-hint-selected">
+                          ✅ Ubicación seleccionada — Haz clic en otro punto para cambiar
+                        </span>
+                      ) : (
+                        <span className="map-hint-default">
+                          👆 Haz clic en el mapa o busca una dirección para marcar el punto de entrega
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Dirección (se llena automáticamente o se puede editar) */}
+                <div className="form-group">
+                  <label htmlFor="direccionEnvio">Dirección de Envío *</label>
+                  <textarea
+                    id="direccionEnvio"
+                    name="direccionEnvio"
+                    value={formData.direccionEnvio}
+                    onChange={handleChange}
+                    placeholder="Selecciona en el mapa o escribe la dirección completa..."
+                    required
+                    minLength={10}
+                    maxLength={500}
+                    rows={3}
+                  />
+                  <small className="form-help">
+                    Se completa automáticamente al seleccionar en el mapa. Puedes editarla para agregar detalles ({formData.direccionEnvio.length}/500)
+                  </small>
+                </div>
+              </>
+            ) : (
+              <div className="form-group pickup-address-display">
+                <label>🏢 Dirección de Retiro</label>
+                <div className="pickup-address-card">
+                  <p className="pickup-address-text"><strong>HyV Construcciones</strong></p>
+                  <p className="pickup-address-subtext">La Cantera N°5, Laraquete, Arauco, Región del Bío Bío</p>
+                  <p className="pickup-schedule"><strong>Horario de atención:</strong> Lunes a Viernes: 08:30 - 18:30 | Sábado: 09:00 - 14:00</p>
+                  <span className="pickup-badge">✓ Retiro Gratis</span>
+                </div>
+              </div>
+            )}
 
             <div className="form-group">
               <label htmlFor="telefonoContacto">Teléfono de Contacto *</label>

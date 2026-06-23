@@ -2,7 +2,246 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getOrders, updateOrderStatus, getOrderStats } from '../services/order.service.js';
 import { showErrorAlert, showSuccessAlert } from '../helpers/sweetAlert.js';
+import { formatPrice } from '../helpers/formatData.js';
 import '../styles/adminOrders.css';
+
+// Utilidad para exportar a CSV
+const exportToCSV = (stats, orders) => {
+  const lines = [];
+  const fecha = new Date().toLocaleDateString('es-CL');
+  const hora = new Date().toLocaleTimeString('es-CL');
+
+  lines.push('INFORME DE ESTADÍSTICAS - HyV Construcciones');
+  lines.push(`Generado el: ${fecha} a las ${hora}`);
+  lines.push('');
+
+  // Resumen general
+  lines.push('=== RESUMEN GENERAL ===');
+  lines.push(`Ventas Hoy,$${stats.ventasHoy || 0}`);
+  lines.push(`Ventas Totales,$${stats.ventasTotales || 0}`);
+  lines.push(`Pedidos Hoy,${stats.pedidosHoy || 0}`);
+  lines.push(`Total Pedidos,${stats.totalPedidos || 0}`);
+  lines.push('');
+
+  // Ventas últimos 7 días
+  lines.push('=== VENTAS ÚLTIMOS 7 DÍAS ===');
+  lines.push('Fecha,Día,Total Ventas,Cantidad Pedidos');
+  if (stats.ventasSemana) {
+    stats.ventasSemana.forEach(dia => {
+      lines.push(`${dia.fecha},${dia.dia},$${dia.total},${dia.cantidad}`);
+    });
+  }
+  lines.push('');
+
+  // Top productos
+  lines.push('=== TOP 5 PRODUCTOS MÁS VENDIDOS ===');
+  lines.push('Posición,Producto,Unidades Vendidas,Ingresos Totales');
+  if (stats.topProductos) {
+    stats.topProductos.forEach((prod, i) => {
+      lines.push(`${i + 1},"${prod.nombre}",${prod.totalVendido},$${prod.totalIngresos}`);
+    });
+  }
+  lines.push('');
+
+  // Pedidos por estado
+  lines.push('=== PEDIDOS POR ESTADO ===');
+  lines.push('Estado,Cantidad');
+  if (stats.pedidosPorEstado) {
+    stats.pedidosPorEstado.forEach(item => {
+      lines.push(`${item.estado},${item.cantidad}`);
+    });
+  }
+  lines.push('');
+
+  // Detalle de órdenes
+  lines.push('=== DETALLE DE ÓRDENES ===');
+  lines.push('Nº Orden,Cliente,Email,Fecha,Total,Estado,Método Pago,Dirección');
+  orders.forEach(order => {
+    const fecha = new Date(order.createdAt).toLocaleDateString('es-CL');
+    lines.push(
+      `"${order.numeroOrden}","${order.user?.nombreCompleto || ''}","${order.user?.email || ''}",${fecha},$${order.total},"${order.estado}","${order.metodoPago}","${(order.direccionEnvio || '').replace(/"/g, '""')}"`
+    );
+  });
+
+  const BOM = '\uFEFF';
+  const csvContent = BOM + lines.join('\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `informe_hyv_${new Date().toISOString().split('T')[0]}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
+
+// Utilidad para exportar a PDF (generado con canvas/HTML puro)
+const exportToPDF = (stats, orders, formatPriceFn) => {
+  const fecha = new Date().toLocaleDateString('es-CL', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+  });
+  const hora = new Date().toLocaleTimeString('es-CL');
+
+  // Calcular estadísticas por estado
+  const estadoResumen = {};
+  if (stats.pedidosPorEstado) {
+    stats.pedidosPorEstado.forEach(item => {
+      estadoResumen[item.estado] = parseInt(item.cantidad);
+    });
+  }
+
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+      <meta charset="UTF-8">
+      <title>Informe HyV Construcciones</title>
+      <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; color: #2c3e50; padding: 40px; background: white; }
+        .header { text-align: center; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 4px solid #ff6b35; }
+        .header h1 { font-size: 28px; color: #2c3e50; margin-bottom: 5px; }
+        .header .subtitle { font-size: 18px; color: #ff6b35; font-weight: 600; }
+        .header .date { font-size: 13px; color: #7f8c8d; margin-top: 10px; }
+        .section { margin-bottom: 30px; }
+        .section h2 { font-size: 18px; color: #ff6b35; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #ecf0f1; }
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px; }
+        .stat-box { background: #f8f9fa; border-radius: 10px; padding: 15px; text-align: center; border: 1px solid #ecf0f1; }
+        .stat-box .label { font-size: 11px; color: #7f8c8d; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; }
+        .stat-box .value { font-size: 22px; font-weight: bold; color: #2c3e50; margin-top: 5px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
+        th { background: #2c3e50; color: white; padding: 10px 12px; text-align: left; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+        td { padding: 8px 12px; border-bottom: 1px solid #ecf0f1; }
+        tr:nth-child(even) { background: #f8f9fa; }
+        .badge { padding: 3px 10px; border-radius: 12px; font-size: 10px; font-weight: bold; text-transform: uppercase; color: white; }
+        .badge-pendiente { background: #f39c12; }
+        .badge-procesando { background: #3498db; }
+        .badge-enviado { background: #9b59b6; }
+        .badge-entregado { background: #27ae60; }
+        .badge-cancelado { background: #e74c3c; }
+        .footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 2px solid #ecf0f1; color: #7f8c8d; font-size: 11px; }
+        @media print { body { padding: 20px; } .no-print { display: none; } }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <h1>📊 HyV Construcciones</h1>
+        <div class="subtitle">Informe de Estadísticas y Rendimiento</div>
+        <div class="date">Generado el ${fecha} a las ${hora}</div>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="label">💰 Ventas Hoy</div>
+          <div class="value">${formatPriceFn(stats.ventasHoy)}</div>
+        </div>
+        <div class="stat-box">
+          <div class="label">💎 Ventas Totales</div>
+          <div class="value">${formatPriceFn(stats.ventasTotales)}</div>
+        </div>
+        <div class="stat-box">
+          <div class="label">📦 Pedidos Hoy</div>
+          <div class="value">${stats.pedidosHoy || 0}</div>
+        </div>
+        <div class="stat-box">
+          <div class="label">📋 Total Pedidos</div>
+          <div class="value">${stats.totalPedidos || 0}</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>📈 Ventas Últimos 7 Días</h2>
+        <table>
+          <thead><tr><th>Fecha</th><th>Día</th><th>Total Ventas</th><th>Nº Pedidos</th></tr></thead>
+          <tbody>
+            ${(stats.ventasSemana || []).map(dia => `
+              <tr>
+                <td>${dia.fecha}</td>
+                <td style="text-transform:capitalize">${dia.dia}</td>
+                <td>${formatPriceFn(dia.total)}</td>
+                <td>${dia.cantidad}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="section">
+        <h2>🏆 Top 5 Productos Más Vendidos</h2>
+        <table>
+          <thead><tr><th>#</th><th>Producto</th><th>Uds. Vendidas</th><th>Ingresos</th></tr></thead>
+          <tbody>
+            ${(stats.topProductos || []).map((prod, i) => `
+              <tr>
+                <td><strong>${i + 1}</strong></td>
+                <td>${prod.nombre}</td>
+                <td>${prod.totalVendido}</td>
+                <td>${formatPriceFn(prod.totalIngresos)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="section">
+        <h2>📊 Distribución de Pedidos por Estado</h2>
+        <table>
+          <thead><tr><th>Estado</th><th>Cantidad</th><th>Porcentaje</th></tr></thead>
+          <tbody>
+            ${(stats.pedidosPorEstado || []).map(item => {
+              const percent = stats.totalPedidos > 0 ? ((parseInt(item.cantidad) / stats.totalPedidos) * 100).toFixed(1) : 0;
+              return `
+                <tr>
+                  <td><span class="badge badge-${item.estado}">${item.estado}</span></td>
+                  <td>${item.cantidad}</td>
+                  <td>${percent}%</td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="section">
+        <h2>📋 Detalle de Órdenes (${orders.length} total)</h2>
+        <table>
+          <thead><tr><th>Nº Orden</th><th>Cliente</th><th>Fecha</th><th>Total</th><th>Estado</th><th>Pago</th></tr></thead>
+          <tbody>
+            ${orders.slice(0, 50).map(order => {
+              const fechaOrden = new Date(order.createdAt).toLocaleDateString('es-CL');
+              return `
+                <tr>
+                  <td><strong>#${order.numeroOrden}</strong></td>
+                  <td>${order.user?.nombreCompleto || 'N/A'}</td>
+                  <td>${fechaOrden}</td>
+                  <td>${formatPriceFn(order.total)}</td>
+                  <td><span class="badge badge-${order.estado}">${order.estado}</span></td>
+                  <td>${order.metodoPago}</td>
+                </tr>
+              `;
+            }).join('')}
+            ${orders.length > 50 ? `<tr><td colspan="6" style="text-align:center;color:#7f8c8d;">... y ${orders.length - 50} órdenes más</td></tr>` : ''}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="footer">
+        <p>HyV Construcciones — La Cantera N°5, Laraquete, Arauco, Región del Bío Bío</p>
+        <p>Este informe fue generado automáticamente desde el panel de administración.</p>
+      </div>
+
+      <script>window.onload = function() { window.print(); }</script>
+    </body>
+    </html>
+  `;
+
+  const printWindow = window.open('', '_blank');
+  if (printWindow) {
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+  }
+};
 
 export default function AdminOrders() {
   const navigate = useNavigate();
@@ -76,6 +315,27 @@ export default function AdminOrders() {
       <div className="admin-header">
         <h1>📊 Panel de Administración</h1>
         <p className="admin-subtitle">Estadísticas, seguimiento de órdenes y rendimiento</p>
+        <div className="export-actions">
+          <button
+            className="btn-export btn-export-csv"
+            onClick={() => {
+              exportToCSV(stats, orders);
+              showSuccessAlert('Exportado', 'El informe CSV se ha descargado correctamente');
+            }}
+            disabled={!stats}
+            title="Descargar datos en formato CSV para análisis en Excel"
+          >
+            📄 Exportar CSV
+          </button>
+          <button
+            className="btn-export btn-export-pdf"
+            onClick={() => exportToPDF(stats, orders, formatPrice)}
+            disabled={!stats}
+            title="Generar informe visual en PDF para imprimir o compartir"
+          >
+            📑 Exportar PDF
+          </button>
+        </div>
       </div>
 
       {stats && (
@@ -86,7 +346,7 @@ export default function AdminOrders() {
               <div className="stat-icon">💰</div>
               <div className="stat-content">
                 <p className="stat-label">Ventas Hoy</p>
-                <p className="stat-value">${stats.ventasHoy?.toLocaleString('es-CL')}</p>
+                <p className="stat-value">{formatPrice(stats.ventasHoy)}</p>
               </div>
             </div>
 
@@ -94,7 +354,7 @@ export default function AdminOrders() {
               <div className="stat-icon">💎</div>
               <div className="stat-content">
                 <p className="stat-label">Ventas Totales</p>
-                <p className="stat-value">${stats.ventasTotales?.toLocaleString('es-CL')}</p>
+                <p className="stat-value">{formatPrice(stats.ventasTotales)}</p>
               </div>
             </div>
 
@@ -124,7 +384,7 @@ export default function AdminOrders() {
                 {stats.ventasSemana?.map((dia, index) => (
                   <div key={index} className="bar-group">
                     <div className="bar-value">
-                      {dia.total > 0 ? `$${Math.round(dia.total).toLocaleString('es-CL')}` : '-'}
+                      {dia.total > 0 ? formatPrice(dia.total) : '-'}
                     </div>
                     <div className="bar-wrapper">
                       <div
@@ -166,7 +426,7 @@ export default function AdminOrders() {
                               style={{ width: `${widthPercent}%` }}
                             ></div>
                           </div>
-                          <span className="top-product-revenue">${product.totalIngresos?.toLocaleString('es-CL')}</span>
+                          <span className="top-product-revenue">{formatPrice(product.totalIngresos)}</span>
                         </div>
                       </div>
                     );
@@ -279,7 +539,7 @@ export default function AdminOrders() {
                         </div>
                       </td>
                       <td>{fecha}</td>
-                      <td className="total-cell">${order.total?.toLocaleString('es-CL')}</td>
+                      <td className="total-cell">{formatPrice(order.total)}</td>
                       <td>
                         <span className={`table-badge ${badge.class}`}>
                           {badge.text}

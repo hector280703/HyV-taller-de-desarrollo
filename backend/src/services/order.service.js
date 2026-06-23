@@ -8,6 +8,75 @@ import { Between, MoreThanOrEqual, LessThanOrEqual } from "typeorm";
 import { sendOrderConfirmationEmail, sendOrderStatusUpdateEmail, sendLowStockAlertEmail } from "./email.service.js";
 import { LOW_STOCK_THRESHOLD } from "../config/configEnv.js";
 
+// Configuración de zonas de envío con tarifas por peso
+const ZONAS_ENVIO = {
+  local: {
+    nombre: "Local (Laraquete)",
+    costoBase: 1000,
+    costoPorKg: 100,
+    pesoGratis: 10, // kg incluidos en el costo base
+  },
+  arauco: {
+    nombre: "Provincia de Arauco",
+    costoBase: 3000,
+    costoPorKg: 200,
+    pesoGratis: 5,
+  },
+  biobio: {
+    nombre: "Región del Bío Bío",
+    costoBase: 6000,
+    costoPorKg: 350,
+    pesoGratis: 3,
+  },
+  regional: {
+    nombre: "Otras Regiones Cercanas",
+    costoBase: 12000,
+    costoPorKg: 500,
+    pesoGratis: 2,
+  },
+  nacional: {
+    nombre: "Envío Nacional",
+    costoBase: 20000,
+    costoPorKg: 700,
+    pesoGratis: 0,
+  },
+};
+
+// Calcular costo de envío basado en zona y peso total
+export function calcularCostoEnvio(zona, pesoTotalKg) {
+  const zonaConfig = ZONAS_ENVIO[zona];
+  if (!zonaConfig) {
+    return { costoEnvio: 0, zona: null, error: "Zona de envío no válida" };
+  }
+
+  const pesoExcedente = Math.max(0, pesoTotalKg - zonaConfig.pesoGratis);
+  const costoEnvio = Math.round(zonaConfig.costoBase + (pesoExcedente * zonaConfig.costoPorKg));
+
+  return {
+    costoEnvio,
+    zona: zonaConfig.nombre,
+    detalle: {
+      costoBase: zonaConfig.costoBase,
+      pesoTotal: pesoTotalKg,
+      pesoGratis: zonaConfig.pesoGratis,
+      pesoExcedente,
+      costoPorKgExcedente: zonaConfig.costoPorKg,
+    },
+    error: null,
+  };
+}
+
+// Obtener configuración de zonas (para el frontend)
+export function getZonasEnvio() {
+  return Object.entries(ZONAS_ENVIO).map(([key, config]) => ({
+    id: key,
+    nombre: config.nombre,
+    costoBase: config.costoBase,
+    costoPorKg: config.costoPorKg,
+    pesoGratis: config.pesoGratis,
+  }));
+}
+
 export async function createOrderService(userId, orderData) {
   try {
     const orderRepository = AppDataSource.getRepository(Order);
@@ -22,7 +91,8 @@ export async function createOrderService(userId, orderData) {
     }
 
     // Validar y calcular items
-    const { items, metodoPago, direccionEnvio, telefonoContacto, notas } = orderData;
+    const { items, metodoPago, direccionEnvio, telefonoContacto, notas, zonaEnvio, tipoEntrega } = orderData;
+    const selectedTipoEntrega = tipoEntrega || "envio";
     
     let subtotal = 0;
     let descuentoTotal = 0;
@@ -71,7 +141,23 @@ export async function createOrderService(userId, orderData) {
       }
     }
 
-    const total = subtotal - descuentoTotal;
+    // Calcular costo de envío
+    let costoEnvio = 0;
+    let zonaEnvioNombre = null;
+    if (selectedTipoEntrega === "envio" && zonaEnvio) {
+      const pesoTotal = orderItemsData.reduce((acc, item) => {
+        const peso = item.product.peso ? parseFloat(item.product.peso) : 1;
+        return acc + (peso * item.cantidad);
+      }, 0);
+
+      const resultadoEnvio = calcularCostoEnvio(zonaEnvio, pesoTotal);
+      if (!resultadoEnvio.error) {
+        costoEnvio = resultadoEnvio.costoEnvio;
+        zonaEnvioNombre = resultadoEnvio.zona;
+      }
+    }
+
+    const total = subtotal - descuentoTotal + costoEnvio;
 
     // Generar número de orden único
     const fecha = new Date();
@@ -88,6 +174,9 @@ export async function createOrderService(userId, orderData) {
       estado: "pendiente",
       subtotal,
       descuentoTotal,
+      costoEnvio,
+      zonaEnvio: zonaEnvioNombre,
+      tipoEntrega: selectedTipoEntrega,
       total,
       metodoPago,
       direccionEnvio,

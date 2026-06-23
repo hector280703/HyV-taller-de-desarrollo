@@ -57,6 +57,24 @@ const OrderSchema = new EntitySchema({
       type: "text",
       nullable: true,
     },
+    costoEnvio: {
+      type: "decimal",
+      precision: 12,
+      scale: 2,
+      default: 0,
+      nullable: false,
+    },
+    zonaEnvio: {
+      type: "varchar",
+      length: 50,
+      nullable: true,
+    },
+    tipoEntrega: {
+      type: "varchar",
+      length: 20,
+      default: "envio",
+      nullable: false,
+    },
     createdAt: {
       type: "timestamp with time zone",
       default: () => "CURRENT_TIMESTAMP",

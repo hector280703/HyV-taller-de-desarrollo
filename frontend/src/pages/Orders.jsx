@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getOrders, cancelOrder } from '../services/order.service.js';
 import { showErrorAlert, showSuccessAlert, showConfirmAlert } from '../helpers/sweetAlert.js';
+import { formatPrice } from '../helpers/formatData.js';
 import '../styles/orders.css';
 
 export default function Orders() {
@@ -175,7 +176,7 @@ export default function Orders() {
                   <div className="order-total">
                     <span>Total:</span>
                     <span className="total-amount">
-                      ${order.total?.toLocaleString('es-CL')}
+                      {formatPrice(order.total)}
                     </span>
                   </div>
                 </div>

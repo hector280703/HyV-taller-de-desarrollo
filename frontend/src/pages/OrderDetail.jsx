@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getOrderById, cancelOrder } from '../services/order.service.js';
 import { showErrorAlert, showSuccessAlert, showConfirmAlert } from '../helpers/sweetAlert.js';
+import { formatPrice } from '../helpers/formatData.js';
 import '../styles/orderDetail.css';
 
 export default function OrderDetail() {
@@ -116,9 +117,13 @@ export default function OrderDetail() {
 
         <div className="detail-grid">
           <div className="detail-section shipping-info">
-            <h2>📍 Información de Envío</h2>
+            <h2>{order.tipoEntrega === 'retiro' ? '🏢 Información de Retiro' : '📍 Información de Envío'}</h2>
             <div className="info-group">
-              <label>Dirección de Entrega:</label>
+              <label>Método de Entrega:</label>
+              <p><strong>{order.tipoEntrega === 'retiro' ? '🏢 Retiro en Tienda' : '🚚 Despacho a Domicilio'}</strong></p>
+            </div>
+            <div className="info-group">
+              <label>{order.tipoEntrega === 'retiro' ? 'Lugar de Retiro:' : 'Dirección de Entrega:'}</label>
               <p>{order.direccionEnvio}</p>
             </div>
             <div className="info-group">
@@ -142,17 +147,23 @@ export default function OrderDetail() {
             <div className="payment-summary">
               <div className="summary-line">
                 <span>Subtotal:</span>
-                <span>${order.subtotal?.toLocaleString('es-CL')}</span>
+                <span>{formatPrice(order.subtotal)}</span>
               </div>
               {order.descuentoTotal > 0 && (
                 <div className="summary-line discount">
                   <span>Descuentos:</span>
-                  <span>-${order.descuentoTotal?.toLocaleString('es-CL')}</span>
+                  <span>-{formatPrice(order.descuentoTotal)}</span>
+                </div>
+              )}
+              {order.costoEnvio !== undefined && order.costoEnvio !== null && parseFloat(order.costoEnvio) > 0 && (
+                <div className="summary-line shipping">
+                  <span>Envío {order.zonaEnvio ? `(${order.zonaEnvio})` : ''}:</span>
+                  <span>{formatPrice(order.costoEnvio)}</span>
                 </div>
               )}
               <div className="summary-line total">
                 <span>Total:</span>
-                <span>${order.total?.toLocaleString('es-CL')}</span>
+                <span>{formatPrice(order.total)}</span>
               </div>
             </div>
           </div>
@@ -163,12 +174,14 @@ export default function OrderDetail() {
           <div className="products-table">
             {order.orderItems?.map((item, index) => (
               <div key={index} className="product-row">
-                {item.product?.imagenes?.[0] && (
+                {item.product?.imagenUrl ? (
                   <img 
-                    src={item.product.imagenes[0]} 
+                    src={item.product.imagenUrl} 
                     alt={item.nombreProducto}
                     className="product-thumbnail"
                   />
+                ) : (
+                  <div className="product-thumbnail-placeholder">📦</div>
                 )}
                 <div className="product-info">
                   <h4>{item.nombreProducto}</h4>
@@ -179,10 +192,10 @@ export default function OrderDetail() {
                 </div>
                 <div className="product-prices">
                   <p className="unit-price">
-                    ${item.precioUnitario?.toLocaleString('es-CL')} c/u
+                    {formatPrice(item.precioUnitario)} c/u
                   </p>
                   <p className="item-subtotal">
-                    ${item.subtotal?.toLocaleString('es-CL')}
+                    {formatPrice(item.subtotal)}
                   </p>
                 </div>
               </div>

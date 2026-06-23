@@ -7,13 +7,19 @@ import {
   updateOrderStatus,
   cancelOrder,
   getOrderStats,
+  getShippingZones,
+  calculateShipping,
 } from "../controllers/order.controller.js";
 import { authenticateJwt } from "../middlewares/authentication.middleware.js";
 import { orderCreateLimiter } from "../middlewares/rateLimit.middleware.js";
 
 const router = Router();
 
-// Usar autenticación en todas las rutas
+// Rutas públicas de envío (no requieren autenticación)
+router.get("/shipping/zones", getShippingZones);
+router.get("/shipping/calculate", calculateShipping);
+
+// Usar autenticación en el resto de las rutas
 router.use(authenticateJwt);
 
 // Crear orden
