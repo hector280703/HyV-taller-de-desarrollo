@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCarroCompras } from '../context/CarroComprasContext';
 import { createOrder, calculateShipping } from '../services/order.service.js';
+import { createPaymentPreference } from '../services/payment.service.js';
 import { showErrorAlert, showSuccessAlert } from '../helpers/sweetAlert.js';
 import { formatPrice } from '../helpers/formatData.js';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
@@ -373,6 +374,33 @@ export default function Checkout() {
       };
 
       const response = await createOrder(orderData);
+      const orderId = response.data.id;
+      
+      // Si se eligió Mercado Pago, crear preferencia y redirigir
+      if (formData.metodoPago === 'mercadopago') {
+        try {
+          const paymentRes = await createPaymentPreference(orderId);
+          const initPoint = paymentRes.data.initPoint || paymentRes.data.sandboxInitPoint;
+          
+          if (initPoint) {
+            vaciarCarrito();
+            // Redirigir a Mercado Pago
+            window.location.href = initPoint;
+            return;
+          } else {
+            showErrorAlert(
+              'Error con Mercado Pago',
+              'No se pudo generar el enlace de pago. Tu orden fue creada, puedes pagar después desde tus pedidos.'
+            );
+          }
+        } catch (mpError) {
+          console.error('Error al crear preferencia MP:', mpError);
+          showErrorAlert(
+            'Error con Mercado Pago',
+            'No se pudo conectar con Mercado Pago. Tu orden fue creada con estado pendiente de pago.'
+          );
+        }
+      }
       
       vaciarCarrito();
       
@@ -679,7 +707,19 @@ export default function Checkout() {
                 <option value="transferencia">🏦 Transferencia Bancaria</option>
                 <option value="tarjeta">💳 Tarjeta de Crédito</option>
                 <option value="debito">💳 Tarjeta de Débito</option>
+                <option value="mercadopago">🟦 Mercado Pago (Pago Online)</option>
               </select>
+              {formData.metodoPago === 'mercadopago' && (
+                <div className="mercadopago-info">
+                  <div className="mp-badge">
+                    <span className="mp-icon">🟦</span>
+                    <div className="mp-text">
+                      <strong>Mercado Pago</strong>
+                      <small>Serás redirigido a Mercado Pago para completar el pago de forma segura. Acepta tarjetas de crédito, débito y más.</small>
+                    </div>
+                  </div>
+                </div>
+              )}
               <small className="form-help">
                 Selecciona tu forma de pago preferida
               </small>
@@ -715,7 +755,12 @@ export default function Checkout() {
                 className="btn-primary"
                 disabled={loading}
               >
-                {loading ? 'Procesando...' : 'Finalizar Pedido'}
+                {loading 
+                  ? 'Procesando...' 
+                  : formData.metodoPago === 'mercadopago' 
+                    ? '🟦 Pagar con Mercado Pago' 
+                    : 'Finalizar Pedido'
+                }
               </button>
             </div>
           </form>

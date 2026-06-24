@@ -18,6 +18,7 @@ import Orders from '@pages/Orders';
 import OrderDetail from '@pages/OrderDetail';
 import AdminOrders from '@pages/AdminOrders';
 import Repartidor from '@pages/Repartidor';
+import PaymentResult from '@pages/PaymentResult';
 
 const router = createBrowserRouter([
   {
@@ -98,6 +99,30 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute allowedRoles={['administrador', 'usuario']}>
             <OrderDetail />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: '/payment/success',
+        element: (
+          <ProtectedRoute allowedRoles={['administrador', 'usuario']}>
+            <PaymentResult />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: '/payment/failure',
+        element: (
+          <ProtectedRoute allowedRoles={['administrador', 'usuario']}>
+            <PaymentResult />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: '/payment/pending',
+        element: (
+          <ProtectedRoute allowedRoles={['administrador', 'usuario']}>
+            <PaymentResult />
           </ProtectedRoute>
         ),
       },

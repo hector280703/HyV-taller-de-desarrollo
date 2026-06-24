@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getOrderById, cancelOrder } from '../services/order.service.js';
+import { createPaymentPreference } from '../services/payment.service.js';
 import { showErrorAlert, showSuccessAlert, showConfirmAlert } from '../helpers/sweetAlert.js';
 import { formatPrice } from '../helpers/formatData.js';
 import '../styles/orderDetail.css';
@@ -64,8 +65,24 @@ export default function OrderDetail() {
       transferencia: '🏦 Transferencia Bancaria',
       tarjeta: '💳 Tarjeta de Crédito',
       debito: '💳 Tarjeta de Débito',
+      mercadopago: '🟦 Mercado Pago',
     };
     return metodos[metodo] || metodo;
+  };
+
+  const handlePayWithMP = async () => {
+    try {
+      const paymentRes = await createPaymentPreference(order.id);
+      const initPoint = paymentRes.data.initPoint || paymentRes.data.sandboxInitPoint;
+      if (initPoint) {
+        window.location.href = initPoint;
+      } else {
+        showErrorAlert('Error', 'No se pudo generar el enlace de pago');
+      }
+    } catch (error) {
+      console.error('Error al crear preferencia:', error);
+      showErrorAlert('Error', 'No se pudo conectar con Mercado Pago');
+    }
   };
 
   if (loading) {
@@ -166,6 +183,27 @@ export default function OrderDetail() {
                 <span>{formatPrice(order.total)}</span>
               </div>
             </div>
+            {order.estadoPago && (
+              <div className="info-group" style={{marginTop: '1rem'}}>
+                <label>Estado del Pago:</label>
+                <p>
+                  <span className={`pago-badge pago-${order.estadoPago}`}>
+                    {order.estadoPago === 'aprobado' && '✅ '}
+                    {order.estadoPago === 'pendiente' && '⏳ '}
+                    {order.estadoPago === 'rechazado' && '❌ '}
+                    {order.estadoPago === 'reembolsado' && '↩️ '}
+                    {order.estadoPago.charAt(0).toUpperCase() + order.estadoPago.slice(1)}
+                  </span>
+                </p>
+              </div>
+            )}
+            {order.metodoPago === 'mercadopago' && order.estadoPago === 'pendiente' && order.estado === 'pendiente' && (
+              <div style={{marginTop: '1rem'}}>
+                <button onClick={handlePayWithMP} className="btn-primary" style={{width: '100%'}}>
+                  🟦 Pagar con Mercado Pago
+                </button>
+              </div>
+            )}
           </div>
         </div>
 

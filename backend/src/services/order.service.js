@@ -206,11 +206,12 @@ export async function createOrderService(userId, orderData) {
       relations: ["orderItems", "orderItems.product", "user"],
     });
 
-    // Enviar email de confirmación al cliente (no bloquea la respuesta)
-    sendOrderConfirmationEmail(orderComplete).catch((err) => {
-      console.error("Error al enviar email de confirmación:", err);
-    });
-
+    // Enviar email de confirmación al cliente solo si no es Mercado Pago (se enviará al confirmar pago)
+    if (orderComplete.metodoPago !== "mercadopago") {
+      sendOrderConfirmationEmail(orderComplete).catch((err) => {
+        console.error("Error al enviar email de confirmación:", err);
+      });
+    }
     // Verificar y alertar productos con stock bajo
     const lowStockProducts = orderItemsData
       .filter((item) => item.lowStock)

@@ -75,6 +75,22 @@ const OrderSchema = new EntitySchema({
       default: "envio",
       nullable: false,
     },
+    mercadoPagoId: {
+      type: "varchar",
+      length: 100,
+      nullable: true,
+    },
+    mercadoPagoStatus: {
+      type: "varchar",
+      length: 50,
+      nullable: true,
+    },
+    estadoPago: {
+      type: "varchar",
+      length: 30,
+      default: "pendiente",
+      nullable: false,
+    },
     createdAt: {
       type: "timestamp with time zone",
       default: () => "CURRENT_TIMESTAMP",

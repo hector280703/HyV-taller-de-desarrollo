@@ -25,3 +25,5 @@ export const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
 export const CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME;
 export const CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY;
 export const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET;
+export const MP_ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN;
+export const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";

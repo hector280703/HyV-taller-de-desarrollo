@@ -24,11 +24,11 @@ export const orderCreateValidation = Joi.object({
       "any.required": "Los items del pedido son requeridos",
     }),
   metodoPago: Joi.string()
-    .valid("efectivo", "transferencia", "tarjeta", "debito")
+    .valid("efectivo", "transferencia", "tarjeta", "debito", "mercadopago")
     .required()
     .messages({
       "string.base": "El método de pago debe ser texto",
-      "any.only": "El método de pago debe ser: efectivo, transferencia, tarjeta o debito",
+      "any.only": "El método de pago debe ser: efectivo, transferencia, tarjeta, debito o mercadopago",
       "any.required": "El método de pago es requerido",
     }),
   direccionEnvio: Joi.string().min(10).max(500).required().messages({
