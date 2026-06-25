@@ -113,6 +113,7 @@ export default function Checkout() {
   const navigate = useNavigate();
   const { carrito, totalCarrito, vaciarCarrito } = useCarroCompras();
   const [loading, setLoading] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
   
   // Estado del mapa
   const [mapPosition, setMapPosition] = useState(null);
@@ -317,7 +318,7 @@ export default function Checkout() {
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     
     // Validación de carrito vacío
@@ -372,9 +373,21 @@ export default function Checkout() {
       return;
     }
 
+    setShowConfirmModal(true);
+  };
+
+  const confirmOrder = async () => {
     setLoading(true);
 
     try {
+      let direccion = '';
+      if (tipoEntrega === 'retiro') {
+        direccion = "Retiro en Tienda: La Cantera N°5, Laraquete, Arauco, Región del Bío Bío";
+      } else {
+        direccion = formData.direccionEnvio.trim();
+      }
+      const telefono = formData.telefonoContacto.trim();
+
       const items = carrito.map(item => ({
         productId: item.id,
         cantidad: item.quantity || item.cantidad
@@ -426,6 +439,7 @@ export default function Checkout() {
       }
       
       vaciarCarrito();
+      setShowConfirmModal(false);
       
       showSuccessAlert(
         '¡Pedido realizado exitosamente!',
@@ -437,6 +451,7 @@ export default function Checkout() {
       console.error('Error al crear orden:', error);
       const errorMessage = error.message || error.details || 'Ocurrió un error al procesar tu pedido. Por favor intenta nuevamente.';
       showErrorAlert('Error al procesar pedido', errorMessage);
+      setShowConfirmModal(false);
     } finally {
       setLoading(false);
     }
@@ -806,6 +821,85 @@ export default function Checkout() {
           </form>
         </div>
       </div>
+
+      {/* Modal de Confirmación */}
+      {showConfirmModal && (
+        <div className="checkout-modal-overlay">
+          <div className="checkout-modal-content">
+            <div className="modal-header">
+              <h2>Confirmar Detalles de Compra</h2>
+              <button className="btn-close-modal" onClick={() => setShowConfirmModal(false)}>✕</button>
+            </div>
+            
+            <div className="modal-body">
+              <div className="modal-summary-section">
+                <h3>Resumen de Productos</h3>
+                <div className="modal-items-list">
+                  {carrito.map(item => (
+                    <div key={item.id} className="modal-item">
+                      <span className="modal-item-name">{item.nombre} (x{item.quantity || item.cantidad})</span>
+                      <span className="modal-item-price">{formatPrice((item.precio - (item.precio * (item.descuento || 0) / 100)) * (item.quantity || item.cantidad))}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="modal-totals">
+                  <div className="modal-total-row">
+                    <span>Subtotal:</span>
+                    <span>{formatPrice(calcularSubtotal())}</span>
+                  </div>
+                  {calcularDescuentos() > 0 && (
+                    <div className="modal-total-row discount">
+                      <span>Descuentos:</span>
+                      <span>-{formatPrice(calcularDescuentos())}</span>
+                    </div>
+                  )}
+                  <div className="modal-total-row">
+                    <span>Envío:</span>
+                    <span>{tipoEntrega === 'retiro' ? 'Gratis' : formatPrice(shippingCost)}</span>
+                  </div>
+                  <div className="modal-total-row final-total">
+                    <span>Total a Pagar:</span>
+                    <span>{formatPrice(totalCarrito + (tipoEntrega === 'retiro' ? 0 : shippingCost))}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="modal-details-section">
+                <h3>Detalles de Entrega y Pago</h3>
+                <div className="modal-detail-item">
+                  <strong>Método de Entrega:</strong>
+                  <p>{tipoEntrega === 'retiro' ? '🏢 Retiro en Tienda' : '🚚 Despacho a Domicilio'}</p>
+                </div>
+                <div className="modal-detail-item">
+                  <strong>Ubicación:</strong>
+                  <p>{tipoEntrega === 'retiro' ? 'La Cantera N°5, Laraquete, Arauco' : formData.direccionEnvio}</p>
+                </div>
+                <div className="modal-detail-item">
+                  <strong>Fecha de {tipoEntrega === 'retiro' ? 'Retiro' : 'Entrega'}:</strong>
+                  <p>{formData.fechaEntrega}</p>
+                </div>
+                <div className="modal-detail-item">
+                  <strong>Teléfono de Contacto:</strong>
+                  <p>{formData.telefonoContacto}</p>
+                </div>
+                <div className="modal-detail-item">
+                  <strong>Método de Pago:</strong>
+                  <p style={{textTransform: 'capitalize'}}>{formData.metodoPago}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="modal-actions">
+              <button className="btn-secondary" onClick={() => setShowConfirmModal(false)} disabled={loading}>
+                Volver para editar
+              </button>
+              <button className="btn-primary" onClick={confirmOrder} disabled={loading}>
+                {loading ? 'Procesando...' : (formData.metodoPago === 'mercadopago' ? 'Confirmar (MercadoPago)' : 'Confirmar Pedido')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
