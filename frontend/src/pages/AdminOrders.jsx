@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getOrders, updateOrderStatus, getOrderStats } from '../services/order.service.js';
+import { getLowStockProducts } from '../services/product.service.js';
 import { showErrorAlert, showSuccessAlert } from '../helpers/sweetAlert.js';
 import { formatPrice } from '../helpers/formatData.js';
 import '../styles/adminOrders.css';
@@ -249,6 +250,7 @@ export default function AdminOrders() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('');
+  const [lowStockProducts, setLowStockProducts] = useState([]);
 
   useEffect(() => {
     loadData();
@@ -257,12 +259,14 @@ export default function AdminOrders() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [ordersResponse, statsResponse] = await Promise.all([
+      const [ordersResponse, statsResponse, lowStockData] = await Promise.all([
         getOrders(),
-        getOrderStats()
+        getOrderStats(),
+        getLowStockProducts()
       ]);
       setOrders(ordersResponse.data || []);
       setStats(statsResponse.data || {});
+      setLowStockProducts(lowStockData || []);
     } catch (error) {
       console.error('Error al cargar datos:', error);
       showErrorAlert('Error', 'No se pudieron cargar los datos');
@@ -337,6 +341,51 @@ export default function AdminOrders() {
           </button>
         </div>
       </div>
+
+      {/* Sección de Alertas de Stock */}
+      {lowStockProducts.length > 0 && (
+        <div className="stock-alerts-section">
+          <div className="stock-alerts-header">
+            <span className="stock-alerts-icon">🚨</span>
+            <div>
+              <h2 className="stock-alerts-title">Alertas de Stock</h2>
+              <p className="stock-alerts-subtitle">
+                {lowStockProducts.filter(p => p.sinStock).length > 0 && (
+                  <span className="stock-count sin-stock-count">
+                    {lowStockProducts.filter(p => p.sinStock).length} sin stock
+                  </span>
+                )}
+                {lowStockProducts.filter(p => !p.sinStock).length > 0 && (
+                  <span className="stock-count bajo-stock-count">
+                    {lowStockProducts.filter(p => !p.sinStock).length} stock bajo
+                  </span>
+                )}
+              </p>
+            </div>
+          </div>
+          <div className="stock-alerts-grid">
+            {lowStockProducts.map((product) => (
+              <div
+                key={product.id}
+                className={`stock-alert-card ${product.sinStock ? 'alert-sin-stock' : 'alert-stock-bajo'}`}
+              >
+                <div className="stock-alert-card-icon">
+                  {product.sinStock ? '❌' : '⚠️'}
+                </div>
+                <div className="stock-alert-card-info">
+                  <span className="stock-alert-card-name">{product.nombre}</span>
+                  {product.categoria && (
+                    <span className="stock-alert-card-category">{product.categoria}</span>
+                  )}
+                </div>
+                <div className={`stock-alert-card-badge ${product.sinStock ? 'badge-sin-stock' : 'badge-stock-bajo'}`}>
+                  {product.sinStock ? 'SIN STOCK' : `${product.stock} uds`}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {stats && (
         <>

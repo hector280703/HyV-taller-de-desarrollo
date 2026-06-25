@@ -54,3 +54,13 @@ export async function deleteProduct(id) {
         return error.response?.data;
     }
 }
+
+export async function getLowStockProducts() {
+    try {
+        const { data } = await axios.get('/product/low-stock');
+        return data.data || [];
+    } catch (error) {
+        console.error('Error al obtener productos con stock bajo:', error);
+        return [];
+    }
+}

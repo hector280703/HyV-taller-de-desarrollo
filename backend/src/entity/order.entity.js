@@ -91,6 +91,10 @@ const OrderSchema = new EntitySchema({
       default: "pendiente",
       nullable: false,
     },
+    fechaEntrega: {
+      type: "date",
+      nullable: false,
+    },
     createdAt: {
       type: "timestamp with time zone",
       default: () => "CURRENT_TIMESTAMP",

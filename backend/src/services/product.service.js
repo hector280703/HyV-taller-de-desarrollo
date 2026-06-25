@@ -1,6 +1,7 @@
 "use strict";
 import Product from "../entity/product.entity.js";
 import { AppDataSource } from "../config/configDb.js";
+import { LOW_STOCK_THRESHOLD } from "../config/configEnv.js";
 
 export async function createProductService(body) {
   try {
@@ -205,6 +206,35 @@ export async function updateProductService(query, body) {
     return [productUpdated, null];
   } catch (error) {
     console.error("Error al modificar el producto:", error);
+    return [null, "Error interno del servidor"];
+  }
+}
+
+export async function getLowStockProductsService() {
+  try {
+    const productRepository = AppDataSource.getRepository(Product);
+    const threshold = LOW_STOCK_THRESHOLD || 5;
+
+    const products = await productRepository
+      .createQueryBuilder("product")
+      .where("product.stock <= :threshold", { threshold })
+      .andWhere("product.activo = :activo", { activo: true })
+      .orderBy("product.stock", "ASC")
+      .getMany();
+
+    const result = products.map((p) => ({
+      id: p.id,
+      nombre: p.nombre,
+      codigo: p.codigo,
+      categoria: p.categoria,
+      stock: p.stock,
+      umbral: threshold,
+      sinStock: p.stock === 0,
+    }));
+
+    return [result, null];
+  } catch (error) {
+    console.error("Error al obtener productos con stock bajo:", error);
     return [null, "Error interno del servidor"];
   }
 }

@@ -91,9 +91,31 @@ export async function createOrderService(userId, orderData) {
     }
 
     // Validar y calcular items
-    const { items, metodoPago, direccionEnvio, telefonoContacto, notas, zonaEnvio, tipoEntrega } = orderData;
+    const { items, metodoPago, direccionEnvio, telefonoContacto, notas, zonaEnvio, tipoEntrega, fechaEntrega } = orderData;
     const selectedTipoEntrega = tipoEntrega || "envio";
-    
+
+    if (!fechaEntrega) {
+      return [null, "La fecha de entrega/retiro es requerida"];
+    }
+
+    const deliveryDate = new Date(fechaEntrega);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Mínimo 2 días de anticipación
+    const minDate = new Date(today);
+    minDate.setDate(today.getDate() + 2);
+
+    if (deliveryDate < minDate) {
+      return [null, "La fecha de entrega debe tener al menos 2 días de anticipación"];
+    }
+
+    // No domingos (0 = domingo en getUTCDay / getDay, pero considerando huso horario es mejor getUTCDay() si ISO es YYYY-MM-DD)
+    // Para asegurar precisión con el input "YYYY-MM-DD" que a las 00:00 UTC es igual al día local
+    if (deliveryDate.getUTCDay() === 0) {
+      return [null, "No realizamos entregas ni retiros los días domingo"];
+    }
+
     let subtotal = 0;
     let descuentoTotal = 0;
     const orderItemsData = [];
@@ -177,6 +199,7 @@ export async function createOrderService(userId, orderData) {
       costoEnvio,
       zonaEnvio: zonaEnvioNombre,
       tipoEntrega: selectedTipoEntrega,
+      fechaEntrega: deliveryDate,
       total,
       metodoPago,
       direccionEnvio,

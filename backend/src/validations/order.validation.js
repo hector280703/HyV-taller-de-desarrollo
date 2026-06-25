@@ -60,6 +60,11 @@ export const orderCreateValidation = Joi.object({
     .messages({
       "any.only": "El tipo de entrega debe ser: retiro o envio",
     }),
+  fechaEntrega: Joi.date().iso().required().messages({
+    "date.base": "La fecha de entrega debe ser una fecha válida",
+    "date.format": "La fecha de entrega debe tener formato ISO",
+    "any.required": "La fecha de entrega es requerida",
+  }),
 }).messages({
   "object.base": "Los datos del pedido deben ser un objeto válido",
 });

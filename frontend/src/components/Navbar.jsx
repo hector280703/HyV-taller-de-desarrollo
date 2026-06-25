@@ -1,8 +1,9 @@
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { logout, login } from '@services/auth.service.js';
 import { useCarroCompras } from '@context/CarroComprasContext';
+import { getLowStockProducts } from '@services/product.service.js';
 import '@styles/navbar.css';
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import useLogin from '@hooks/auth/useLogin.jsx';
 
 const Navbar = () => {
@@ -19,6 +20,9 @@ const Navbar = () => {
     const [showUserMenu, setShowUserMenu] = useState(false);
     const [showSearch, setShowSearch] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [lowStockProducts, setLowStockProducts] = useState([]);
+    const [showStockPanel, setShowStockPanel] = useState(false);
+    const stockPanelRef = useRef(null);
     
     const {
         errorEmail,
@@ -47,11 +51,28 @@ const Navbar = () => {
             if (showSearch && !event.target.closest('.search-container')) {
                 setShowSearch(false);
             }
+            if (showStockPanel && !event.target.closest('.stock-notification-container')) {
+                setShowStockPanel(false);
+            }
         };
 
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, [showUserMenu, showSearch]);
+    }, [showUserMenu, showSearch, showStockPanel]);
+
+    // Cargar alertas de stock bajo (solo para administradores)
+    useEffect(() => {
+        if (userRole === 'administrador') {
+            const fetchLowStock = async () => {
+                const products = await getLowStockProducts();
+                setLowStockProducts(products);
+            };
+            fetchLowStock();
+            // Refrescar cada 5 minutos
+            const interval = setInterval(fetchLowStock, 5 * 60 * 1000);
+            return () => clearInterval(interval);
+        }
+    }, [userRole]);
 
     const logoutSubmit = () => {
         try {
@@ -241,6 +262,77 @@ const Navbar = () => {
                     >
                         🔍
                     </button>
+                )}
+
+                {/* Campanita de notificaciones de stock - solo admin */}
+                {isAuthenticated && userRole === 'administrador' && (
+                    <div className="stock-notification-container" ref={stockPanelRef}>
+                        <button
+                            className={`action-btn stock-notification-btn ${showStockPanel ? 'active' : ''} ${lowStockProducts.length > 0 ? 'has-alerts' : ''}`}
+                            onClick={() => setShowStockPanel(!showStockPanel)}
+                            title={lowStockProducts.length > 0 ? `${lowStockProducts.length} alerta${lowStockProducts.length > 1 ? 's' : ''} de stock` : 'Sin alertas de stock'}
+                        >
+                            🔔
+                            {lowStockProducts.length > 0 && (
+                                <span className="stock-badge">{lowStockProducts.length > 99 ? '99+' : lowStockProducts.length}</span>
+                            )}
+                        </button>
+
+                        {showStockPanel && (
+                            <div className="stock-notification-panel">
+                                <div className="stock-panel-header">
+                                    <span className="stock-panel-title">
+                                        {lowStockProducts.length > 0 ? '🚨' : '✅'} Alertas de Stock
+                                    </span>
+                                    <span className="stock-panel-count">
+                                        {lowStockProducts.length} alerta{lowStockProducts.length !== 1 ? 's' : ''}
+                                    </span>
+                                </div>
+
+                                <div className="stock-panel-body">
+                                    {lowStockProducts.length === 0 ? (
+                                        <div className="stock-panel-empty">
+                                            <span>✅</span>
+                                            <p>Todos los productos tienen stock suficiente</p>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            {lowStockProducts.map((product) => (
+                                                <div
+                                                    key={product.id}
+                                                    className={`stock-panel-item ${product.sinStock ? 'sin-stock' : 'stock-bajo'}`}
+                                                >
+                                                    <div className="stock-panel-item-icon">
+                                                        {product.sinStock ? '❌' : '⚠️'}
+                                                    </div>
+                                                    <div className="stock-panel-item-info">
+                                                        <span className="stock-panel-item-name">{product.nombre}</span>
+                                                        <span className="stock-panel-item-stock">
+                                                            {product.sinStock ? 'Sin stock' : `${product.stock} unidades`}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </>
+                                    )}
+                                </div>
+
+                                {lowStockProducts.length > 0 && (
+                                    <div className="stock-panel-footer">
+                                        <button
+                                            className="stock-panel-link"
+                                            onClick={() => {
+                                                navigate('/admin/orders');
+                                                setShowStockPanel(false);
+                                            }}
+                                        >
+                                            Ver panel de administración →
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
                 )}
 
                 {/* Usuario autenticado */}

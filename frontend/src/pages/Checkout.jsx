@@ -136,9 +136,31 @@ export default function Checkout() {
     telefonoContacto: '',
     metodoPago: 'efectivo',
     notas: '',
+    fechaEntrega: '',
   });
 
   const [tipoEntrega, setTipoEntrega] = useState('envio');
+
+  // Calcular fecha mínima (hoy + 2 días)
+  const getMinDate = () => {
+    const minDate = new Date();
+    minDate.setDate(minDate.getDate() + 2);
+    return minDate.toISOString().split('T')[0];
+  };
+
+  const handleDateChange = (e) => {
+    const selectedDate = e.target.value;
+    if (selectedDate) {
+      // Validar domingo (0 en getUTCDay() ya que es ISO YYYY-MM-DD)
+      const dateObj = new Date(selectedDate);
+      if (dateObj.getUTCDay() === 0) {
+        showErrorAlert('Día no permitido', 'No realizamos entregas ni retiros los días domingo. Por favor selecciona otro día.');
+        setFormData(prev => ({ ...prev, fechaEntrega: '' }));
+        return;
+      }
+    }
+    setFormData(prev => ({ ...prev, fechaEntrega: selectedDate }));
+  };
 
   const calcularPesoTotal = () => {
     return carrito.reduce((acc, item) => {
@@ -371,6 +393,7 @@ export default function Checkout() {
         notas: formData.notas?.trim() || undefined,
         zonaEnvio: tipoEntrega === 'envio' ? (shippingZone || undefined) : undefined,
         tipoEntrega,
+        fechaEntrega: formData.fechaEntrega,
       };
 
       const response = await createOrder(orderData);
@@ -691,6 +714,23 @@ export default function Checkout() {
               />
               <small className="form-help">
                 Formato: +56 9 XXXX XXXX (incluye código de país)
+              </small>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="fechaEntrega">📅 Fecha Estimada de {tipoEntrega === 'retiro' ? 'Retiro' : 'Entrega'} *</label>
+              <input
+                type="date"
+                id="fechaEntrega"
+                name="fechaEntrega"
+                value={formData.fechaEntrega}
+                onChange={handleDateChange}
+                min={getMinDate()}
+                required
+                className="checkout-input"
+              />
+              <small className="form-help">
+                Selecciona una fecha (mínimo 2 días de anticipación). Los días domingo no están disponibles.
               </small>
             </div>
 

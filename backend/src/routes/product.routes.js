@@ -8,6 +8,7 @@ import {
   getProduct,
   getProducts,
   updateProduct,
+  getLowStockProducts,
 } from "../controllers/product.controller.js";
 
 const router = Router();
@@ -16,6 +17,10 @@ const router = Router();
 router
   .get("/", getProducts)
   .get("/detail/", getProduct);
+
+// Ruta de alertas de stock - solo para administradores
+router
+  .get("/low-stock", authenticateJwt, isAdmin, getLowStockProducts);
 
 // Rutas protegidas - requieren autenticación y rol de administrador
 router

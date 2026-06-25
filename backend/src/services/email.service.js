@@ -16,7 +16,7 @@ const transporter = nodemailer.createTransport({
  */
 export async function sendOrderConfirmationEmail(order) {
   try {
-    const { user, orderItems, numeroOrden, subtotal, descuentoTotal, total, metodoPago, direccionEnvio, telefonoContacto, notas, createdAt } = order;
+    const { user, orderItems, numeroOrden, subtotal, descuentoTotal, total, metodoPago, direccionEnvio, telefonoContacto, notas, createdAt, fechaEntrega, tipoEntrega } = order;
 
     const fechaFormateada = new Date(createdAt).toLocaleDateString("es-CL", {
       year: "numeric",
@@ -25,6 +25,14 @@ export async function sendOrderConfirmationEmail(order) {
       hour: "2-digit",
       minute: "2-digit",
     });
+
+    const fechaEntregaFormateada = fechaEntrega ? new Date(fechaEntrega).toLocaleDateString("es-CL", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      timeZone: "UTC" // Usamos UTC para evitar que cambie el día por la hora 00:00 local
+    }) : "No especificada";
 
     // Generar filas de la tabla de productos
     const itemsRows = orderItems
@@ -120,6 +128,10 @@ export async function sendOrderConfirmationEmail(order) {
               <tr>
                 <td style="color: #7f8c8d; font-size: 13px; padding: 6px 0; width: 140px; vertical-align: top;">Método de pago:</td>
                 <td style="color: #2c3e50; font-size: 13px; padding: 6px 0; font-weight: 600;">${metodoPago}</td>
+              </tr>
+              <tr>
+                <td style="color: #7f8c8d; font-size: 13px; padding: 6px 0; vertical-align: top;">Fecha estimada de ${tipoEntrega === 'retiro' ? 'retiro' : 'entrega'}:</td>
+                <td style="color: #2c3e50; font-size: 13px; padding: 6px 0; font-weight: 600; text-transform: capitalize;">${fechaEntregaFormateada}</td>
               </tr>
               <tr>
                 <td style="color: #7f8c8d; font-size: 13px; padding: 6px 0; vertical-align: top;">Dirección:</td>

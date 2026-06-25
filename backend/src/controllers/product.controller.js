@@ -5,6 +5,7 @@ import {
   getProductService,
   getProductsService,
   updateProductService,
+  getLowStockProductsService,
 } from "../services/product.service.js";
 import {
   productBodyValidation,
@@ -157,6 +158,18 @@ export async function deleteProduct(req, res) {
     }
 
     handleSuccess(res, 200, "Producto eliminado correctamente", productDeleted);
+  } catch (error) {
+    handleErrorServer(res, 500, error.message);
+  }
+}
+
+export async function getLowStockProducts(req, res) {
+  try {
+    const [products, error] = await getLowStockProductsService();
+
+    if (error) return handleErrorServer(res, 500, error);
+
+    handleSuccess(res, 200, "Productos con stock bajo obtenidos", products);
   } catch (error) {
     handleErrorServer(res, 500, error.message);
   }

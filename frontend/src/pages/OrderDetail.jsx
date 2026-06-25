@@ -115,6 +115,14 @@ export default function OrderDetail() {
     minute: '2-digit'
   });
 
+  const fechaEntrega = order.fechaEntrega ? new Date(order.fechaEntrega).toLocaleDateString('es-CL', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    timeZone: 'UTC' // Importante para fechas guardadas sin hora (evita desplazamiento al día anterior)
+  }) : 'No especificada';
+
   return (
     <div className="order-detail-container">
       <div className="order-detail-content">
@@ -138,6 +146,10 @@ export default function OrderDetail() {
             <div className="info-group">
               <label>Método de Entrega:</label>
               <p><strong>{order.tipoEntrega === 'retiro' ? '🏢 Retiro en Tienda' : '🚚 Despacho a Domicilio'}</strong></p>
+            </div>
+            <div className="info-group">
+              <label>Fecha Estimada de {order.tipoEntrega === 'retiro' ? 'Retiro' : 'Entrega'}:</label>
+              <p style={{ textTransform: 'capitalize' }}><strong>{fechaEntrega}</strong></p>
             </div>
             <div className="info-group">
               <label>{order.tipoEntrega === 'retiro' ? 'Lugar de Retiro:' : 'Dirección de Entrega:'}</label>
