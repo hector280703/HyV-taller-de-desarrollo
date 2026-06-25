@@ -71,11 +71,11 @@ export const orderCreateValidation = Joi.object({
 
 export const orderStatusValidation = Joi.object({
   estado: Joi.string()
-    .valid("pendiente", "procesando", "enviado", "entregado", "cancelado")
+    .valid("pendiente", "procesando", "listo_para_envio", "en_camino", "entregado", "cancelado")
     .required()
     .messages({
       "string.base": "El estado debe ser texto",
-      "any.only": "El estado debe ser: pendiente, procesando, enviado, entregado o cancelado",
+      "any.only": "El estado debe ser: pendiente, procesando, listo_para_envio, en_camino, entregado o cancelado",
       "any.required": "El estado es requerido",
     }),
 }).messages({
@@ -88,9 +88,9 @@ export const orderQueryValidation = Joi.object({
     "number.positive": "El ID debe ser positivo",
   }),
   estado: Joi.string()
-    .valid("pendiente", "procesando", "enviado", "entregado", "cancelado")
+    .valid("pendiente", "procesando", "listo_para_envio", "en_camino", "entregado", "cancelado")
     .messages({
-      "any.only": "El estado debe ser: pendiente, procesando, enviado, entregado o cancelado",
+      "any.only": "El estado debe ser: pendiente, procesando, listo_para_envio, en_camino, entregado o cancelado",
     }),
   fechaDesde: Joi.date().messages({
     "date.base": "La fecha desde debe ser una fecha válida",

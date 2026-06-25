@@ -113,7 +113,14 @@ const Navbar = () => {
             const response = await login(data);
             if (response.status === 'Success') {
                 setShowLoginForm(false);
-                window.location.reload();
+                const loggedUser = JSON.parse(sessionStorage.getItem('usuario'));
+                if (loggedUser && loggedUser.rol === 'bodeguero') {
+                    window.location.href = '/bodega';
+                } else if (loggedUser && loggedUser.rol === 'repartidor') {
+                    window.location.href = '/repartidor';
+                } else {
+                    window.location.reload();
+                }
             } else if (response.status === 'Client error') {
                 errorData(response.details);
             }
@@ -172,7 +179,7 @@ const Navbar = () => {
             {/* Menú de navegación */}
             <div className={`nav-menu ${menuOpen ? 'activado' : ''}`}>
                 <ul>
-                    {userRole !== 'repartidor' && (
+                    {userRole !== 'repartidor' && userRole !== 'bodeguero' && (
                         <>
                             <li>
                                 <NavLink 
@@ -248,13 +255,43 @@ const Navbar = () => {
                             </NavLink>
                         </li>
                     )}
+                    {isAuthenticated && userRole === 'bodeguero' && (
+                        <li>
+                            <NavLink 
+                                to="/bodega" 
+                                onClick={() => { 
+                                    setMenuOpen(false); 
+                                    addActiveClass();
+                                }} 
+                                className={({ isActive }) => isActive ? 'active' : ''}
+                            >
+                                <span className="nav-icon">🏭</span>
+                                <span>Panel de Bodega</span>
+                            </NavLink>
+                        </li>
+                    )}
+                    {isAuthenticated && (userRole === 'administrador' || userRole === 'bodeguero') && (
+                        <li>
+                            <NavLink 
+                                to="/inventory" 
+                                onClick={() => { 
+                                    setMenuOpen(false); 
+                                    addActiveClass();
+                                }} 
+                                className={({ isActive }) => isActive ? 'active' : ''}
+                            >
+                                <span className="nav-icon">📦</span>
+                                <span>Inventario</span>
+                            </NavLink>
+                        </li>
+                    )}
                 </ul>
             </div>
 
             {/* Acciones del navbar */}
             <div className="navbar-actions">
                 {/* Botón de búsqueda */}
-                {userRole !== 'repartidor' && (
+                {userRole !== 'repartidor' && userRole !== 'bodeguero' && (
                     <button 
                         className={`action-btn search-toggle-btn ${showSearch ? 'active' : ''}`}
                         onClick={() => setShowSearch(!showSearch)}
@@ -322,11 +359,11 @@ const Navbar = () => {
                                         <button
                                             className="stock-panel-link"
                                             onClick={() => {
-                                                navigate('/admin/orders');
+                                                navigate('/inventory');
                                                 setShowStockPanel(false);
                                             }}
                                         >
-                                            Ver panel de administración →
+                                            Ver panel de inventario →
                                         </button>
                                     </div>
                                 )}
@@ -359,12 +396,12 @@ const Navbar = () => {
                                         <p className="user-name-large">{user.nombreCompleto}</p>
                                         <p className="user-email">{user.email}</p>
                                         <span className={`user-role-badge ${userRole}`}>
-                                            {userRole === 'administrador' ? '👑 Admin' : userRole === 'repartidor' ? '🚚 Repartidor' : '👤 Usuario'}
+                                            {userRole === 'administrador' ? '👑 Admin' : userRole === 'repartidor' ? '🚚 Repartidor' : userRole === 'bodeguero' ? '🏭 Bodeguero' : '👤 Usuario'}
                                         </span>
                                     </div>
                                 </div>
                                 <div className="dropdown-divider"></div>
-                                {userRole !== 'repartidor' && (
+                                {userRole !== 'repartidor' && userRole !== 'bodeguero' && (
                                     <button 
                                         className="dropdown-item"
                                         onClick={() => {
@@ -376,7 +413,7 @@ const Navbar = () => {
                                         Mi Perfil
                                     </button>
                                 )}
-                                {userRole !== 'repartidor' && (
+                                {userRole !== 'repartidor' && userRole !== 'bodeguero' && (
                                     <button 
                                         className="dropdown-item"
                                         onClick={() => {
@@ -388,7 +425,7 @@ const Navbar = () => {
                                         Mis Pedidos
                                     </button>
                                 )}
-                                {userRole !== 'repartidor' && (
+                                {userRole !== 'repartidor' && userRole !== 'bodeguero' && (
                                     <button 
                                         className="dropdown-item"
                                         onClick={() => {
@@ -410,6 +447,30 @@ const Navbar = () => {
                                     >
                                         <span>🚚</span>
                                         Panel de Repartidor
+                                    </button>
+                                )}
+                                {userRole === 'bodeguero' && (
+                                    <button 
+                                        className="dropdown-item"
+                                        onClick={() => {
+                                            navigate('/bodega');
+                                            setShowUserMenu(false);
+                                        }}
+                                    >
+                                        <span>🏭</span>
+                                        Panel de Bodega
+                                    </button>
+                                )}
+                                {(userRole === 'administrador' || userRole === 'bodeguero') && (
+                                    <button 
+                                        className="dropdown-item"
+                                        onClick={() => {
+                                            navigate('/inventory');
+                                            setShowUserMenu(false);
+                                        }}
+                                    >
+                                        <span>📦</span>
+                                        Inventario
                                     </button>
                                 )}
                                 {userRole === 'administrador' && (

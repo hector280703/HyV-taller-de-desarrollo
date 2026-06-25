@@ -132,7 +132,8 @@ const exportToPDF = (stats, orders, formatPriceFn) => {
         .badge { padding: 3px 10px; border-radius: 12px; font-size: 10px; font-weight: bold; text-transform: uppercase; color: white; }
         .badge-pendiente { background: #f39c12; }
         .badge-procesando { background: #3498db; }
-        .badge-enviado { background: #9b59b6; }
+        .badge-listo_para_envio { background: #e67e22; }
+        .badge-en_camino { background: #9b59b6; }
         .badge-entregado { background: #27ae60; }
         .badge-cancelado { background: #e74c3c; }
         .footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 2px solid #ecf0f1; color: #7f8c8d; font-size: 11px; }
@@ -344,7 +345,8 @@ export default function AdminOrders() {
     const badges = {
       pendiente: { text: 'Pendiente', class: 'badge-pending' },
       procesando: { text: 'Procesando', class: 'badge-processing' },
-      enviado: { text: 'Enviado', class: 'badge-shipped' },
+      listo_para_envio: { text: 'Listo para Envío', class: 'badge-shipped' },
+      en_camino: { text: 'En Camino', class: 'badge-shipped' },
       entregado: { text: 'Entregado', class: 'badge-delivered' },
       cancelado: { text: 'Cancelado', class: 'badge-cancelled' },
     };
@@ -622,7 +624,8 @@ export default function AdminOrders() {
                           const colors = {
                             pendiente: '#f39c12',
                             procesando: '#3498db',
-                            enviado: '#9b59b6',
+                            listo_para_envio: '#e67e22',
+                            en_camino: '#9b59b6',
                             entregado: '#27ae60',
                             cancelado: '#e74c3c'
                           };
@@ -649,14 +652,14 @@ export default function AdminOrders() {
         <div className="section-header">
           <h2>Listado de Pedidos</h2>
           <div className="orders-actions-header">
-            <div className="search-container">
+            <div className="admin-search-container">
               <span className="search-icon">🔍</span>
               <input
                 type="text"
-                placeholder="Buscar cliente, orden..."
+                placeholder="Buscar por ID, Cliente o Email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="search-input"
+                className="admin-search-input"
               />
             </div>
             <div className="orders-filters">
@@ -679,10 +682,16 @@ export default function AdminOrders() {
                 Procesando
               </button>
               <button
-                className={filter === 'enviado' ? 'filter-btn active' : 'filter-btn'}
-                onClick={() => setFilter('enviado')}
+                className={filter === 'listo_para_envio' ? 'filter-btn active' : 'filter-btn'}
+                onClick={() => setFilter('listo_para_envio')}
               >
-                Enviados
+                Listo p/Envío
+              </button>
+              <button
+                className={filter === 'en_camino' ? 'filter-btn active' : 'filter-btn'}
+                onClick={() => setFilter('en_camino')}
+              >
+                En Camino
               </button>
               <button
                 className={filter === 'entregado' ? 'filter-btn active' : 'filter-btn'}
@@ -757,7 +766,8 @@ export default function AdminOrders() {
                             >
                               <option value="pendiente">Pendiente</option>
                               <option value="procesando">Procesando</option>
-                              <option value="enviado">Enviado</option>
+                              <option value="listo_para_envio">Listo para Envío</option>
+                              <option value="en_camino">En Camino</option>
                               <option value="entregado">Entregado</option>
                               <option value="cancelado">Cancelado</option>
                             </select>

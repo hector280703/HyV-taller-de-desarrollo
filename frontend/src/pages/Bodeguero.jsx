@@ -6,10 +6,10 @@ import { showErrorAlert, showSuccessAlert, showConfirmAlert } from '@helpers/swe
 import { formatPrice } from '@helpers/formatData';
 import '@styles/repartidor.css';
 
-function Repartidor() {
+function Bodeguero() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('listo_para_envio');
+  const [filter, setFilter] = useState('pendiente');
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [updating, setUpdating] = useState(false);
   const navigate = useNavigate();
@@ -17,7 +17,7 @@ function Repartidor() {
   const user = JSON.parse(sessionStorage.getItem('usuario'));
 
   useEffect(() => {
-    if (!user || user.rol !== 'repartidor') {
+    if (!user || user.rol !== 'bodeguero') {
       showErrorAlert('Acceso denegado', 'No tienes permisos para acceder a esta página');
       navigate('/');
       return;
@@ -43,8 +43,8 @@ function Repartidor() {
 
   const handleUpdateStatus = async (orderId, newStatus) => {
     const statusMessages = {
-      en_camino: 'marcar como En Camino',
-      entregado: 'marcar como Entregado',
+      procesando: 'marcar como Procesando',
+      listo_para_envio: 'marcar como Listo para Envío',
     };
 
     const confirmed = await showConfirmAlert(
@@ -120,14 +120,14 @@ function Repartidor() {
 
   const getNextStatus = (currentStatus) => {
     const statusFlow = {
-      listo_para_envio: 'en_camino',
-      en_camino: 'entregado',
+      pendiente: 'procesando',
+      procesando: 'listo_para_envio',
     };
     return statusFlow[currentStatus];
   };
 
   const canUpdateStatus = (status) => {
-    return ['listo_para_envio', 'en_camino'].includes(status);
+    return ['pendiente', 'procesando'].includes(status);
   };
 
   const getMetodoPagoText = (metodo) => {
@@ -136,6 +136,7 @@ function Repartidor() {
       transferencia: '🏦 Transferencia Bancaria',
       tarjeta: '💳 Tarjeta de Crédito',
       debito: '💳 Tarjeta de Débito',
+      mercadopago: 'Mercado Pago',
     };
     return metodos[metodo] || metodo;
   };
@@ -150,12 +151,23 @@ function Repartidor() {
   return (
     <div className="repartidor-container">
       <div className="repartidor-header">
-        <h1>🚚 Panel de Repartidor</h1>
+        <h1>🏭 Panel de Bodega</h1>
         <p className="repartidor-welcome">Bienvenido, {user?.nombreCompleto}</p>
       </div>
 
-      {/* Filtros */}
       <div className="repartidor-filters">
+        <button
+          className={`filter-btn ${filter === 'pendiente' ? 'active' : ''}`}
+          onClick={() => setFilter('pendiente')}
+        >
+          📋 Pendientes
+        </button>
+        <button
+          className={`filter-btn ${filter === 'procesando' ? 'active' : ''}`}
+          onClick={() => setFilter('procesando')}
+        >
+          ⚙️ Procesando
+        </button>
         <button
           className={`filter-btn ${filter === 'listo_para_envio' ? 'active' : ''}`}
           onClick={() => setFilter('listo_para_envio')}
@@ -163,22 +175,17 @@ function Repartidor() {
           📦 Listo para Envío
         </button>
         <button
-          className={`filter-btn ${filter === 'en_camino' ? 'active' : ''}`}
-          onClick={() => setFilter('en_camino')}
-        >
-          🚚 En camino
-        </button>
-        <button
-          className={`filter-btn ${filter === 'entregado' ? 'active' : ''}`}
-          onClick={() => setFilter('entregado')}
-        >
-          ✅ Entregados
-        </button>
-        <button
           className={`filter-btn ${filter === 'todas' ? 'active' : ''}`}
           onClick={() => setFilter('todas')}
         >
           📦 Todas
+        </button>
+        <button
+          className="filter-btn"
+          onClick={() => navigate('/inventory')}
+          style={{ backgroundColor: '#f39c12', color: 'white' }}
+        >
+          📦 Inventario
         </button>
         <button
           className="filter-btn logout-btn"
@@ -188,7 +195,6 @@ function Repartidor() {
         </button>
       </div>
 
-      {/* Lista de órdenes */}
       <div className="repartidor-content">
         {loading ? (
           <div className="repartidor-loading">
@@ -316,18 +322,6 @@ function Repartidor() {
                         >
                           {updating ? '⏳ Actualizando...' : `➡️ ${getStatusText(getNextStatus(order.estado))}`}
                         </button>
-                        
-                        {order.estado === 'listo_para_envio' || order.estado === 'en_camino' ? (
-                          <a
-                            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(order.direccionEnvio)}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="action-btn map-btn"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            🗺️ Ver en Mapa
-                          </a>
-                        ) : null}
                       </div>
                     )}
                   </div>
@@ -341,4 +335,4 @@ function Repartidor() {
   );
 }
 
-export default Repartidor;
+export default Bodeguero;

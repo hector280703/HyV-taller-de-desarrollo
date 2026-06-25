@@ -18,6 +18,8 @@ import Orders from '@pages/Orders';
 import OrderDetail from '@pages/OrderDetail';
 import AdminOrders from '@pages/AdminOrders';
 import Repartidor from '@pages/Repartidor';
+import Bodeguero from '@pages/Bodeguero';
+import Inventory from '@pages/Inventory';
 import PaymentResult from '@pages/PaymentResult';
 
 const router = createBrowserRouter([
@@ -55,6 +57,22 @@ const router = createBrowserRouter([
         element: (
         <ProtectedRoute allowedRoles={['repartidor']}>
           <Repartidor />
+        </ProtectedRoute>
+        ),
+      },
+      {
+        path: '/bodega',
+        element: (
+        <ProtectedRoute allowedRoles={['bodeguero']}>
+          <Bodeguero />
+        </ProtectedRoute>
+        ),
+      },
+      {
+        path: '/inventory',
+        element: (
+        <ProtectedRoute allowedRoles={['administrador', 'bodeguero']}>
+          <Inventory />
         </ProtectedRoute>
         ),
       },

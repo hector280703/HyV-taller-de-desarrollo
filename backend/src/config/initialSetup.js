@@ -46,6 +46,15 @@ async function createUsers() {
           password: await encryptPassword("repartidor1234"),
           rol: "repartidor",
         }),
+      ),
+      userRepository.save(
+        userRepository.create({
+          nombreCompleto: "Luis Fernando Gómez Pérez",
+          rut: "15.678.901-2",
+          email: "bodeguero2024@gmail.cl",
+          password: await encryptPassword("bodeguero1234"),
+          rol: "bodeguero",
+        }),
       )
     ]);
     console.log("* => Usuarios creados exitosamente");

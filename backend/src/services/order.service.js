@@ -265,8 +265,8 @@ export async function getOrdersService(userId, userRole, filters = {}) {
     const whereConditions = {};
 
     // Si onlyOwn es true, solo mostrar órdenes del usuario actual
-    // Admin y repartidor pueden ver todas las órdenes, usuarios normales solo las propias
-    if ((userRole !== "administrador" && userRole !== "repartidor") || filters.onlyOwn === "true" || filters.onlyOwn === true) {
+    // Admin, repartidor y bodeguero pueden ver todas las órdenes, usuarios normales solo las propias
+    if ((userRole !== "administrador" && userRole !== "repartidor" && userRole !== "bodeguero") || filters.onlyOwn === "true" || filters.onlyOwn === true) {
       whereConditions.user = { id: userId };
     }
 
@@ -326,7 +326,7 @@ export async function getOrderByIdService(orderId, userId, userRole) {
 
 export async function updateOrderStatusService(orderId, newStatus, userId, userRole) {
   try {
-    if (userRole !== "administrador" && userRole !== "repartidor") {
+    if (userRole !== "administrador" && userRole !== "repartidor" && userRole !== "bodeguero") {
       return [null, "No tienes permisos para cambiar el estado de las órdenes"];
     }
 

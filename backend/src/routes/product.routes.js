@@ -1,6 +1,6 @@
 "use strict";
 import { Router } from "express";
-import { isAdmin } from "../middlewares/authorization.middleware.js";
+import { isAdmin, isAdminOrBodeguero } from "../middlewares/authorization.middleware.js";
 import { authenticateJwt } from "../middlewares/authentication.middleware.js";
 import {
   createProduct,
@@ -18,14 +18,14 @@ router
   .get("/", getProducts)
   .get("/detail/", getProduct);
 
-// Ruta de alertas de stock - solo para administradores
+// Ruta de alertas de stock - administradores y bodegueros
 router
-  .get("/low-stock", authenticateJwt, isAdmin, getLowStockProducts);
+  .get("/low-stock", authenticateJwt, isAdminOrBodeguero, getLowStockProducts);
 
-// Rutas protegidas - requieren autenticación y rol de administrador
+// Rutas protegidas - requieren autenticación y rol de administrador/bodeguero
 router
-  .post("/", authenticateJwt, isAdmin, createProduct)
-  .patch("/detail/", authenticateJwt, isAdmin, updateProduct)
-  .delete("/detail/", authenticateJwt, isAdmin, deleteProduct);
+  .post("/", authenticateJwt, isAdminOrBodeguero, createProduct)
+  .patch("/detail/", authenticateJwt, isAdminOrBodeguero, updateProduct)
+  .delete("/detail/", authenticateJwt, isAdminOrBodeguero, deleteProduct);
 
 export default router;
