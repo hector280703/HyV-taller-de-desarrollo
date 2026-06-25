@@ -59,9 +59,16 @@ export async function cancelOrder(orderId) {
   }
 }
 
-export async function getOrderStats() {
+export async function getOrderStats(mes, anio) {
   try {
-    const response = await axios.get('/orders/stats');
+    const params = new URLSearchParams();
+    if (mes) params.append('mes', mes);
+    if (anio) params.append('anio', anio);
+    
+    const queryString = params.toString();
+    const url = queryString ? `/orders/stats?${queryString}` : '/orders/stats';
+
+    const response = await axios.get(url);
     return response.data;
   } catch (error) {
     console.error('Error al obtener estadísticas:', error);

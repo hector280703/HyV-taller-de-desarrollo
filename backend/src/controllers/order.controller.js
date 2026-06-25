@@ -145,6 +145,7 @@ export async function cancelOrder(req, res) {
 export async function getOrderStats(req, res) {
   try {
     const userRole = req.user.rol;
+    const { mes, anio } = req.query;
 
     if (userRole !== "administrador") {
       return handleErrorClient(
@@ -154,7 +155,7 @@ export async function getOrderStats(req, res) {
       );
     }
 
-    const [stats, errorStats] = await getOrderStatsService();
+    const [stats, errorStats] = await getOrderStatsService(mes, anio);
     if (errorStats) {
       return handleErrorClient(res, 400, errorStats);
     }

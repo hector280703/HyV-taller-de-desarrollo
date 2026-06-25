@@ -427,7 +427,7 @@ export async function cancelOrderService(orderId, userId, userRole) {
   }
 }
 
-export async function getOrderStatsService() {
+export async function getOrderStatsService(mes, anio) {
   try {
     const orderRepository = AppDataSource.getRepository(Order);
     const orderItemRepository = AppDataSource.getRepository(OrderItem);
@@ -436,6 +436,11 @@ export async function getOrderStatsService() {
     today.setHours(0, 0, 0, 0);
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const targetMonth = mes ? parseInt(mes) - 1 : today.getMonth();
+    const targetYear = anio ? parseInt(anio) : today.getFullYear();
+    const startOfMonth = new Date(targetYear, targetMonth, 1);
+    const endOfMonth = new Date(targetYear, targetMonth + 1, 0, 23, 59, 59, 999);
 
     // Ventas del día
     const ventasHoy = await orderRepository
@@ -446,15 +451,33 @@ export async function getOrderStatsService() {
       .andWhere("order.estado != :cancelado", { cancelado: "cancelado" })
       .getRawOne();
 
-    // Pedidos por estado
+    // Ventas del mes
+    const ventasMes = await orderRepository
+      .createQueryBuilder("order")
+      .select("SUM(order.total)", "total")
+      .where("order.createdAt >= :startOfMonth", { startOfMonth })
+      .andWhere("order.createdAt <= :endOfMonth", { endOfMonth })
+      .andWhere("order.estado != :cancelado", { cancelado: "cancelado" })
+      .getRawOne();
+
+    // Pedidos del mes
+    const pedidosMes = await orderRepository
+      .createQueryBuilder("order")
+      .where("order.createdAt >= :startOfMonth", { startOfMonth })
+      .andWhere("order.createdAt <= :endOfMonth", { endOfMonth })
+      .getCount();
+
+    // Pedidos por estado (del mes)
     const pedidosPorEstado = await orderRepository
       .createQueryBuilder("order")
       .select("order.estado", "estado")
       .addSelect("COUNT(*)", "cantidad")
+      .where("order.createdAt >= :startOfMonth", { startOfMonth })
+      .andWhere("order.createdAt <= :endOfMonth", { endOfMonth })
       .groupBy("order.estado")
       .getRawMany();
 
-    // Total de pedidos
+    // Total de pedidos (historico)
     const totalPedidos = await orderRepository.count();
 
     // Pedidos de hoy
@@ -471,37 +494,62 @@ export async function getOrderStatsService() {
       .where("order.estado != :cancelado", { cancelado: "cancelado" })
       .getRawOne();
 
-    // Ventas de los últimos 7 días (para gráfico)
-    const ventasSemana = [];
-    for (let i = 6; i >= 0; i--) {
-      const dayStart = new Date(today);
-      dayStart.setDate(dayStart.getDate() - i);
-      const dayEnd = new Date(dayStart);
-      dayEnd.setDate(dayEnd.getDate() + 1);
+    // Ventas Mensuales del Año Seleccionado
+    const ventasMensualesAnio = [];
+    const mesesNombres = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+    for (let i = 0; i < 12; i++) {
+      const startOfM = new Date(targetYear, i, 1);
+      const endOfM = new Date(targetYear, i + 1, 0, 23, 59, 59, 999);
+      
+      const ventaMes = await orderRepository
+        .createQueryBuilder("order")
+        .select("SUM(order.total)", "total")
+        .addSelect("COUNT(*)", "cantidad")
+        .where("order.createdAt >= :startOfM", { startOfM })
+        .andWhere("order.createdAt <= :endOfM", { endOfM })
+        .andWhere("order.estado != :cancelado", { cancelado: "cancelado" })
+        .getRawOne();
+
+      ventasMensualesAnio.push({
+        mes: mesesNombres[i],
+        total: parseFloat(ventaMes.total) || 0,
+        cantidad: parseInt(ventaMes.cantidad) || 0,
+      });
+    }
+
+    // Ventas Diarias del Mes Seleccionado
+    const ventasDiariasMes = [];
+    const daysInMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
+    for (let i = 1; i <= daysInMonth; i++) {
+      const dayStart = new Date(targetYear, targetMonth, i);
+      const dayEnd = new Date(targetYear, targetMonth, i, 23, 59, 59, 999);
 
       const ventaDia = await orderRepository
         .createQueryBuilder("order")
         .select("SUM(order.total)", "total")
         .addSelect("COUNT(*)", "cantidad")
         .where("order.createdAt >= :dayStart", { dayStart })
-        .andWhere("order.createdAt < :dayEnd", { dayEnd })
+        .andWhere("order.createdAt <= :dayEnd", { dayEnd })
         .andWhere("order.estado != :cancelado", { cancelado: "cancelado" })
         .getRawOne();
 
-      ventasSemana.push({
-        fecha: dayStart.toISOString().split("T")[0],
-        dia: dayStart.toLocaleDateString("es-CL", { weekday: "short" }),
+      ventasDiariasMes.push({
+        dia: i.toString(),
         total: parseFloat(ventaDia.total) || 0,
         cantidad: parseInt(ventaDia.cantidad) || 0,
       });
     }
 
-    // Top 5 productos más vendidos
+    // Top 5 productos más vendidos (del mes)
     const topProductos = await orderItemRepository
       .createQueryBuilder("item")
+      .leftJoin("item.order", "order")
       .select("item.nombreProducto", "nombre")
       .addSelect("SUM(item.cantidad)", "totalVendido")
       .addSelect("SUM(item.subtotal)", "totalIngresos")
+      .where("order.createdAt >= :startOfMonth", { startOfMonth })
+      .andWhere("order.createdAt <= :endOfMonth", { endOfMonth })
+      .andWhere("order.estado != :cancelado", { cancelado: "cancelado" })
       .groupBy("item.nombreProducto")
       .orderBy("SUM(item.cantidad)", "DESC")
       .limit(5)
@@ -509,11 +557,16 @@ export async function getOrderStatsService() {
 
     const stats = {
       ventasHoy: parseFloat(ventasHoy.total) || 0,
+      ventasMes: parseFloat(ventasMes.total) || 0,
+      pedidosMes,
+      mesSeleccionado: `${String(targetMonth + 1).padStart(2, '0')}/${targetYear}`,
+      anioSeleccionado: targetYear,
       ventasTotales: parseFloat(ventasTotales.total) || 0,
       pedidosPorEstado,
       totalPedidos,
       pedidosHoy,
-      ventasSemana,
+      ventasMensualesAnio,
+      ventasDiariasMes,
       topProductos: topProductos.map((p) => ({
         nombre: p.nombre,
         totalVendido: parseInt(p.totalVendido) || 0,

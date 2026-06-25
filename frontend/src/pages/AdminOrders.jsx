@@ -4,6 +4,8 @@ import { getOrders, updateOrderStatus, getOrderStats } from '../services/order.s
 import { getLowStockProducts } from '../services/product.service.js';
 import { showErrorAlert, showSuccessAlert } from '../helpers/sweetAlert.js';
 import { formatPrice } from '../helpers/formatData.js';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
+import CountUp from '../components/CountUp.jsx';
 import '../styles/adminOrders.css';
 
 // Utilidad para exportar a CSV
@@ -19,17 +21,29 @@ const exportToCSV = (stats, orders) => {
   // Resumen general
   lines.push('=== RESUMEN GENERAL ===');
   lines.push(`Ventas Hoy,$${stats.ventasHoy || 0}`);
+  lines.push(`Ventas Mes (${stats.mesSeleccionado}),$${stats.ventasMes || 0}`);
   lines.push(`Ventas Totales,$${stats.ventasTotales || 0}`);
   lines.push(`Pedidos Hoy,${stats.pedidosHoy || 0}`);
+  lines.push(`Pedidos Mes (${stats.mesSeleccionado}),${stats.pedidosMes || 0}`);
   lines.push(`Total Pedidos,${stats.totalPedidos || 0}`);
   lines.push('');
 
-  // Ventas últimos 7 días
-  lines.push('=== VENTAS ÚLTIMOS 7 DÍAS ===');
-  lines.push('Fecha,Día,Total Ventas,Cantidad Pedidos');
-  if (stats.ventasSemana) {
-    stats.ventasSemana.forEach(dia => {
-      lines.push(`${dia.fecha},${dia.dia},$${dia.total},${dia.cantidad}`);
+  // Ventas Anuales
+  lines.push(`=== VENTAS MENSUALES (${stats.anioSeleccionado}) ===`);
+  lines.push('Mes,Total Ventas,Cantidad Pedidos');
+  if (stats.ventasMensualesAnio) {
+    stats.ventasMensualesAnio.forEach(mes => {
+      lines.push(`${mes.mes},$${mes.total},${mes.cantidad}`);
+    });
+  }
+  lines.push('');
+
+  // Ventas Diarias
+  lines.push(`=== VENTAS DIARIAS (${stats.mesSeleccionado}) ===`);
+  lines.push('Día,Total Ventas,Cantidad Pedidos');
+  if (stats.ventasDiariasMes) {
+    stats.ventasDiariasMes.forEach(dia => {
+      lines.push(`${dia.dia},$${dia.total},${dia.cantidad}`);
     });
   }
   lines.push('');
@@ -107,7 +121,7 @@ const exportToPDF = (stats, orders, formatPriceFn) => {
         .header .date { font-size: 13px; color: #7f8c8d; margin-top: 10px; }
         .section { margin-bottom: 30px; }
         .section h2 { font-size: 18px; color: #ff6b35; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #ecf0f1; }
-        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 30px; }
         .stat-box { background: #f8f9fa; border-radius: 10px; padding: 15px; text-align: center; border: 1px solid #ecf0f1; }
         .stat-box .label { font-size: 11px; color: #7f8c8d; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; }
         .stat-box .value { font-size: 22px; font-weight: bold; color: #2c3e50; margin-top: 5px; }
@@ -138,6 +152,10 @@ const exportToPDF = (stats, orders, formatPriceFn) => {
           <div class="value">${formatPriceFn(stats.ventasHoy)}</div>
         </div>
         <div class="stat-box">
+          <div class="label">📅 Ventas Mes (${stats.mesSeleccionado})</div>
+          <div class="value">${formatPriceFn(stats.ventasMes)}</div>
+        </div>
+        <div class="stat-box">
           <div class="label">💎 Ventas Totales</div>
           <div class="value">${formatPriceFn(stats.ventasTotales)}</div>
         </div>
@@ -146,20 +164,39 @@ const exportToPDF = (stats, orders, formatPriceFn) => {
           <div class="value">${stats.pedidosHoy || 0}</div>
         </div>
         <div class="stat-box">
+          <div class="label">📊 Pedidos Mes (${stats.mesSeleccionado})</div>
+          <div class="value">${stats.pedidosMes || 0}</div>
+        </div>
+        <div class="stat-box">
           <div class="label">📋 Total Pedidos</div>
           <div class="value">${stats.totalPedidos || 0}</div>
         </div>
       </div>
 
       <div class="section">
-        <h2>📈 Ventas Últimos 7 Días</h2>
+        <h2>📆 Ventas Mensuales (Año ${stats.anioSeleccionado})</h2>
         <table>
-          <thead><tr><th>Fecha</th><th>Día</th><th>Total Ventas</th><th>Nº Pedidos</th></tr></thead>
+          <thead><tr><th>Mes</th><th>Total Ventas</th><th>Nº Pedidos</th></tr></thead>
           <tbody>
-            ${(stats.ventasSemana || []).map(dia => `
+            ${(stats.ventasMensualesAnio || []).map(mes => `
               <tr>
-                <td>${dia.fecha}</td>
-                <td style="text-transform:capitalize">${dia.dia}</td>
+                <td>${mes.mes}</td>
+                <td>${formatPriceFn(mes.total)}</td>
+                <td>${mes.cantidad}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="section">
+        <h2>📈 Ventas Diarias (Mes ${stats.mesSeleccionado})</h2>
+        <table>
+          <thead><tr><th>Día</th><th>Total Ventas</th><th>Nº Pedidos</th></tr></thead>
+          <tbody>
+            ${(stats.ventasDiariasMes || []).map(dia => `
+              <tr>
+                <td>Día ${dia.dia}</td>
                 <td>${formatPriceFn(dia.total)}</td>
                 <td>${dia.cantidad}</td>
               </tr>
@@ -246,22 +283,39 @@ const exportToPDF = (stats, orders, formatPriceFn) => {
 
 export default function AdminOrders() {
   const navigate = useNavigate();
+  const today = new Date();
+  const defaultMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+
   const [orders, setOrders] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('');
   const [lowStockProducts, setLowStockProducts] = useState([]);
+  const [selectedMonthStr, setSelectedMonthStr] = useState(defaultMonth);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [selectedMonthStr]);
+
+  // Reset pagination when filter or search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filter, searchTerm]);
 
   const loadData = async () => {
     setLoading(true);
     try {
+      let mes, anio;
+      if (selectedMonthStr) {
+        [anio, mes] = selectedMonthStr.split('-');
+      }
+
       const [ordersResponse, statsResponse, lowStockData] = await Promise.all([
         getOrders(),
-        getOrderStats(),
+        getOrderStats(mes, anio),
         getLowStockProducts()
       ]);
       setOrders(ordersResponse.data || []);
@@ -297,14 +351,27 @@ export default function AdminOrders() {
     return badges[estado] || { text: estado, class: 'badge-default' };
   };
 
-  const filteredOrders = filter
-    ? orders.filter(order => order.estado === filter)
-    : orders;
+  const filteredOrders = orders.filter(order => {
+    const matchesFilter = filter ? order.estado === filter : true;
+    const matchesSearch = searchTerm 
+      ? (
+          order.numeroOrden?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+          order.user?.nombreCompleto?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+          order.user?.email?.toLowerCase().includes(searchTerm.toLowerCase())
+        ) 
+      : true;
+    return matchesFilter && matchesSearch;
+  });
 
-  // Calcular la altura máxima de las barras del gráfico
-  const maxVenta = stats?.ventasSemana?.length > 0
-    ? Math.max(...stats.ventasSemana.map(v => v.total))
-    : 0;
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentOrders = filteredOrders.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+
+  const handleCopyOrderNumber = (numeroOrden) => {
+    navigator.clipboard.writeText(numeroOrden);
+    showSuccessAlert('Copiado', 'Número de orden copiado al portapapeles');
+  };
 
   if (loading) {
     return (
@@ -320,6 +387,15 @@ export default function AdminOrders() {
         <h1>📊 Panel de Administración</h1>
         <p className="admin-subtitle">Estadísticas, seguimiento de órdenes y rendimiento</p>
         <div className="export-actions">
+          <div className="month-selector">
+            <input 
+              type="month" 
+              value={selectedMonthStr} 
+              onChange={(e) => setSelectedMonthStr(e.target.value)} 
+              className="month-input"
+              title="Seleccionar mes para filtrar estadísticas"
+            />
+          </div>
           <button
             className="btn-export btn-export-csv"
             onClick={() => {
@@ -395,7 +471,15 @@ export default function AdminOrders() {
               <div className="stat-icon">💰</div>
               <div className="stat-content">
                 <p className="stat-label">Ventas Hoy</p>
-                <p className="stat-value">{formatPrice(stats.ventasHoy)}</p>
+                <p className="stat-value"><CountUp end={stats.ventasHoy} isCurrency={true} /></p>
+              </div>
+            </div>
+
+            <div className="stat-card">
+              <div className="stat-icon">📅</div>
+              <div className="stat-content">
+                <p className="stat-label">Ventas Mes ({stats.mesSeleccionado})</p>
+                <p className="stat-value"><CountUp end={stats.ventasMes} isCurrency={true} /></p>
               </div>
             </div>
 
@@ -403,7 +487,7 @@ export default function AdminOrders() {
               <div className="stat-icon">💎</div>
               <div className="stat-content">
                 <p className="stat-label">Ventas Totales</p>
-                <p className="stat-value">{formatPrice(stats.ventasTotales)}</p>
+                <p className="stat-value"><CountUp end={stats.ventasTotales} isCurrency={true} /></p>
               </div>
             </div>
 
@@ -411,7 +495,15 @@ export default function AdminOrders() {
               <div className="stat-icon">📦</div>
               <div className="stat-content">
                 <p className="stat-label">Pedidos Hoy</p>
-                <p className="stat-value">{stats.pedidosHoy || 0}</p>
+                <p className="stat-value"><CountUp end={stats.pedidosHoy} /></p>
+              </div>
+            </div>
+
+            <div className="stat-card">
+              <div className="stat-icon">📊</div>
+              <div className="stat-content">
+                <p className="stat-label">Pedidos Mes ({stats.mesSeleccionado})</p>
+                <p className="stat-value"><CountUp end={stats.pedidosMes} /></p>
               </div>
             </div>
 
@@ -419,67 +511,90 @@ export default function AdminOrders() {
               <div className="stat-icon">📋</div>
               <div className="stat-content">
                 <p className="stat-label">Total Pedidos</p>
-                <p className="stat-value">{stats.totalPedidos || 0}</p>
+                <p className="stat-value"><CountUp end={stats.totalPedidos} /></p>
               </div>
             </div>
           </div>
 
           {/* Charts Row */}
           <div className="charts-grid">
-            {/* Weekly Sales Chart */}
-            <div className="chart-card">
-              <h3 className="chart-title">📈 Ventas Últimos 7 Días</h3>
-              <div className="bar-chart">
-                {stats.ventasSemana?.map((dia, index) => (
-                  <div key={index} className="bar-group">
-                    <div className="bar-value">
-                      {dia.total > 0 ? formatPrice(dia.total) : '-'}
-                    </div>
-                    <div className="bar-wrapper">
-                      <div
-                        className="bar"
-                        style={{
-                          height: maxVenta > 0 ? `${Math.max((dia.total / maxVenta) * 100, 4)}%` : '4%',
-                        }}
-                      >
-                        {dia.cantidad > 0 && (
-                          <span className="bar-orders">{dia.cantidad}</span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="bar-label">{dia.dia}</div>
-                  </div>
-                ))}
+            {/* Monthly Sales Chart (Year) */}
+            <div className="chart-card recharts-card" style={{ gridColumn: '1 / -1' }}>
+              <h3 className="chart-title">📆 Ventas Mensuales (Año {stats.anioSeleccionado})</h3>
+              <div style={{ width: '100%', height: 300 }}>
+                <ResponsiveContainer>
+                  <BarChart data={stats.ventasMensualesAnio || []} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ecf0f1" />
+                    <XAxis dataKey="mes" axisLine={false} tickLine={false} tick={{fill: '#7f8c8d', fontSize: 12}} />
+                    <YAxis 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tick={{fill: '#7f8c8d', fontSize: 12}}
+                      tickFormatter={(value) => `$${(value/1000)}k`}
+                    />
+                    <RechartsTooltip 
+                      formatter={(value) => formatPrice(value)}
+                      labelStyle={{color: '#2c3e50', fontWeight: 'bold'}}
+                      contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.1)'}}
+                    />
+                    <Bar dataKey="total" fill="#3498db" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Daily Sales Chart (Month) */}
+            <div className="chart-card recharts-card" style={{ gridColumn: '1 / -1' }}>
+              <h3 className="chart-title">📈 Ventas Diarias (Mes {stats.mesSeleccionado})</h3>
+              <div style={{ width: '100%', height: 300 }}>
+                <ResponsiveContainer>
+                  <AreaChart data={stats.ventasDiariasMes || []} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="colorTotalDiario" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#ff6b35" stopOpacity={0.8}/>
+                        <stop offset="95%" stopColor="#ff6b35" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ecf0f1" />
+                    <XAxis dataKey="dia" axisLine={false} tickLine={false} tick={{fill: '#7f8c8d', fontSize: 12}} />
+                    <YAxis 
+                      axisLine={false} 
+                      tickLine={false} 
+                      tick={{fill: '#7f8c8d', fontSize: 12}}
+                      tickFormatter={(value) => `$${(value/1000)}k`}
+                    />
+                    <RechartsTooltip 
+                      formatter={(value) => formatPrice(value)}
+                      labelStyle={{color: '#2c3e50', fontWeight: 'bold'}}
+                      contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.1)'}}
+                    />
+                    <Area type="monotone" dataKey="total" stroke="#ff6b35" strokeWidth={3} fillOpacity={1} fill="url(#colorTotalDiario)" />
+                  </AreaChart>
+                </ResponsiveContainer>
               </div>
             </div>
 
             {/* Top Products */}
-            <div className="chart-card">
+            <div className="chart-card recharts-card">
               <h3 className="chart-title">🏆 Productos Más Vendidos</h3>
               {stats.topProductos?.length > 0 ? (
-                <div className="top-products-list">
-                  {stats.topProductos.map((product, index) => {
-                    const maxSold = stats.topProductos[0]?.totalVendido || 1;
-                    const widthPercent = (product.totalVendido / maxSold) * 100;
-                    return (
-                      <div key={index} className="top-product-item">
-                        <div className="top-product-rank">#{index + 1}</div>
-                        <div className="top-product-info">
-                          <div className="top-product-header">
-                            <span className="top-product-name">{product.nombre}</span>
-                            <span className="top-product-sold">{product.totalVendido} uds</span>
-                          </div>
-                          <div className="top-product-bar-bg">
-                            <div
-                              className="top-product-bar-fill"
-                              style={{ width: `${widthPercent}%` }}
-                            ></div>
-                          </div>
-                          <span className="top-product-revenue">{formatPrice(product.totalIngresos)}</span>
-                        </div>
-                      </div>
-                    );
-                  })}
+                <div style={{ width: '100%', height: 300 }}>
+                  <ResponsiveContainer>
+                    <BarChart data={stats.topProductos} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#ecf0f1" />
+                      <XAxis type="number" hide />
+                      <YAxis dataKey="nombre" type="category" axisLine={false} tickLine={false} tick={{fill: '#2c3e50', fontSize: 11, width: 100}} width={100} />
+                      <RechartsTooltip 
+                        formatter={(value) => `${value} uds`}
+                        contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.1)'}}
+                      />
+                      <Bar dataKey="totalVendido" fill="#3498db" radius={[0, 4, 4, 0]}>
+                        {stats.topProductos.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={['#ff6b35', '#f39c12', '#3498db', '#9b59b6', '#2ecc71'][index % 5]} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
                 </div>
               ) : (
                 <div className="no-data">No hay datos de productos aún</div>
@@ -487,25 +602,42 @@ export default function AdminOrders() {
             </div>
 
             {/* Orders by Status */}
-            <div className="chart-card">
+            <div className="chart-card recharts-card">
               <h3 className="chart-title">📊 Pedidos por Estado</h3>
-              <div className="status-chart">
-                {stats.pedidosPorEstado?.map((item) => {
-                  const badge = getEstadoBadge(item.estado);
-                  const percent = stats.totalPedidos > 0 ? ((parseInt(item.cantidad) / stats.totalPedidos) * 100).toFixed(1) : 0;
-                  return (
-                    <div key={item.estado} className="status-chart-item">
-                      <div className="status-chart-header">
-                        <span className={`mini-badge ${badge.class}`}>{badge.text}</span>
-                        <span className="status-chart-count">{item.cantidad}</span>
-                      </div>
-                      <div className="status-chart-bar-bg">
-                        <div className={`status-chart-bar-fill ${badge.class}`} style={{ width: `${percent}%` }}></div>
-                      </div>
-                      <span className="status-chart-percent">{percent}%</span>
-                    </div>
-                  );
-                })}
+              <div style={{ width: '100%', height: 300 }}>
+                {stats.pedidosPorEstado?.length > 0 ? (
+                  <ResponsiveContainer>
+                    <PieChart>
+                      <Pie
+                        data={stats.pedidosPorEstado.map(item => ({...item, value: parseInt(item.cantidad)}))}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={90}
+                        paddingAngle={5}
+                        dataKey="value"
+                        nameKey="estado"
+                      >
+                        {stats.pedidosPorEstado.map((entry, index) => {
+                          const colors = {
+                            pendiente: '#f39c12',
+                            procesando: '#3498db',
+                            enviado: '#9b59b6',
+                            entregado: '#27ae60',
+                            cancelado: '#e74c3c'
+                          };
+                          return <Cell key={`cell-${index}`} fill={colors[entry.estado] || '#95a5a6'} />;
+                        })}
+                      </Pie>
+                      <RechartsTooltip 
+                        formatter={(value) => `${value} pedidos`}
+                        contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 15px rgba(0,0,0,0.1)'}}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="no-data">No hay pedidos registrados</div>
+                )}
               </div>
             </div>
           </div>
@@ -516,43 +648,55 @@ export default function AdminOrders() {
       <div className="orders-section">
         <div className="section-header">
           <h2>Listado de Pedidos</h2>
-          <div className="orders-filters">
-            <button
-              className={filter === '' ? 'filter-btn active' : 'filter-btn'}
-              onClick={() => setFilter('')}
-            >
-              Todos ({orders.length})
-            </button>
-            <button
-              className={filter === 'pendiente' ? 'filter-btn active' : 'filter-btn'}
-              onClick={() => setFilter('pendiente')}
-            >
-              Pendientes
-            </button>
-            <button
-              className={filter === 'procesando' ? 'filter-btn active' : 'filter-btn'}
-              onClick={() => setFilter('procesando')}
-            >
-              Procesando
-            </button>
-            <button
-              className={filter === 'enviado' ? 'filter-btn active' : 'filter-btn'}
-              onClick={() => setFilter('enviado')}
-            >
-              Enviados
-            </button>
-            <button
-              className={filter === 'entregado' ? 'filter-btn active' : 'filter-btn'}
-              onClick={() => setFilter('entregado')}
-            >
-              Entregados
-            </button>
+          <div className="orders-actions-header">
+            <div className="search-container">
+              <span className="search-icon">🔍</span>
+              <input
+                type="text"
+                placeholder="Buscar cliente, orden..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="search-input"
+              />
+            </div>
+            <div className="orders-filters">
+              <button
+                className={filter === '' ? 'filter-btn active' : 'filter-btn'}
+                onClick={() => setFilter('')}
+              >
+                Todos
+              </button>
+              <button
+                className={filter === 'pendiente' ? 'filter-btn active' : 'filter-btn'}
+                onClick={() => setFilter('pendiente')}
+              >
+                Pendientes
+              </button>
+              <button
+                className={filter === 'procesando' ? 'filter-btn active' : 'filter-btn'}
+                onClick={() => setFilter('procesando')}
+              >
+                Procesando
+              </button>
+              <button
+                className={filter === 'enviado' ? 'filter-btn active' : 'filter-btn'}
+                onClick={() => setFilter('enviado')}
+              >
+                Enviados
+              </button>
+              <button
+                className={filter === 'entregado' ? 'filter-btn active' : 'filter-btn'}
+                onClick={() => setFilter('entregado')}
+              >
+                Entregados
+              </button>
+            </div>
           </div>
         </div>
 
         {filteredOrders.length === 0 ? (
           <div className="no-orders">
-            <p>No hay pedidos {filter && `en estado "${filter}"`}</p>
+            <p>No se encontraron pedidos {filter && `en estado "${filter}"`} {searchTerm && `con búsqueda "${searchTerm}"`}</p>
           </div>
         ) : (
           <div className="orders-table-container">
@@ -568,7 +712,7 @@ export default function AdminOrders() {
                 </tr>
               </thead>
               <tbody>
-                {filteredOrders.map((order) => {
+                {currentOrders.map((order) => {
                   const badge = getEstadoBadge(order.estado);
                   const fecha = new Date(order.createdAt).toLocaleDateString('es-CL', {
                     day: '2-digit',
@@ -580,7 +724,16 @@ export default function AdminOrders() {
 
                   return (
                     <tr key={order.id}>
-                      <td className="order-number">#{order.numeroOrden}</td>
+                      <td className="order-number">
+                        #{order.numeroOrden}
+                        <button 
+                          className="btn-copy-mini" 
+                          onClick={() => handleCopyOrderNumber(order.numeroOrden)}
+                          title="Copiar N° Orden"
+                        >
+                          📋
+                        </button>
+                      </td>
                       <td>
                         <div className="customer-cell">
                           <p className="customer-name">{order.user?.nombreCompleto}</p>
@@ -609,6 +762,7 @@ export default function AdminOrders() {
                               <option value="cancelado">Cancelado</option>
                             </select>
                           )}
+                          <a href={`mailto:${order.user?.email}`} className="btn-email-mini" title="Enviar correo">📧</a>
                           <button
                             onClick={() => navigate(`/orders/${order.id}`)}
                             className="btn-view"
@@ -623,6 +777,27 @@ export default function AdminOrders() {
                 })}
               </tbody>
             </table>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="pagination-container">
+                <button 
+                  className="btn-page" 
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(p => p - 1)}
+                >
+                  Anterior
+                </button>
+                <span className="page-info">Página {currentPage} de {totalPages}</span>
+                <button 
+                  className="btn-page" 
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(p => p + 1)}
+                >
+                  Siguiente
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
