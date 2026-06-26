@@ -2,6 +2,7 @@ import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { logout, login } from '@services/auth.service.js';
 import { useCarroCompras } from '@context/CarroComprasContext';
 import { getLowStockProducts } from '@services/product.service.js';
+import { getOrders } from '@services/order.service.js';
 import '@styles/navbar.css';
 import { useState, useEffect, useRef } from "react";
 import useLogin from '@hooks/auth/useLogin.jsx';
@@ -21,6 +22,7 @@ const Navbar = () => {
     const [showSearch, setShowSearch] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [lowStockProducts, setLowStockProducts] = useState([]);
+    const [stockIncidents, setStockIncidents] = useState([]);
     const [showStockPanel, setShowStockPanel] = useState(false);
     const stockPanelRef = useRef(null);
     
@@ -60,19 +62,31 @@ const Navbar = () => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [showUserMenu, showSearch, showStockPanel]);
 
-    // Cargar alertas de stock bajo (solo para administradores)
+    // Cargar alertas de stock bajo e incidencias (solo para administradores)
     useEffect(() => {
         if (userRole === 'administrador') {
-            const fetchLowStock = async () => {
-                const products = await getLowStockProducts();
-                setLowStockProducts(products);
+            const fetchAlerts = async () => {
+                try {
+                    const products = await getLowStockProducts();
+                    setLowStockProducts(products);
+                    
+                    const orders = await getOrders();
+                    if (orders) {
+                        const incidents = orders.filter(o => o.estado === 'incidencia_stock');
+                        setStockIncidents(incidents);
+                    }
+                } catch (error) {
+                    console.error("Error al cargar alertas:", error);
+                }
             };
-            fetchLowStock();
+            fetchAlerts();
             // Refrescar cada 5 minutos
-            const interval = setInterval(fetchLowStock, 5 * 60 * 1000);
+            const interval = setInterval(fetchAlerts, 5 * 60 * 1000);
             return () => clearInterval(interval);
         }
     }, [userRole]);
+
+    const totalAlerts = lowStockProducts.length + stockIncidents.length;
 
     const logoutSubmit = () => {
         try {
@@ -305,13 +319,13 @@ const Navbar = () => {
                 {isAuthenticated && userRole === 'administrador' && (
                     <div className="stock-notification-container" ref={stockPanelRef}>
                         <button
-                            className={`action-btn stock-notification-btn ${showStockPanel ? 'active' : ''} ${lowStockProducts.length > 0 ? 'has-alerts' : ''}`}
+                            className={`action-btn stock-notification-btn ${showStockPanel ? 'active' : ''} ${totalAlerts > 0 ? 'has-alerts' : ''}`}
                             onClick={() => setShowStockPanel(!showStockPanel)}
-                            title={lowStockProducts.length > 0 ? `${lowStockProducts.length} alerta${lowStockProducts.length > 1 ? 's' : ''} de stock` : 'Sin alertas de stock'}
+                            title={totalAlerts > 0 ? `${totalAlerts} alerta${totalAlerts > 1 ? 's' : ''}` : 'Sin alertas'}
                         >
                             🔔
-                            {lowStockProducts.length > 0 && (
-                                <span className="stock-badge">{lowStockProducts.length > 99 ? '99+' : lowStockProducts.length}</span>
+                            {totalAlerts > 0 && (
+                                <span className="stock-badge">{totalAlerts > 99 ? '99+' : totalAlerts}</span>
                             )}
                         </button>
 
@@ -319,25 +333,52 @@ const Navbar = () => {
                             <div className="stock-notification-panel">
                                 <div className="stock-panel-header">
                                     <span className="stock-panel-title">
-                                        {lowStockProducts.length > 0 ? '🚨' : '✅'} Alertas de Stock
+                                        {totalAlerts > 0 ? '🚨' : '✅'} Centro de Alertas
                                     </span>
                                     <span className="stock-panel-count">
-                                        {lowStockProducts.length} alerta{lowStockProducts.length !== 1 ? 's' : ''}
+                                        {totalAlerts} alerta{totalAlerts !== 1 ? 's' : ''}
                                     </span>
                                 </div>
 
                                 <div className="stock-panel-body">
-                                    {lowStockProducts.length === 0 ? (
+                                    {totalAlerts === 0 ? (
                                         <div className="stock-panel-empty">
                                             <span>✅</span>
-                                            <p>Todos los productos tienen stock suficiente</p>
+                                            <p>Todo en orden. No hay alertas.</p>
                                         </div>
                                     ) : (
                                         <>
+                                            {stockIncidents.map((order) => (
+                                                <div
+                                                    key={`incidencia-${order.id}`}
+                                                    className="stock-panel-item sin-stock"
+                                                    style={{ cursor: 'pointer', borderLeft: '3px solid #ef4444' }}
+                                                    onClick={() => {
+                                                        navigate('/admin/orders');
+                                                        setShowStockPanel(false);
+                                                    }}
+                                                >
+                                                    <div className="stock-panel-item-icon">🚫</div>
+                                                    <div className="stock-panel-item-info">
+                                                        <span className="stock-panel-item-name" style={{ color: '#b91c1c' }}>
+                                                            Quiebre en Orden {order.numeroOrden}
+                                                        </span>
+                                                        <span className="stock-panel-item-stock" style={{ color: '#ef4444' }}>
+                                                            Bodega reportó falta física
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                            
                                             {lowStockProducts.map((product) => (
                                                 <div
-                                                    key={product.id}
+                                                    key={`low-stock-${product.id}`}
                                                     className={`stock-panel-item ${product.sinStock ? 'sin-stock' : 'stock-bajo'}`}
+                                                    style={{ cursor: 'pointer' }}
+                                                    onClick={() => {
+                                                        navigate('/inventory');
+                                                        setShowStockPanel(false);
+                                                    }}
                                                 >
                                                     <div className="stock-panel-item-icon">
                                                         {product.sinStock ? '❌' : '⚠️'}
@@ -353,20 +394,6 @@ const Navbar = () => {
                                         </>
                                     )}
                                 </div>
-
-                                {lowStockProducts.length > 0 && (
-                                    <div className="stock-panel-footer">
-                                        <button
-                                            className="stock-panel-link"
-                                            onClick={() => {
-                                                navigate('/inventory');
-                                                setShowStockPanel(false);
-                                            }}
-                                        >
-                                            Ver panel de inventario →
-                                        </button>
-                                    </div>
-                                )}
                             </div>
                         )}
                     </div>

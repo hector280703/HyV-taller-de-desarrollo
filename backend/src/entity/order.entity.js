@@ -18,7 +18,7 @@ const OrderSchema = new EntitySchema({
     },
     estado: {
       type: "enum",
-      enum: ["pendiente", "procesando", "listo_para_envio", "en_camino", "entregado", "cancelado"],
+      enum: ["pendiente", "procesando", "listo_para_envio", "en_camino", "entregado", "cancelado", "incidencia_stock"],
       default: "pendiente",
     },
     subtotal: {

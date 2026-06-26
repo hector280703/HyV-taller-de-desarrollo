@@ -5,7 +5,7 @@ import Product from "../entity/product.entity.js";
 import User from "../entity/user.entity.js";
 import { AppDataSource } from "../config/configDb.js";
 import { Between, MoreThanOrEqual, LessThanOrEqual } from "typeorm";
-import { sendOrderConfirmationEmail, sendOrderStatusUpdateEmail, sendLowStockAlertEmail } from "./email.service.js";
+import { sendOrderConfirmationEmail, sendOrderStatusUpdateEmail, sendLowStockAlertEmail, sendStockIncidentEmail } from "./email.service.js";
 import { LOW_STOCK_THRESHOLD } from "../config/configEnv.js";
 
 // Configuración de zonas de envío con tarifas por peso
@@ -577,6 +577,70 @@ export async function getOrderStatsService(mes, anio) {
     return [stats, null];
   } catch (error) {
     console.error("Error al obtener estadísticas:", error);
+    return [null, "Error interno del servidor"];
+  }
+}
+
+export async function reportStockIssueService(orderId, issues, userId, userRole) {
+  try {
+    if (userRole !== "administrador" && userRole !== "bodeguero") {
+      return [null, "No tienes permisos para reportar problemas de stock"];
+    }
+
+    const orderRepository = AppDataSource.getRepository(Order);
+    const productRepository = AppDataSource.getRepository(Product);
+
+    const order = await orderRepository.findOne({
+      where: { id: orderId },
+      relations: ["orderItems", "orderItems.product"],
+    });
+
+    if (!order) {
+      return [null, "Orden no encontrada"];
+    }
+
+    if (order.estado !== "pendiente" && order.estado !== "procesando") {
+      return [null, "Solo se pueden reportar problemas en órdenes pendientes o procesando"];
+    }
+
+    let notesAddition = "\n[INCIDENCIA STOCK - BODEGA]:\n";
+    const incidentDetails = [];
+
+    for (const issue of issues) {
+      const orderItem = order.orderItems.find(item => item.product.id === issue.productId);
+      if (orderItem && issue.foundQuantity < orderItem.cantidad) {
+        const product = orderItem.product;
+        const faltante = orderItem.cantidad - issue.foundQuantity;
+        
+        notesAddition += `- Falta ${product.nombre}: pedido ${orderItem.cantidad}, encontrado ${issue.foundQuantity}.\n`;
+
+        incidentDetails.push({
+           product: product,
+           cantidad: orderItem.cantidad,
+           foundQuantity: issue.foundQuantity
+        });
+
+        // Ajustar el inventario real restando lo que se perdió/no se encontró
+        product.stock = Math.max(0, product.stock - faltante);
+        await productRepository.save(product);
+      }
+    }
+
+    order.estado = "incidencia_stock";
+    order.notas = (order.notas ? order.notas + "\n" : "") + notesAddition;
+
+    await orderRepository.save(order);
+
+    // Send email to admin about the missing stock
+    if (incidentDetails.length > 0) {
+      sendStockIncidentEmail(order, incidentDetails).catch((err) => {
+        console.error("Error al enviar email de incidencia:", err);
+      });
+    }
+
+    return [order, null];
+  } catch (error) {
+    console.error("Error al reportar problema de stock:", error);
     return [null, "Error interno del servidor"];
   }
 }

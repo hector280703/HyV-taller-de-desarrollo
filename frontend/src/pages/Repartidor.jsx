@@ -4,7 +4,37 @@ import { getOrders, updateOrderStatus } from '@services/order.service';
 import { logout } from '@services/auth.service';
 import { showErrorAlert, showSuccessAlert, showConfirmAlert } from '@helpers/sweetAlert';
 import { formatPrice } from '@helpers/formatData';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import '@styles/repartidor.css';
+
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+});
+
+const deliveryIcon = new L.Icon({
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+});
+
+function MapController({ center, zoom }) {
+  const map = useMap();
+  useEffect(() => {
+    if (center) {
+      map.flyTo(center, zoom, { duration: 1.0 });
+    }
+  }, [center, zoom, map]);
+  return null;
+}
 
 function Repartidor() {
   const [orders, setOrders] = useState([]);
@@ -12,7 +42,16 @@ function Repartidor() {
   const [filter, setFilter] = useState('listo_para_envio');
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [updating, setUpdating] = useState(false);
+  const [mapCenter, setMapCenter] = useState([-37.1653, -73.1835]);
   const navigate = useNavigate();
+
+  const parseCoordinates = (direccion) => {
+    const match = direccion?.match(/\[📍\s*(-?\d+\.\d+),\s*(-?\d+\.\d+)\]/);
+    if (match) {
+      return [parseFloat(match[1]), parseFloat(match[2])];
+    }
+    return null;
+  };
 
   const user = JSON.parse(sessionStorage.getItem('usuario'));
 
@@ -188,7 +227,7 @@ function Repartidor() {
         </button>
       </div>
 
-      {/* Lista de órdenes */}
+      {/* Contenido Principal */}
       <div className="repartidor-content">
         {loading ? (
           <div className="repartidor-loading">
@@ -200,15 +239,72 @@ function Repartidor() {
             <p>📭 No hay órdenes {filter !== 'todas' ? getStatusText(filter).toLowerCase() : ''}</p>
           </div>
         ) : (
-          <div className="orders-list">
-            {orders.map((order) => (
+          <div className="repartidor-layout">
+            
+            {/* Mapa de Entregas */}
+            <div className="delivery-map-container">
+              <h2 className="section-title">🗺️ Mapa de Entregas</h2>
+              <div className="map-wrapper" style={{ height: '400px', width: '100%', borderRadius: '12px', overflow: 'hidden', border: '2px solid #ecf0f1', marginBottom: '2rem' }}>
+                <MapContainer center={mapCenter} zoom={13} style={{ height: '100%', width: '100%' }}>
+                  <TileLayer
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    attribution='&copy; OpenStreetMap contributors'
+                  />
+                  <MapController center={mapCenter} zoom={15} />
+                  
+                  {orders.map(order => {
+                    const coords = parseCoordinates(order.direccionEnvio);
+                    if (coords && order.tipoEntrega === 'envio') {
+                      return (
+                        <Marker key={order.id} position={coords} icon={deliveryIcon}>
+                          <Popup>
+                            <div className="map-popup-content">
+                              <strong>#{order.numeroOrden}</strong>
+                              <p>{order.user?.nombreCompleto}</p>
+                              <span className={`status-badge status-${order.estado}`}>{getStatusText(order.estado)}</span>
+                              <div style={{ marginTop: '10px' }}>
+                                <button 
+                                  className="action-btn map-btn"
+                                  style={{ width: '100%', padding: '5px' }}
+                                  onClick={() => {
+                                    setSelectedOrder(order);
+                                    document.getElementById(`order-${order.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                  }}
+                                >
+                                  Ver Detalles
+                                </button>
+                              </div>
+                            </div>
+                          </Popup>
+                        </Marker>
+                      );
+                    }
+                    return null;
+                  })}
+                </MapContainer>
+              </div>
+            </div>
+
+            {/* Lista de Órdenes */}
+            <div className="orders-list">
+              <h2 className="section-title">📋 Lista de Pedidos</h2>
+              {orders.map((order) => {
+                const hasCoords = !!parseCoordinates(order.direccionEnvio);
+                return (
               <div
+                id={`order-${order.id}`}
                 key={order.id}
                 className={`order-card ${selectedOrder?.id === order.id ? 'expanded' : ''}`}
               >
                 <div 
                   className="order-card-header"
-                  onClick={() => setSelectedOrder(selectedOrder?.id === order.id ? null : order)}
+                  onClick={() => {
+                    setSelectedOrder(selectedOrder?.id === order.id ? null : order);
+                    if (hasCoords && selectedOrder?.id !== order.id) {
+                      setMapCenter(parseCoordinates(order.direccionEnvio));
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                  }}
                 >
                   <div className="order-number">
                     <span className="status-icon">{getStatusIcon(order.estado)}</span>
@@ -333,7 +429,9 @@ function Repartidor() {
                   </div>
                 )}
               </div>
-            ))}
+              );
+            })}
+          </div>
           </div>
         )}
       </div>

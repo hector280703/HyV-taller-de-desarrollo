@@ -551,11 +551,18 @@
    ========================================== */
 @media (min-width: 768px) {
   .repartidor-container {
-    max-width: 580px;
+    max-width: 1000px;
     margin: 0 auto;
     border-left: 1px solid rgba(255, 255, 255, 0.08);
     border-right: 1px solid rgba(255, 255, 255, 0.08);
     box-shadow: 0 0 50px rgba(0, 0, 0, 0.6);
+  }
+
+  .repartidor-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    align-items: start;
   }
 
   .repartidor-container .repartidor-header h1 {
@@ -632,4 +639,66 @@
   .repartidor-container .repartidor-filters {
     scroll-behavior: smooth;
   }
+}
+
+/* ==========================================
+   Estilos del Mapa de Entregas
+   ========================================== */
+.section-title {
+  color: #f8fafc;
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 0.5rem;
+}
+
+.delivery-map-container {
+  width: 100%;
+}
+
+.map-wrapper {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+  background: rgba(30, 41, 59, 0.7);
+}
+
+.leaflet-container {
+  font-family: inherit;
+}
+
+.map-popup-content {
+  text-align: center;
+  color: #2c3e50;
+  min-width: 150px;
+}
+
+.map-popup-content strong {
+  display: block;
+  font-size: 1.1rem;
+  color: #ff6b35;
+  margin-bottom: 5px;
+}
+
+.map-popup-content p {
+  margin: 0 0 10px 0;
+  font-weight: 500;
+}
+
+.map-popup-content .status-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+
+.popup-btn {
+  background: linear-gradient(135deg, #3498db 0%, #2980b9 100%) !important;
+  color: white !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3) !important;
+}
+
+.popup-btn:hover {
+  background: linear-gradient(135deg, #2980b9 0%, #2573a7 100%) !important;
 }

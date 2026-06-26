@@ -4,6 +4,7 @@ import { getOrders, updateOrderStatus } from '@services/order.service';
 import { logout } from '@services/auth.service';
 import { showErrorAlert, showSuccessAlert, showConfirmAlert } from '@helpers/sweetAlert';
 import { formatPrice } from '@helpers/formatData';
+import PreparationChecklist from '@components/PreparationChecklist';
 import '@styles/repartidor.css';
 
 function Bodeguero() {
@@ -12,6 +13,7 @@ function Bodeguero() {
   const [filter, setFilter] = useState('pendiente');
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [updating, setUpdating] = useState(false);
+  const [checklistOrder, setChecklistOrder] = useState(null);
   const navigate = useNavigate();
 
   const user = JSON.parse(sessionStorage.getItem('usuario'));
@@ -42,9 +44,20 @@ function Bodeguero() {
   };
 
   const handleUpdateStatus = async (orderId, newStatus) => {
+    if (newStatus === 'listo_para_envio') {
+      const orderToPrepare = orders.find(o => o.id === orderId);
+      setChecklistOrder(orderToPrepare);
+      return;
+    }
+
+    await executeStatusUpdate(orderId, newStatus);
+  };
+
+  const executeStatusUpdate = async (orderId, newStatus) => {
     const statusMessages = {
       procesando: 'marcar como Procesando',
       listo_para_envio: 'marcar como Listo para Envío',
+      incidencia_stock: 'reportar incidencia de stock',
     };
 
     const confirmed = await showConfirmAlert(
@@ -90,6 +103,7 @@ function Bodeguero() {
       en_camino: 'En camino',
       entregado: 'Entregado',
       cancelado: 'Cancelado',
+      incidencia_stock: 'Incidencia de Stock',
     };
     return texts[status] || status;
   };
@@ -331,6 +345,22 @@ function Bodeguero() {
           </div>
         )}
       </div>
+
+      {checklistOrder && (
+        <PreparationChecklist 
+          order={checklistOrder}
+          onClose={() => setChecklistOrder(null)}
+          onSuccess={(orderId, newStatus) => {
+            setChecklistOrder(null);
+            if (newStatus === 'incidencia_stock') {
+              fetchOrders();
+              setSelectedOrder(null);
+            } else {
+              executeStatusUpdate(orderId, newStatus);
+            }
+          }}
+        />
+      )}
     </div>
   );
 }

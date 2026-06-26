@@ -455,3 +455,94 @@ export async function sendLowStockAlertEmail(products) {
     return [null, error.message];
   }
 }
+
+/**
+ * Envía un email al administrador cuando se reporta una incidencia de stock (Quiebre)
+ * @param {Object} order - La orden afectada.
+ * @param {Array} issues - Lista de problemas [{ product, cantidad, foundQuantity }].
+ */
+export async function sendStockIncidentEmail(order, issues) {
+  try {
+    if (!ADMIN_EMAIL) {
+      console.warn("⚠️ ADMIN_EMAIL no configurado, no se enviará alerta de incidencia.");
+      return [null, "Email del admin no configurado"];
+    }
+
+    const issueRows = issues.map((issue) => {
+      return `
+        <tr>
+          <td style="padding: 12px 16px; border-bottom: 1px solid #ecf0f1; font-weight: 600; color: #2c3e50;">
+            ${issue.product.nombre}
+          </td>
+          <td style="padding: 12px 16px; border-bottom: 1px solid #ecf0f1; color: #7f8c8d; font-size: 13px;">
+            ${issue.product.codigo}
+          </td>
+          <td style="padding: 12px 16px; border-bottom: 1px solid #ecf0f1; color: #e74c3c; font-weight: bold; text-align: center;">
+            Pedían: ${issue.cantidad} | Encontrado: ${issue.foundQuantity}
+          </td>
+        </tr>
+      `;
+    }).join("");
+
+    const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+    <body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: 'Inter', -apple-system, sans-serif;">
+      <div style="max-width: 600px; margin: 40px auto; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.05);">
+        
+        <!-- Header -->
+        <div style="background: linear-gradient(135deg, #c0392b 0%, #a11b0e 100%); padding: 40px 32px; text-align: center;">
+          <div style="font-size: 48px; margin-bottom: 12px;">🚫</div>
+          <h1 style="color: #ffffff; font-size: 26px; margin: 0 0 8px 0; font-weight: 800;">Quiebre de Stock Reportado</h1>
+          <p style="color: rgba(255,255,255,0.8); font-size: 15px; margin: 0;">Orden #${order.numeroOrden} pausada.</p>
+        </div>
+
+        <!-- Body -->
+        <div style="background: #ffffff; padding: 32px; border: 1px solid #ecf0f1; border-top: none; border-bottom: none;">
+          <p style="color: #2c3e50; font-size: 15px; margin: 0 0 24px 0; line-height: 1.6;">
+            El bodeguero ha reportado un problema de stock físico al intentar armar la orden <strong>${order.numeroOrden}</strong>.
+            La orden ha sido pausada temporalmente y se descontaron las unidades de la base de datos para prevenir sobreventas.
+          </p>
+
+          <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr style="background: #f1f5f9;">
+                <th style="padding: 12px 16px; text-align: left; color: #475569; font-size: 12px; text-transform: uppercase;">Producto</th>
+                <th style="padding: 12px 16px; text-align: left; color: #475569; font-size: 12px; text-transform: uppercase;">Código</th>
+                <th style="padding: 12px 16px; text-align: center; color: #475569; font-size: 12px; text-transform: uppercase;">Detalle</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${issueRows}
+            </tbody>
+          </table>
+          
+          <p style="color: #64748b; font-size: 14px; margin-top: 24px; text-align: center;">
+            Por favor, ponte en contacto con el cliente para ofrecerle una solución.
+          </p>
+        </div>
+
+        <!-- Footer -->
+        <div style="background: #1e293b; padding: 24px 32px; text-align: center;">
+          <p style="color: rgba(255, 255, 255, 0.6); font-size: 12px; margin: 0;">© ${new Date().getFullYear()} HyV Taller de Desarrollo.</p>
+        </div>
+
+      </div>
+    </body>
+    </html>`;
+
+    const mailOptions = {
+      from: `"HyV Tienda - Sistema" <${EMAIL_USER}>`,
+      to: ADMIN_EMAIL,
+      subject: `🚨 Incidencia de Stock en Orden #${order.numeroOrden}`,
+      html: htmlContent,
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    return [info, null];
+  } catch (error) {
+    console.error("Error al enviar email de incidencia:", error);
+    return [null, error.message];
+  }
+}
+

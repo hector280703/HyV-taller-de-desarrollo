@@ -95,3 +95,13 @@ export async function calculateShipping(zona, pesoTotal) {
     throw error.response?.data || error;
   }
 }
+
+export async function reportStockIssue(orderId, issues) {
+  try {
+    const response = await axios.post(`/orders/${orderId}/report-stock-issue`, { issues });
+    return response.data;
+  } catch (error) {
+    console.error('Error al reportar incidencia de stock:', error);
+    throw error.response?.data || error;
+  }
+}

@@ -194,3 +194,28 @@ export async function calculateShipping(req, res) {
     handleErrorServer(res, 500, error.message);
   }
 }
+
+export async function reportStockIssue(req, res) {
+  try {
+    const { id } = req.params;
+    const { issues } = req.body; // [{ productId, foundQuantity }]
+    const userRole = req.user.rol;
+    const userId = req.user.id;
+
+    if (!issues || !Array.isArray(issues) || issues.length === 0) {
+      return handleErrorClient(res, 400, "Se requiere un arreglo de issues");
+    }
+
+    const { reportStockIssueService } = await import("../services/order.service.js");
+    const [order, error] = await reportStockIssueService(id, issues, userId, userRole);
+
+    if (error) {
+      return handleErrorClient(res, 400, error);
+    }
+
+    handleSuccess(res, 200, "Problema de stock reportado exitosamente", order);
+  } catch (error) {
+    handleErrorServer(res, 500, error.message);
+  }
+}
+

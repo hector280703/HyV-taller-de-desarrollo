@@ -349,6 +349,7 @@ export default function AdminOrders() {
       en_camino: { text: 'En Camino', class: 'badge-shipped' },
       entregado: { text: 'Entregado', class: 'badge-delivered' },
       cancelado: { text: 'Cancelado', class: 'badge-cancelled' },
+      incidencia_stock: { text: 'Incidencia Stock', class: 'badge-cancelled' },
     };
     return badges[estado] || { text: estado, class: 'badge-default' };
   };
@@ -699,6 +700,13 @@ export default function AdminOrders() {
               >
                 Entregados
               </button>
+              <button
+                className={filter === 'incidencia_stock' ? 'filter-btn active' : 'filter-btn'}
+                onClick={() => setFilter('incidencia_stock')}
+                style={{ color: filter === 'incidencia_stock' ? '#fff' : '#ef4444', borderColor: filter === 'incidencia_stock' ? 'transparent' : '#ef4444', backgroundColor: filter === 'incidencia_stock' ? '#ef4444' : 'transparent' }}
+              >
+                Incidencias ⚠️
+              </button>
             </div>
           </div>
         </div>
@@ -766,6 +774,9 @@ export default function AdminOrders() {
                             >
                               <option value="pendiente">Pendiente</option>
                               <option value="procesando">Procesando</option>
+                              {order.estado === 'incidencia_stock' && (
+                                <option value="incidencia_stock" disabled>Incidencia Stock</option>
+                              )}
                               <option value="listo_para_envio">Listo para Envío</option>
                               <option value="en_camino">En Camino</option>
                               <option value="entregado">Entregado</option>
