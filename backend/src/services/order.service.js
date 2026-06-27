@@ -1,6 +1,7 @@
 "use strict";
 import Order from "../entity/order.entity.js";
 import OrderItem from "../entity/orderItem.entity.js";
+import OrderHistory from "../entity/orderHistory.entity.js";
 import Product from "../entity/product.entity.js";
 import User from "../entity/user.entity.js";
 import { AppDataSource } from "../config/configDb.js";
@@ -223,6 +224,17 @@ export async function createOrderService(userId, orderData) {
       await orderItemRepository.save(orderItem);
     }
 
+    // Registrar historial inicial
+    const orderHistoryRepository = AppDataSource.getRepository(OrderHistory);
+    await orderHistoryRepository.save(
+      orderHistoryRepository.create({
+        order: savedOrder,
+        estadoAnterior: null,
+        estadoNuevo: "pendiente",
+        nota: "Pedido creado",
+      })
+    );
+
     // Obtener orden completa con relaciones
     const orderComplete = await orderRepository.findOne({
       where: { id: savedOrder.id },
@@ -357,6 +369,25 @@ export async function updateOrderStatusService(orderId, newStatus, userId, userR
     order.estado = newStatus;
     const updatedOrder = await orderRepository.save(order);
 
+    // Registrar cambio en el historial
+    const orderHistoryRepository = AppDataSource.getRepository(OrderHistory);
+    const notasEstado = {
+      procesando: "El pedido está siendo preparado",
+      listo_para_envio: "El pedido está listo para ser despachado",
+      en_camino: "El pedido está en camino a la dirección de entrega",
+      entregado: "El pedido fue entregado al cliente",
+      cancelado: "El pedido fue cancelado",
+      incidencia_stock: "Se registró una incidencia de stock en el pedido",
+    };
+    await orderHistoryRepository.save(
+      orderHistoryRepository.create({
+        order: { id: updatedOrder.id },
+        estadoAnterior: oldStatus,
+        estadoNuevo: newStatus,
+        nota: notasEstado[newStatus] || `Estado cambiado a ${newStatus}`,
+      })
+    );
+
     const orderComplete = await orderRepository.findOne({
       where: { id: updatedOrder.id },
       relations: ["orderItems", "orderItems.product", "user"],
@@ -423,6 +454,43 @@ export async function cancelOrderService(orderId, userId, userRole) {
     return [orderComplete, null];
   } catch (error) {
     console.error("Error al cancelar orden:", error);
+    return [null, "Error interno del servidor"];
+  }
+}
+
+export async function getOrderHistoryService(orderId, userId, userRole) {
+  try {
+    const orderRepository = AppDataSource.getRepository(Order);
+    const orderHistoryRepository = AppDataSource.getRepository(OrderHistory);
+
+    // Verificar que la orden existe y que el usuario tiene permisos
+    const order = await orderRepository.findOne({
+      where: { id: orderId },
+      relations: ["user"],
+    });
+
+    if (!order) {
+      return [null, "Orden no encontrada"];
+    }
+
+    // Solo el dueño o roles con permisos pueden ver el historial
+    if (
+      userRole !== "administrador" &&
+      userRole !== "repartidor" &&
+      userRole !== "bodeguero" &&
+      order.user.id !== userId
+    ) {
+      return [null, "No tienes permisos para ver el historial de esta orden"];
+    }
+
+    const history = await orderHistoryRepository.find({
+      where: { order: { id: orderId } },
+      order: { creadoEn: "ASC" },
+    });
+
+    return [history, null];
+  } catch (error) {
+    console.error("Error al obtener historial de orden:", error);
     return [null, "Error interno del servidor"];
   }
 }

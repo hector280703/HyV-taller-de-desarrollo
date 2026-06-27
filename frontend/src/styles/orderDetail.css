@@ -487,3 +487,204 @@
   }
 }
 
+/* ==========================================
+   Timeline / Historial de Seguimiento
+   ========================================== */
+
+.order-timeline-section {
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px 32px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.07);
+}
+
+.timeline-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #1e293b;
+  margin: 0 0 24px;
+  padding-bottom: 14px;
+  border-bottom: 2px solid #f1f5f9;
+}
+
+/* Contenedor de la línea de tiempo */
+.order-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+}
+
+/* Cada paso del timeline */
+.timeline-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  position: relative;
+  padding-bottom: 4px;
+}
+
+/* Línea conectora vertical entre pasos */
+.timeline-connector {
+  position: absolute;
+  left: 19px;
+  top: 44px;
+  width: 2px;
+  height: calc(100% - 12px);
+  background: #e2e8f0;
+  z-index: 0;
+  transition: background 0.3s ease;
+}
+
+.timeline-connector.completed {
+  background: linear-gradient(to bottom, #10b981, #34d399);
+}
+
+/* Punto/ícono del estado */
+.timeline-dot {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  position: relative;
+  z-index: 1;
+  transition: all 0.3s ease;
+  margin-bottom: 20px;
+}
+
+.timeline-dot.pending {
+  background: #f1f5f9;
+  border: 2px solid #e2e8f0;
+  filter: grayscale(1);
+  opacity: 0.5;
+}
+
+.timeline-dot.completed {
+  background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+  border: 2px solid #10b981;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+}
+
+.timeline-dot.active {
+  background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+  border: 2px solid #3b82f6;
+  box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.12);
+  animation: timelinePulseRing 2s ease-out infinite;
+}
+
+.timeline-dot.error {
+  background: linear-gradient(135deg, #fee2e2, #fecaca);
+  border: 2px solid #ef4444;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
+}
+
+/* Pulso animado sobre el punto activo */
+.timeline-pulse {
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 2px solid #3b82f6;
+  animation: timelinePulse 1.8s ease-out infinite;
+}
+
+@keyframes timelinePulse {
+  0%   { transform: scale(0.9); opacity: 0.8; }
+  70%  { transform: scale(1.4); opacity: 0;   }
+  100% { transform: scale(1.4); opacity: 0;   }
+}
+
+@keyframes timelinePulseRing {
+  0%   { box-shadow: 0 0 0 0   rgba(59, 130, 246, 0.3); }
+  70%  { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);   }
+  100% { box-shadow: 0 0 0 0   rgba(59, 130, 246, 0);    }
+}
+
+.timeline-dot-icon {
+  line-height: 1;
+  display: block;
+}
+
+/* Información textual del paso */
+.timeline-info {
+  padding: 6px 0 20px;
+  flex: 1;
+}
+
+.timeline-info.pending .timeline-label {
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.timeline-info.completed .timeline-label {
+  color: #059669;
+  font-weight: 700;
+}
+
+.timeline-info.active .timeline-label {
+  color: #1d4ed8;
+  font-weight: 800;
+  font-size: 1rem;
+}
+
+.timeline-info.error .timeline-label {
+  color: #dc2626;
+  font-weight: 700;
+}
+
+.timeline-label {
+  font-size: 0.95rem;
+  margin: 0 0 4px;
+  transition: color 0.2s ease;
+}
+
+.timeline-date {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin: 0 0 3px;
+  font-weight: 500;
+}
+
+.timeline-note {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  margin: 0;
+  font-style: italic;
+  line-height: 1.4;
+}
+
+.timeline-pending-label {
+  font-size: 0.78rem;
+  color: #cbd5e1;
+  margin: 0;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .order-timeline-section {
+    padding: 20px 16px;
+  }
+
+  .timeline-dot {
+    width: 34px;
+    height: 34px;
+    font-size: 15px;
+  }
+
+  .timeline-connector {
+    left: 16px;
+  }
+
+  .timeline-label {
+    font-size: 0.88rem;
+  }
+}
+
+

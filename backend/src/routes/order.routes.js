@@ -10,6 +10,7 @@ import {
   getShippingZones,
   calculateShipping,
   reportStockIssue,
+  getOrderHistory,
 } from "../controllers/order.controller.js";
 import { authenticateJwt } from "../middlewares/authentication.middleware.js";
 import { orderCreateLimiter } from "../middlewares/rateLimit.middleware.js";
@@ -40,6 +41,9 @@ router.patch("/:id/status", updateOrderStatus);
 
 // Reportar problema de stock (bodeguero o admin)
 router.post("/:id/report-stock-issue", reportStockIssue);
+
+// Obtener historial de estados de una orden
+router.get("/:id/history", getOrderHistory);
 
 // Cancelar orden (usuario propietario o admin)
 router.delete("/:id", cancelOrder);

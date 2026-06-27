@@ -1,10 +1,10 @@
 "use strict";
 import rateLimit from "express-rate-limit";
 
-// Rate limiter para login: max 5 intentos por IP cada 15 minutos
+// Rate limiter para login: max 20 intentos por IP cada 15 minutos
 export const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 5,
+  max: 20,
   standardHeaders: true,
   legacyHeaders: false,
   message: {
@@ -14,10 +14,10 @@ export const loginLimiter = rateLimit({
   },
 });
 
-// Rate limiter para registro: max 3 registros por IP cada 60 minutos
+// Rate limiter para registro: max 10 registros por IP cada 60 minutos
 export const registerLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
-  max: 3,
+  max: 10,
   standardHeaders: true,
   legacyHeaders: false,
   message: {
@@ -26,6 +26,7 @@ export const registerLimiter = rateLimit({
     data: null,
   },
 });
+
 
 // Rate limiter para crear órdenes: max 10 por IP cada 15 minutos
 export const orderCreateLimiter = rateLimit({

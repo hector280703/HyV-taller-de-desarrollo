@@ -8,6 +8,7 @@ import {
   getOrderStatsService,
   calcularCostoEnvio,
   getZonasEnvio,
+  getOrderHistoryService,
 } from "../services/order.service.js";
 import {
   handleErrorClient,
@@ -219,3 +220,23 @@ export async function reportStockIssue(req, res) {
   }
 }
 
+export async function getOrderHistory(req, res) {
+  try {
+    const orderId = parseInt(req.params.id);
+    const userId = req.user.id;
+    const userRole = req.user.rol;
+
+    if (isNaN(orderId)) {
+      return handleErrorClient(res, 400, "ID de orden inválido");
+    }
+
+    const [history, errorHistory] = await getOrderHistoryService(orderId, userId, userRole);
+    if (errorHistory) {
+      return handleErrorClient(res, 404, errorHistory);
+    }
+
+    handleSuccess(res, 200, "Historial de orden obtenido exitosamente", history);
+  } catch (error) {
+    handleErrorServer(res, 500, error.message);
+  }
+}

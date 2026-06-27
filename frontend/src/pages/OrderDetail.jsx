@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getOrderById, cancelOrder } from '../services/order.service.js';
+import { getOrderById, cancelOrder, getOrderHistory } from '../services/order.service.js';
 import { createPaymentPreference } from '../services/payment.service.js';
 import { showErrorAlert, showSuccessAlert, showConfirmAlert } from '../helpers/sweetAlert.js';
 import { formatPrice } from '../helpers/formatData.js';
@@ -12,6 +12,7 @@ export default function OrderDetail() {
   const navigate = useNavigate();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [history, setHistory] = useState([]);
 
   useEffect(() => {
     loadOrder();
@@ -22,6 +23,14 @@ export default function OrderDetail() {
     try {
       const response = await getOrderById(id);
       setOrder(response.data);
+      // Cargar historial de estados
+      try {
+        const historyResponse = await getOrderHistory(id);
+        setHistory(historyResponse.data || []);
+      } catch (_) {
+        // Si el historial falla, no bloquear la vista del pedido
+        setHistory([]);
+      }
     } catch (error) {
       console.error('Error al cargar orden:', error);
       showErrorAlert('Error', 'No se pudo cargar el detalle del pedido');
@@ -121,8 +130,49 @@ export default function OrderDetail() {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
-    timeZone: 'UTC' // Importante para fechas guardadas sin hora (evita desplazamiento al día anterior)
+    timeZone: 'UTC'
   }) : 'No especificada';
+
+  // Definición del flujo de estados para la timeline
+  const ESTADO_FLOW = order.estado === 'cancelado'
+    ? [
+        { key: 'pendiente',       icon: '⏳', label: 'Pedido Creado' },
+        { key: 'cancelado',       icon: '❌', label: 'Cancelado' },
+      ]
+    : order.estado === 'incidencia_stock'
+    ? [
+        { key: 'pendiente',          icon: '⏳', label: 'Pedido Creado' },
+        { key: 'procesando',         icon: '⚙️', label: 'En Preparación' },
+        { key: 'incidencia_stock',   icon: '⚠️', label: 'Incidencia de Stock' },
+      ]
+    : [
+        { key: 'pendiente',        icon: '⏳', label: 'Pedido Creado' },
+        { key: 'procesando',       icon: '⚙️', label: 'En Preparación' },
+        { key: 'listo_para_envio', icon: '📦', label: 'Listo para Envío' },
+        { key: 'en_camino',        icon: '🚚', label: 'En Camino' },
+        { key: 'entregado',        icon: '✅', label: 'Entregado' },
+      ];
+
+  // Busca el timestamp de un estado en el historial
+  const getHistoryEntry = (estadoKey) =>
+    history.find((h) => h.estadoNuevo === estadoKey);
+
+  // Determina si un estado ya fue alcanzado
+  const isCompleted = (estadoKey) => {
+    if (estadoKey === 'pendiente') return true; // Siempre el primero
+    return history.some((h) => h.estadoNuevo === estadoKey);
+  };
+
+  const isActive = (estadoKey) => order.estado === estadoKey;
+
+  const formatHistoryDate = (dateStr) => {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    return d.toLocaleString('es-CL', {
+      day: '2-digit', month: '2-digit', year: 'numeric',
+      hour: '2-digit', minute: '2-digit',
+    });
+  };
 
   return (
     <div className="order-detail-container">
@@ -140,6 +190,64 @@ export default function OrderDetail() {
             <span>{estadoInfo.text}</span>
           </div>
         </div>
+
+        {/* ===== TIMELINE DE SEGUIMIENTO ===== */}
+        <div className="order-timeline-section">
+          <h2 className="timeline-title">📍 Seguimiento del Pedido</h2>
+          <div className="order-timeline">
+            {ESTADO_FLOW.map((step, index) => {
+              const completed = isCompleted(step.key);
+              const active    = isActive(step.key);
+              const entry     = getHistoryEntry(step.key);
+              const isLast    = index === ESTADO_FLOW.length - 1;
+              const isCancelled = step.key === 'cancelado';
+              const isIncident  = step.key === 'incidencia_stock';
+
+              return (
+                <div key={step.key} className="timeline-item">
+                  {/* Línea conectora vertical */}
+                  {!isLast && (
+                    <div className={`timeline-connector ${
+                      completed && !active ? 'completed' : ''
+                    }`} />
+                  )}
+
+                  {/* Punto del estado */}
+                  <div className={`timeline-dot ${
+                    isCancelled || isIncident ? 'error' :
+                    active      ? 'active' :
+                    completed   ? 'completed' : 'pending'
+                  }`}>
+                    <span className="timeline-dot-icon">{step.icon}</span>
+                    {active && <span className="timeline-pulse" />}
+                  </div>
+
+                  {/* Información del paso */}
+                  <div className={`timeline-info ${
+                    isCancelled || isIncident ? 'error' :
+                    active    ? 'active' :
+                    completed ? 'completed' : 'pending'
+                  }`}>
+                    <p className="timeline-label">{step.label}</p>
+                    {entry && (
+                      <>
+                        <p className="timeline-date">{formatHistoryDate(entry.creadoEn)}</p>
+                        {entry.nota && <p className="timeline-note">{entry.nota}</p>}
+                      </>
+                    )}
+                    {step.key === 'pendiente' && !entry && (
+                      <p className="timeline-date">{fecha}</p>
+                    )}
+                    {!completed && !active && (
+                      <p className="timeline-pending-label">Pendiente</p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        {/* ===== FIN TIMELINE ===== */}
 
         <div className="detail-grid">
           <div className="detail-section shipping-info">

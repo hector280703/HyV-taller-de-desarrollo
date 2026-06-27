@@ -105,3 +105,14 @@ export async function reportStockIssue(orderId, issues) {
     throw error.response?.data || error;
   }
 }
+
+export async function getOrderHistory(orderId) {
+  try {
+    const response = await axios.get(`/orders/${orderId}/history`);
+    return response.data;
+  } catch (error) {
+    console.error('Error al obtener historial de orden:', error);
+    throw error.response?.data || error;
+  }
+}
+
