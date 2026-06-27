@@ -4,6 +4,7 @@ import { getOrderById, cancelOrder } from '../services/order.service.js';
 import { createPaymentPreference } from '../services/payment.service.js';
 import { showErrorAlert, showSuccessAlert, showConfirmAlert } from '../helpers/sweetAlert.js';
 import { formatPrice } from '../helpers/formatData.js';
+import { QRCodeSVG } from 'qrcode.react';
 import '../styles/orderDetail.css';
 
 export default function OrderDetail() {
@@ -252,6 +253,52 @@ export default function OrderDetail() {
             ))}
           </div>
         </div>
+
+        {/* ========== QR DE COMPROBANTE ========== */}
+        {order.estado !== 'cancelado' && (
+          <div className="detail-section qr-section">
+            <h2>📲 Comprobante QR de Entrega</h2>
+            <p className="qr-description">
+              Muestra este código QR al repartidor cuando llegue a tu puerta.
+              Él lo escaneará para confirmar que el pedido fue entregado correctamente.
+            </p>
+            <div className="qr-wrapper" id="qr-print-area">
+              <div className="qr-code-container">
+                <QRCodeSVG
+                  value={order.numeroOrden}
+                  size={180}
+                  bgColor="#ffffff"
+                  fgColor="#0f172a"
+                  level="H"
+                  includeMargin={true}
+                />
+              </div>
+              <div className="qr-info">
+                <p className="qr-order-number">{order.numeroOrden}</p>
+                <p className="qr-hint">Número de orden</p>
+              </div>
+            </div>
+            <button
+              id="btn-print-qr"
+              className="btn-print-qr"
+              onClick={() => {
+                const printContent = document.getElementById('qr-print-area').innerHTML;
+                const originalBody = document.body.innerHTML;
+                document.body.innerHTML = `
+                  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;font-family:sans-serif;gap:16px;">
+                    <h2 style="margin:0;font-size:1.2rem;color:#0f172a;">Comprobante de Pedido</h2>
+                    ${printContent}
+                    <p style="font-size:0.85rem;color:#64748b;margin:0;">Presente este QR al repartidor</p>
+                  </div>`;
+                window.print();
+                document.body.innerHTML = originalBody;
+                window.location.reload();
+              }}
+            >
+              🖨️ Imprimir Comprobante QR
+            </button>
+          </div>
+        )}
 
         {order.estado === 'pendiente' && (
           <div className="detail-actions">

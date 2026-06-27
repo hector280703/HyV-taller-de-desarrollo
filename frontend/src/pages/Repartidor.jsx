@@ -8,6 +8,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import '@styles/repartidor.css';
+import DeliveryVerificationModal from '@components/DeliveryVerificationModal';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -43,6 +44,8 @@ function Repartidor() {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [updating, setUpdating] = useState(false);
   const [mapCenter, setMapCenter] = useState([-37.1653, -73.1835]);
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [orderToVerify, setOrderToVerify] = useState(null);
   const navigate = useNavigate();
 
   const parseCoordinates = (direccion) => {
@@ -86,6 +89,14 @@ function Repartidor() {
       entregado: 'marcar como Entregado',
     };
 
+    // Si el nuevo estado es 'entregado', abrir el modal de verificación QR
+    if (newStatus === 'entregado') {
+      const orderForVerification = orders.find(o => o.id === orderId);
+      setOrderToVerify(orderForVerification);
+      setShowVerificationModal(true);
+      return;
+    }
+
     const confirmed = await showConfirmAlert(
       '¿Confirmar cambio?',
       `¿Deseas ${statusMessages[newStatus]} esta orden?`
@@ -106,6 +117,30 @@ function Repartidor() {
       showErrorAlert('Error', error.message || 'No se pudo actualizar el estado');
     } finally {
       setUpdating(false);
+    }
+  };
+
+  // Confirmar entrega tras verificación exitosa del QR
+  const handleDeliveryConfirmed = async () => {
+    setShowVerificationModal(false);
+    if (!orderToVerify) return;
+
+    try {
+      setUpdating(true);
+      const response = await updateOrderStatus(orderToVerify.id, 'entregado');
+      if (response.status === 'Success') {
+        showSuccessAlert(
+          '✅ Entrega Verificada',
+          `La orden ${orderToVerify.numeroOrden} fue marcada como entregada correctamente.`
+        );
+        fetchOrders();
+        setSelectedOrder(null);
+      }
+    } catch (error) {
+      showErrorAlert('Error', error.message || 'No se pudo actualizar el estado');
+    } finally {
+      setUpdating(false);
+      setOrderToVerify(null);
     }
   };
 
@@ -188,6 +223,17 @@ function Repartidor() {
 
   return (
     <div className="repartidor-container">
+      {/* Modal de verificación de entrega */}
+      {showVerificationModal && orderToVerify && (
+        <DeliveryVerificationModal
+          order={orderToVerify}
+          onConfirm={handleDeliveryConfirmed}
+          onClose={() => {
+            setShowVerificationModal(false);
+            setOrderToVerify(null);
+          }}
+        />
+      )}
       <div className="repartidor-header">
         <h1>🚚 Panel de Repartidor</h1>
         <p className="repartidor-welcome">Bienvenido, {user?.nombreCompleto}</p>

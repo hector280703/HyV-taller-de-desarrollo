@@ -274,7 +274,8 @@
 .order-item-placeholder {
   width: 80px;
   height: 80px;
-  object-fit: cover;
+  object-fit: contain;
+  background-color: #fff;
   border-radius: 10px;
   flex-shrink: 0;
 }
