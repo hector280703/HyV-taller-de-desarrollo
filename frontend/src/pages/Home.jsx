@@ -54,7 +54,8 @@ const Home = () => {
       {/* Hero Banner */}
       <section className="hero-banner">
         <div className="hero-content">
-          <h1>🏗️ HyV Construcciones</h1>
+          <img src="/logo_hyv.png" alt="HyV Construcciones" className="hero-logo-img" />
+          <h1>HyV Construcciones</h1>
           <p className="hero-subtitle">Materiales de Construcción</p>
           <p>Productos profesionales de alta calidad para tu obra</p>
           <button className="cta-button" onClick={() => navigate('/products')}>

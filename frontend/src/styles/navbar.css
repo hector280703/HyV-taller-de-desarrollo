@@ -39,23 +39,22 @@
 	transform: translateY(-2px);
 }
 
-.logo-icon {
-	font-size: 2rem;
-	transition: transform 0.3s ease;
+.navbar-logo-img {
+	height: 64px;
+	width: auto;
+	object-fit: contain;
+	transition: transform 0.3s ease, filter 0.3s ease;
+	filter: drop-shadow(0 2px 8px rgba(255, 107, 53, 0.3));
 }
 
-.navbar-brand:hover .logo-icon {
-	transform: rotate(15deg) scale(1.1);
+.navbar-brand:hover .navbar-logo-img {
+	transform: scale(1.06);
+	filter: drop-shadow(0 4px 14px rgba(255, 107, 53, 0.5));
 }
 
-.logo-text {
-	font-size: 1.5rem;
-	font-weight: 800;
-	background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
-	-webkit-background-clip: text;
-	-webkit-text-fill-color: transparent;
-	background-clip: text;
-	letter-spacing: 1px;
+/* Navbar scrolled - logo un poco más pequeño */
+.navbar.scrolled .navbar-logo-img {
+	height: 54px;
 }
 
 /* ===== BARRA DE BÚSQUEDA ===== */

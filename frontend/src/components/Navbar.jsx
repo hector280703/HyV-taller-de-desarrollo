@@ -170,8 +170,7 @@ const Navbar = () => {
         <nav className={`navbar ${scrolled ? 'scrolled' : ''}`}>
             {/* Logo */}
             <div className="navbar-brand" onClick={() => navigate('/home')}>
-                <span className="logo-icon">🏗️</span>
-                <span className="logo-text">HyV</span>
+                <img src="/logo_hyv.png" alt="HyV Construcciones" className="navbar-logo-img" />
             </div>
 
             {/* Barra de búsqueda expandible */}
