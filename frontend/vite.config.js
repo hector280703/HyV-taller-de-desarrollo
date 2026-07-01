@@ -13,7 +13,7 @@ export default defineConfig({
     transformer: 'postcss',
   },
   build: {
-    cssMinify: 'esbuild',
+    cssMinify: false,
   },
   resolve: {
     alias: {
