@@ -1,6 +1,6 @@
 "use strict";
 import { handleErrorClient, handleErrorServer, handleSuccess } from "../handlers/responseHandlers.js";
-import upload from "../middlewares/upload.middleware.js";
+import upload, { uploadToCloudinary } from "../middlewares/upload.middleware.js";
 
 export async function uploadImage(req, res) {
   // Envolver multer en una promesa para capturar sus errores correctamente
@@ -19,9 +19,9 @@ export async function uploadImage(req, res) {
       return handleErrorClient(res, 400, "No se recibió ninguna imagen");
     }
 
-    // multer-storage-cloudinary ya subió el archivo a Cloudinary
-    // La URL segura queda en req.file.path
-    const imageUrl = req.file.path;
+    // Subir el buffer en memoria directamente a Cloudinary
+    const result = await uploadToCloudinary(req.file.buffer);
+    const imageUrl = result.secure_url;
 
     handleSuccess(res, 200, "Imagen subida correctamente", { imageUrl });
   } catch (error) {
