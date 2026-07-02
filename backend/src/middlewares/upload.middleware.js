@@ -1,6 +1,7 @@
 "use strict";
 import multer from "multer";
-import { CloudinaryStorage } from "multer-storage-cloudinary";
+import multerCloudinary from "multer-storage-cloudinary";
+const { CloudinaryStorage } = multerCloudinary;
 import cloudinary from "../config/configCloudinary.js";
 
 const storage = new CloudinaryStorage({
