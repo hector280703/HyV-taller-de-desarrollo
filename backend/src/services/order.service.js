@@ -346,7 +346,7 @@ export async function createOrderService(userId, orderData) {
     });
 
     // Enviar email de confirmación al cliente solo si no es Mercado Pago (se enviará al confirmar pago)
-    if (orderComplete.metodoPago !== "mercadopago") {
+    if (orderComplete.metodoPago && orderComplete.metodoPago.toLowerCase() !== "mercadopago") {
       sendOrderConfirmationEmail(orderComplete).catch((err) => {
         console.error("Error al enviar email de confirmación:", err);
       });

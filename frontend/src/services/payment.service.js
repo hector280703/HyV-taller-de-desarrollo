@@ -29,3 +29,17 @@ export async function getPaymentStatus(orderId) {
     throw error.response?.data || error;
   }
 }
+
+/**
+ * Fuerza la sincronización del webhook (útil en localhost sin ngrok).
+ * @param {string} paymentId - ID del pago de Mercado Pago.
+ */
+export async function syncPaymentWebhook(paymentId) {
+  try {
+    const response = await axios.post('/payments/webhook', { type: 'payment', data: { id: paymentId } });
+    return response.data;
+  } catch (error) {
+    console.error('Error al sincronizar pago:', error);
+    return null;
+  }
+}

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
-import { getPaymentStatus } from '../services/payment.service.js';
+import { getPaymentStatus, syncPaymentWebhook } from '../services/payment.service.js';
 import { getOrderById } from '../services/order.service.js';
 import { formatPrice } from '../helpers/formatData.js';
 import '../styles/paymentResult.css';
@@ -16,6 +16,7 @@ export default function PaymentResult() {
   // Determinar el tipo de resultado basado en la ruta
   const pathSegment = location.pathname.split('/').pop(); // success, failure, pending
   const orderId = searchParams.get('order_id');
+  const paymentId = searchParams.get('payment_id'); // Obtener el ID del pago de la URL
 
   const resultConfig = {
     success: {
@@ -51,6 +52,11 @@ export default function PaymentResult() {
       }
 
       try {
+        // Sincronizar pago manualmente si viene el ID en la URL (vital para localhost)
+        if (paymentId) {
+          await syncPaymentWebhook(paymentId);
+        }
+
         const [orderRes, paymentRes] = await Promise.allSettled([
           getOrderById(orderId),
           getPaymentStatus(orderId),
