@@ -2,6 +2,8 @@
 import Product from "../entity/product.entity.js";
 import { AppDataSource } from "../config/configDb.js";
 import { LOW_STOCK_THRESHOLD } from "../config/configEnv.js";
+import StockMovement from "../entity/stockMovement.entity.js";
+import Warehouse from "../entity/warehouse.entity.js";
 
 export async function createProductService(body) {
   try {
@@ -67,6 +69,26 @@ export async function createProductService(body) {
     });
 
     const productSaved = await productRepository.save(newProduct);
+
+    // Registrar movimiento de stock inicial si es mayor a 0
+    if (productSaved.stock > 0) {
+      const warehouseRepository = AppDataSource.getRepository(Warehouse);
+      const defaultWarehouse = await warehouseRepository.findOne({ where: { activo: true } });
+
+      const stockMovementRepository = AppDataSource.getRepository(StockMovement);
+      await stockMovementRepository.save(
+        stockMovementRepository.create({
+          product: productSaved,
+          warehouse: defaultWarehouse || null,
+          tipo: "entrada",
+          cantidad: productSaved.stock,
+          cantidadAnterior: 0,
+          cantidadNueva: productSaved.stock,
+          motivo: "Inventario inicial al crear el producto",
+          referencia: null,
+        })
+      );
+    }
 
     return [productSaved, null];
   } catch (error) {
@@ -201,6 +223,29 @@ export async function updateProductService(query, body) {
 
     if (!productUpdated) {
       return [null, "Producto no encontrado después de actualizar"];
+    }
+
+    // Registrar movimiento de stock si el stock fue modificado manualmente
+    if (dataProductUpdate.stock !== undefined && dataProductUpdate.stock !== productFound.stock) {
+      const warehouseRepository = AppDataSource.getRepository(Warehouse);
+      const defaultWarehouse = await warehouseRepository.findOne({ where: { activo: true } });
+
+      const stockMovementRepository = AppDataSource.getRepository(StockMovement);
+      const tipo = dataProductUpdate.stock > productFound.stock ? "entrada" : "salida";
+      const cantidadDif = Math.abs(dataProductUpdate.stock - productFound.stock);
+      
+      await stockMovementRepository.save(
+        stockMovementRepository.create({
+          product: productUpdated,
+          warehouse: defaultWarehouse || null,
+          tipo: tipo,
+          cantidad: cantidadDif,
+          cantidadAnterior: productFound.stock,
+          cantidadNueva: dataProductUpdate.stock,
+          motivo: "Ajuste manual al editar producto",
+          referencia: null,
+        })
+      );
     }
 
     return [productUpdated, null];
