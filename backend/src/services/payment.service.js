@@ -50,10 +50,13 @@ export async function createPaymentPreference(order) {
     let failureUrl = `${FRONTEND_URL}/payment/failure?order_id=${order.id}`;
     let pendingUrl = `${FRONTEND_URL}/payment/pending?order_id=${order.id}`;
 
-    // Si estamos en localhost, Mercado Pago rechaza las back_urls y bloquea el botón y auto_return.
-    // Usamos el dominio ngrok del backend para rebotar hacia el frontend.
-    if (FRONTEND_URL.includes("localhost") && process.env.NGROK_URL) {
-      const ngrokDomain = process.env.NGROK_URL.replace(/\/$/, ''); // remover slash final si lo hay
+    // Mercado Pago requiere estrictamente HTTPS para las back_urls y el notification_url.
+    // Si FRONTEND_URL usa http:// (como localhost o la IP de tu universidad),
+    // debemos "rebotar" usando el dominio seguro de ngrok, si está disponible.
+    const isHttp = FRONTEND_URL.startsWith("http://");
+
+    if (isHttp && process.env.NGROK_URL) {
+      const ngrokDomain = process.env.NGROK_URL.replace(/\/$/, '');
       successUrl = `${ngrokDomain}/api/payments/bounce?type=success&order_id=${order.id}`;
       failureUrl = `${ngrokDomain}/api/payments/bounce?type=failure&order_id=${order.id}`;
       pendingUrl = `${ngrokDomain}/api/payments/bounce?type=pending&order_id=${order.id}`;
@@ -66,8 +69,8 @@ export async function createPaymentPreference(order) {
         failure: failureUrl,
         pending: pendingUrl,
       },
-      // Habilitamos auto_return si tenemos ngrok o estamos en producción
-      ...( (FRONTEND_URL.includes("localhost") && !process.env.NGROK_URL) ? {} : { auto_return: "approved" } ),
+      // Solo habilitamos auto_return si tenemos ngrok o si nuestro frontend es https://
+      ...( (isHttp && !process.env.NGROK_URL) ? {} : { auto_return: "approved" } ),
       external_reference: String(order.id),
       notification_url: process.env.NGROK_URL ? `${process.env.NGROK_URL.replace(/\/$/, '')}/api/payments/webhook` : undefined,
       statement_descriptor: "HyV Construcciones",
