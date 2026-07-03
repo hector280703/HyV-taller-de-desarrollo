@@ -21,6 +21,9 @@ import Repartidor from '@pages/Repartidor';
 import Bodeguero from '@pages/Bodeguero';
 import Inventory from '@pages/Inventory';
 import PaymentResult from '@pages/PaymentResult';
+import Warehouses from '@pages/Warehouses';
+import Invoices from '@pages/Invoices';
+import StockMovements from '@pages/StockMovements';
 
 const router = createBrowserRouter([
   {
@@ -91,7 +94,7 @@ const router = createBrowserRouter([
       {
         path: '/profile',
         element: (
-          <ProtectedRoute allowedRoles={['administrador', 'usuario']}>
+          <ProtectedRoute allowedRoles={['administrador', 'cliente', 'usuario']}>
             <Profile />
           </ProtectedRoute>
         ),
@@ -99,7 +102,7 @@ const router = createBrowserRouter([
       {
         path: '/checkout',
         element: (
-          <ProtectedRoute allowedRoles={['administrador', 'usuario']}>
+          <ProtectedRoute allowedRoles={['administrador', 'cliente', 'usuario']}>
             <Checkout />
           </ProtectedRoute>
         ),
@@ -107,7 +110,7 @@ const router = createBrowserRouter([
       {
         path: '/orders',
         element: (
-          <ProtectedRoute allowedRoles={['administrador', 'usuario']}>
+          <ProtectedRoute allowedRoles={['administrador', 'cliente', 'usuario']}>
             <Orders />
           </ProtectedRoute>
         ),
@@ -115,7 +118,7 @@ const router = createBrowserRouter([
       {
         path: '/orders/:id',
         element: (
-          <ProtectedRoute allowedRoles={['administrador', 'usuario']}>
+          <ProtectedRoute allowedRoles={['administrador', 'cliente', 'usuario']}>
             <OrderDetail />
           </ProtectedRoute>
         ),
@@ -123,7 +126,7 @@ const router = createBrowserRouter([
       {
         path: '/payment/success',
         element: (
-          <ProtectedRoute allowedRoles={['administrador', 'usuario']}>
+          <ProtectedRoute allowedRoles={['administrador', 'cliente', 'usuario']}>
             <PaymentResult />
           </ProtectedRoute>
         ),
@@ -131,7 +134,7 @@ const router = createBrowserRouter([
       {
         path: '/payment/failure',
         element: (
-          <ProtectedRoute allowedRoles={['administrador', 'usuario']}>
+          <ProtectedRoute allowedRoles={['administrador', 'cliente', 'usuario']}>
             <PaymentResult />
           </ProtectedRoute>
         ),
@@ -139,7 +142,7 @@ const router = createBrowserRouter([
       {
         path: '/payment/pending',
         element: (
-          <ProtectedRoute allowedRoles={['administrador', 'usuario']}>
+          <ProtectedRoute allowedRoles={['administrador', 'cliente', 'usuario']}>
             <PaymentResult />
           </ProtectedRoute>
         ),
@@ -147,6 +150,30 @@ const router = createBrowserRouter([
       {
         path: '/register',
         element: <Register/>
+      },
+      {
+        path: '/warehouses',
+        element: (
+        <ProtectedRoute allowedRoles={['administrador']}>
+          <Warehouses />
+        </ProtectedRoute>
+        ),
+      },
+      {
+        path: '/invoices',
+        element: (
+        <ProtectedRoute allowedRoles={['administrador']}>
+          <Invoices />
+        </ProtectedRoute>
+        ),
+      },
+      {
+        path: '/stock-movements',
+        element: (
+        <ProtectedRoute allowedRoles={['administrador', 'bodeguero']}>
+          <StockMovements />
+        </ProtectedRoute>
+        ),
       }
     ]
   }

@@ -4,10 +4,46 @@ import OrderItem from "../entity/orderItem.entity.js";
 import OrderHistory from "../entity/orderHistory.entity.js";
 import Product from "../entity/product.entity.js";
 import User from "../entity/user.entity.js";
+import Invoice from "../entity/invoice.entity.js";
+import Customer from "../entity/customer.entity.js";
+import StockMovement from "../entity/stockMovement.entity.js";
+import Warehouse from "../entity/warehouse.entity.js";
 import { AppDataSource } from "../config/configDb.js";
-import { Between, MoreThanOrEqual, LessThanOrEqual } from "typeorm";
+import { Between, MoreThanOrEqual, LessThanOrEqual, Not } from "typeorm";
 import { sendOrderConfirmationEmail, sendOrderStatusUpdateEmail, sendLowStockAlertEmail, sendStockIncidentEmail } from "./email.service.js";
-import { LOW_STOCK_THRESHOLD } from "../config/configEnv.js";
+import { LOW_STOCK_THRESHOLD, MAX_DELIVERIES_PER_DAY } from "../config/configEnv.js";
+
+// Obtener el primer almacén activo (para vincular movimientos de stock)
+async function getDefaultWarehouse() {
+  try {
+    const warehouseRepository = AppDataSource.getRepository(Warehouse);
+    return await warehouseRepository.findOne({ where: { activo: true } });
+  } catch {
+    return null;
+  }
+}
+
+// Registrar un movimiento de stock
+async function registrarMovimientoStock({ product, tipo, cantidad, cantidadAnterior, cantidadNueva, motivo, referencia }) {
+  try {
+    const stockMovementRepository = AppDataSource.getRepository(StockMovement);
+    const warehouse = await getDefaultWarehouse();
+    await stockMovementRepository.save(
+      stockMovementRepository.create({
+        product,
+        warehouse: warehouse || null,
+        tipo,
+        cantidad,
+        cantidadAnterior,
+        cantidadNueva,
+        motivo,
+        referencia,
+      })
+    );
+  } catch (err) {
+    console.error("Error al registrar movimiento de stock:", err);
+  }
+}
 
 // Configuración de zonas de envío con tarifas por peso
 const ZONAS_ENVIO = {
@@ -117,6 +153,23 @@ export async function createOrderService(userId, orderData) {
       return [null, "No realizamos entregas ni retiros los días domingo"];
     }
 
+    // Validar límite diario de 10 pedidos
+    try {
+      const formattedDate = new Date(fechaEntrega).toISOString().split('T')[0];
+      const dailyOrdersCount = await orderRepository.count({
+        where: {
+          fechaEntrega: formattedDate,
+          estado: Not("cancelado")
+        }
+      });
+      
+      if (dailyOrdersCount >= MAX_DELIVERIES_PER_DAY) {
+        return [null, `El cupo de entregas para la fecha ${formattedDate} está completo (Límite: ${MAX_DELIVERIES_PER_DAY} pedidos)`];
+      }
+    } catch (countError) {
+      console.error("Error al validar límite de entregas diarias:", countError);
+    }
+
     let subtotal = 0;
     let descuentoTotal = 0;
     const orderItemsData = [];
@@ -151,9 +204,14 @@ export async function createOrderService(userId, orderData) {
         subtotal: subtotalItem,
       });
 
-      // Reducir stock
+      // Reducir stock y registrar movimiento
+      const stockAnterior = product.stock;
       product.stock -= item.cantidad;
       await productRepository.save(product);
+
+      // Guardar datos del movimiento para registrar después de tener el número de orden
+      orderItemsData[orderItemsData.length - 1].stockAnterior = stockAnterior;
+      orderItemsData[orderItemsData.length - 1].stockNuevo = product.stock;
 
       // Verificar stock bajo
       if (product.stock <= LOW_STOCK_THRESHOLD) {
@@ -234,6 +292,52 @@ export async function createOrderService(userId, orderData) {
         nota: "Pedido creado",
       })
     );
+
+    // Registrar movimientos de stock (salida por venta)
+    for (const itemData of orderItemsData) {
+      await registrarMovimientoStock({
+        product: itemData.product,
+        tipo: "salida",
+        cantidad: itemData.cantidad,
+        cantidadAnterior: itemData.stockAnterior,
+        cantidadNueva: itemData.stockNuevo,
+        motivo: "Venta por orden",
+        referencia: numeroOrden,
+      });
+    }
+
+    // Generar factura automáticamente
+    try {
+      const invoiceRepository = AppDataSource.getRepository(Invoice);
+      const customerRepository = AppDataSource.getRepository(Customer);
+      const fecha = new Date();
+      const year = fecha.getFullYear();
+      const month = String(fecha.getMonth() + 1).padStart(2, "0");
+      const day = String(fecha.getDate()).padStart(2, "0");
+      const randomFac = Math.floor(Math.random() * 9000 + 1000);
+      const numeroFactura = `FAC-${year}${month}${day}-${randomFac}`;
+      const ivaRate = 0.19;
+      const subtotalFac = parseFloat(subtotal - descuentoTotal);
+      const ivaFac = parseFloat((subtotalFac * ivaRate).toFixed(2));
+      const totalFac = parseFloat((subtotalFac + ivaFac + costoEnvio).toFixed(2));
+
+      const customerFound = await customerRepository.findOne({ where: { user: { id: userId } } });
+
+      await invoiceRepository.save(
+        invoiceRepository.create({
+          order: savedOrder,
+          customer: customerFound || null,
+          numeroFactura,
+          fechaEmision: new Date(),
+          subtotal: subtotalFac,
+          iva: ivaFac,
+          total: totalFac,
+          estado: "emitida",
+        })
+      );
+    } catch (invoiceError) {
+      console.error("Error al generar factura:", invoiceError);
+    }
 
     // Obtener orden completa con relaciones
     const orderComplete = await orderRepository.findOne({
@@ -429,11 +533,21 @@ export async function cancelOrderService(orderId, userId, userRole) {
       return [null, "Solo se pueden cancelar órdenes en estado pendiente"];
     }
 
-    // Restaurar stock
+    // Restaurar stock y registrar movimientos de entrada
     for (const item of order.orderItems) {
       if (item.product) {
+        const stockAnterior = item.product.stock;
         item.product.stock += item.cantidad;
         await productRepository.save(item.product);
+        await registrarMovimientoStock({
+          product: item.product,
+          tipo: "entrada",
+          cantidad: item.cantidad,
+          cantidadAnterior: stockAnterior,
+          cantidadNueva: item.product.stock,
+          motivo: "Cancelación de orden",
+          referencia: order.numeroOrden,
+        });
       }
     }
 
@@ -689,8 +803,18 @@ export async function reportStockIssueService(orderId, issues, userId, userRole)
         });
 
         // Ajustar el inventario real restando lo que se perdió/no se encontró
+        const stockAnterioAjuste = product.stock;
         product.stock = Math.max(0, product.stock - faltante);
         await productRepository.save(product);
+        await registrarMovimientoStock({
+          product,
+          tipo: "ajuste",
+          cantidad: faltante,
+          cantidadAnterior: stockAnterioAjuste,
+          cantidadNueva: product.stock,
+          motivo: "Incidencia de stock reportada por bodega",
+          referencia: order.numeroOrden,
+        });
       }
     }
 
@@ -712,3 +836,89 @@ export async function reportStockIssueService(orderId, issues, userId, userRole)
     return [null, "Error interno del servidor"];
   }
 }
+
+/**
+ * Obtener las fechas completamente copadas (límite de 10 pedidos diarios).
+ */
+export async function getDeliveryAvailabilityService(year, month) {
+  try {
+    const orderRepository = AppDataSource.getRepository(Order);
+
+    let startDate;
+    let endDate;
+
+    if (year && month) {
+      const y = parseInt(year);
+      const m = parseInt(month);
+      startDate = `${y}-${String(m).padStart(2, "0")}-01`;
+      const lastDay = new Date(y, m, 0).getDate();
+      endDate = `${y}-${String(m).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+    } else {
+      const today = new Date();
+      const y = today.getFullYear();
+      const m = today.getMonth() + 1;
+      startDate = `${y}-${String(m).padStart(2, "0")}-01`;
+      
+      const future = new Date();
+      future.setMonth(future.getMonth() + 3);
+      const fy = future.getFullYear();
+      const fm = future.getMonth() + 1;
+      const lastDay = new Date(fy, fm, 0).getDate();
+      endDate = `${fy}-${String(fm).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+    }
+
+    const query = orderRepository
+      .createQueryBuilder("order")
+      .select("order.fechaEntrega", "fechaEntrega")
+      .addSelect("COUNT(order.id)", "count")
+      .where("order.estado != :estado", { estado: "cancelado" })
+      .andWhere("order.fechaEntrega >= :startDate", { startDate })
+      .andWhere("order.fechaEntrega <= :endDate", { endDate })
+      .groupBy("order.fechaEntrega");
+
+    const results = await query.getRawMany();
+
+    const unavailableDates = results
+      .filter((r) => parseInt(r.count) >= MAX_DELIVERIES_PER_DAY)
+      .map((r) => {
+        // En algunas bases de datos, fechaEntrega se retorna como string "YYYY-MM-DD" o como objeto Date
+        const dateVal = r.fechaEntrega;
+        if (dateVal instanceof Date) {
+          return dateVal.toISOString().split("T")[0];
+        }
+        if (typeof dateVal === "string") {
+          // Remover zona horaria si la hay
+          return dateVal.split(" ")[0].split("T")[0];
+        }
+        return dateVal;
+      });
+
+    return [unavailableDates, null];
+  } catch (error) {
+    console.error("Error al obtener disponibilidad de entregas:", error);
+    return [null, "Error interno del servidor"];
+  }
+}
+
+/**
+ * Actualizar el orden de secuencia planificado de reparto (reordenar entregas).
+ */
+export async function updateDeliverySequenceService(orderSequences) {
+  try {
+    const orderRepository = AppDataSource.getRepository(Order);
+
+    for (const item of orderSequences) {
+      if (item.id !== undefined && item.secuenciaEntrega !== undefined) {
+        await orderRepository.update(item.id, {
+          secuenciaEntrega: item.secuenciaEntrega !== null ? parseInt(item.secuenciaEntrega) : null,
+        });
+      }
+    }
+
+    return [true, null];
+  } catch (error) {
+    console.error("Error al actualizar secuencia de entregas:", error);
+    return [null, "Error interno del servidor"];
+  }
+}
+

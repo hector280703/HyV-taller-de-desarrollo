@@ -1,5 +1,6 @@
 "use strict";
 import User from "../entity/user.entity.js";
+import Customer from "../entity/customer.entity.js";
 import jwt from "jsonwebtoken";
 import { AppDataSource } from "../config/configDb.js";
 import { comparePassword, encryptPassword } from "../helpers/bcrypt.helper.js";
@@ -80,10 +81,21 @@ export async function registerService(user) {
       email,
       rut,
       password: await encryptPassword(user.password),
-      rol: "usuario",
+      rol: "cliente",
     });
 
+
     await userRepository.save(newUser);
+
+    // Crear automáticamente el perfil de cliente vinculado al usuario
+    try {
+      const customerRepository = AppDataSource.getRepository(Customer);
+      const newCustomer = customerRepository.create({ user: newUser });
+      await customerRepository.save(newCustomer);
+    } catch (customerError) {
+      console.error("Error al crear perfil de cliente:", customerError);
+      // No bloqueamos el registro si falla la creación del customer
+    }
 
     const { password, ...dataUser } = newUser;
 

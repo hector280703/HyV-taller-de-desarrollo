@@ -238,21 +238,6 @@ const Navbar = () => {
                             </li>
                         </>
                     )}
-                    {isAuthenticated && userRole === 'administrador' && (
-                        <li>
-                            <NavLink 
-                                to="/users" 
-                                onClick={() => { 
-                                    setMenuOpen(false); 
-                                    addActiveClass();
-                                }} 
-                                className={({ isActive }) => isActive ? 'active' : ''}
-                            >
-                                <span className="nav-icon">👥</span>
-                                <span>Usuarios</span>
-                            </NavLink>
-                        </li>
-                    )}
                     {isAuthenticated && userRole === 'repartidor' && (
                         <li>
                             <NavLink 
@@ -283,18 +268,18 @@ const Navbar = () => {
                             </NavLink>
                         </li>
                     )}
-                    {isAuthenticated && (userRole === 'administrador' || userRole === 'bodeguero') && (
+                    {isAuthenticated && userRole === 'bodeguero' && (
                         <li>
                             <NavLink 
-                                to="/inventory" 
+                                to="/stock-movements" 
                                 onClick={() => { 
                                     setMenuOpen(false); 
                                     addActiveClass();
                                 }} 
                                 className={({ isActive }) => isActive ? 'active' : ''}
                             >
-                                <span className="nav-icon">📦</span>
-                                <span>Inventario</span>
+                                <span className="nav-icon">📊</span>
+                                <span>Movim. Stock</span>
                             </NavLink>
                         </li>
                     )}
@@ -422,7 +407,7 @@ const Navbar = () => {
                                         <p className="user-name-large">{user.nombreCompleto}</p>
                                         <p className="user-email">{user.email}</p>
                                         <span className={`user-role-badge ${userRole}`}>
-                                            {userRole === 'administrador' ? '👑 Admin' : userRole === 'repartidor' ? '🚚 Repartidor' : userRole === 'bodeguero' ? '🏭 Bodeguero' : '👤 Usuario'}
+                                            {userRole === 'administrador' ? '👑 Admin' : userRole === 'repartidor' ? '🚚 Repartidor' : userRole === 'bodeguero' ? '🏭 Bodeguero' : '🛍️ Cliente'}
                                         </span>
                                     </div>
                                 </div>
@@ -521,7 +506,39 @@ const Navbar = () => {
                                             <span>📊</span>
                                             Administrar Pedidos
                                         </button>
+                                        <button 
+                                            className="dropdown-item"
+                                            onClick={() => {
+                                                navigate('/warehouses');
+                                                setShowUserMenu(false);
+                                            }}
+                                        >
+                                            <span>🏭</span>
+                                            Almacenes
+                                        </button>
+                                        <button 
+                                            className="dropdown-item"
+                                            onClick={() => {
+                                                navigate('/invoices');
+                                                setShowUserMenu(false);
+                                            }}
+                                        >
+                                            <span>🧾</span>
+                                            Facturas
+                                        </button>
                                     </>
+                                )}
+                                {(userRole === 'administrador' || userRole === 'bodeguero') && (
+                                    <button 
+                                        className="dropdown-item"
+                                        onClick={() => {
+                                            navigate('/stock-movements');
+                                            setShowUserMenu(false);
+                                        }}
+                                    >
+                                        <span>📈</span>
+                                        Movimientos de Stock
+                                    </button>
                                 )}
                                 <div className="dropdown-divider"></div>
                                 <button 

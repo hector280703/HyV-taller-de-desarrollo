@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCarroCompras } from '../context/CarroComprasContext';
-import { createOrder, calculateShipping } from '../services/order.service.js';
+import { createOrder, calculateShipping, getDeliveryAvailability } from '../services/order.service.js';
 import { createPaymentPreference } from '../services/payment.service.js';
 import { showErrorAlert, showSuccessAlert } from '../helpers/sweetAlert.js';
 import { formatPrice } from '../helpers/formatData.js';
@@ -141,6 +141,22 @@ export default function Checkout() {
   });
 
   const [tipoEntrega, setTipoEntrega] = useState('envio');
+  const [blockedDates, setBlockedDates] = useState([]);
+
+  // Cargar disponibilidad al montar el componente
+  useEffect(() => {
+    const fetchAvailability = async () => {
+      try {
+        const response = await getDeliveryAvailability();
+        if (response.status === 'Success') {
+          setBlockedDates(response.data);
+        }
+      } catch (err) {
+        console.error("Error al obtener disponibilidad de entregas:", err);
+      }
+    };
+    fetchAvailability();
+  }, []);
 
   // Calcular fecha mínima (hoy + 2 días)
   const getMinDate = () => {
@@ -156,6 +172,16 @@ export default function Checkout() {
       const dateObj = new Date(selectedDate);
       if (dateObj.getUTCDay() === 0) {
         showErrorAlert('Día no permitido', 'No realizamos entregas ni retiros los días domingo. Por favor selecciona otro día.');
+        setFormData(prev => ({ ...prev, fechaEntrega: '' }));
+        return;
+      }
+
+      // Validar si la fecha está bloqueada
+      if (blockedDates.includes(selectedDate)) {
+        showErrorAlert(
+          'Cupo completo',
+          `El límite de entregas diarias para el día ${selectedDate} se ha completado (Límite: 10 pedidos). Por favor, selecciona otra fecha.`
+        );
         setFormData(prev => ({ ...prev, fechaEntrega: '' }));
         return;
       }

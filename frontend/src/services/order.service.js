@@ -116,3 +116,29 @@ export async function getOrderHistory(orderId) {
   }
 }
 
+export async function getDeliveryAvailability(year, month) {
+  try {
+    const params = new URLSearchParams();
+    if (year) params.append('year', year);
+    if (month) params.append('month', month);
+    const queryString = params.toString();
+    const url = queryString ? `/orders/delivery-availability?${queryString}` : '/orders/delivery-availability';
+    const response = await axios.get(url);
+    return response.data;
+  } catch (error) {
+    console.error('Error al obtener disponibilidad de entregas:', error);
+    throw error.response?.data || error;
+  }
+}
+
+export async function updateDeliverySequence(sequences) {
+  try {
+    const response = await axios.patch('/orders/reorder', { sequences });
+    return response.data;
+  } catch (error) {
+    console.error('Error al actualizar secuencia de entregas:', error);
+    throw error.response?.data || error;
+  }
+}
+
+

@@ -310,12 +310,89 @@
 	right: 0;
 	background: white;
 	border-radius: 16px;
-	padding: 20px;
+	padding: 0;
 	min-width: 280px;
+	max-height: 85vh;
+	overflow-y: auto;
+	overflow-x: hidden;
 	box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
 	animation: dropdownSlide 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 	z-index: 1001;
+	scroll-behavior: smooth;
 }
+
+/* Cabecera fija del dropdown */
+.user-dropdown .user-info {
+	position: sticky;
+	top: 0;
+	background: white;
+	z-index: 2;
+	padding: 20px 20px 15px;
+	margin: 0;
+	border-radius: 16px 16px 0 0;
+}
+
+/* Divisor fijo debajo del header */
+.user-dropdown .dropdown-divider:first-of-type {
+	position: sticky;
+	top: 0;
+	z-index: 1;
+}
+
+/* Contenido scrollable */
+.user-dropdown .dropdown-divider,
+.user-dropdown .dropdown-item,
+.user-dropdown button {
+	margin: 0;
+}
+
+/* Padding inferior del dropdown */
+.user-dropdown > .dropdown-item:last-child,
+.user-dropdown > button:last-child {
+	margin-bottom: 8px;
+}
+
+/* Scrollbar personalizada */
+.user-dropdown::-webkit-scrollbar {
+	width: 5px;
+}
+
+.user-dropdown::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+.user-dropdown::-webkit-scrollbar-thumb {
+	background: #cbd5e1;
+	border-radius: 10px;
+}
+
+.user-dropdown::-webkit-scrollbar-thumb:hover {
+	background: #94a3b8;
+}
+
+/* Padding general del contenido */
+.user-dropdown .dropdown-item {
+	padding-left: 20px;
+	padding-right: 20px;
+}
+
+.user-dropdown .dropdown-divider {
+	margin-left: 0;
+	margin-right: 0;
+}
+
+/* Último ítem con margen inferior */
+.user-dropdown > *:last-child {
+	margin-bottom: 12px;
+}
+
+/* Asegurar que el dropdown tenga padding bottom */
+.user-dropdown::after {
+	content: '';
+	display: block;
+	height: 8px;
+}
+
 
 @keyframes dropdownSlide {
 	from {

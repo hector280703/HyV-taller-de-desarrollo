@@ -124,6 +124,20 @@ export const userBodyValidation = Joi.object({
       "string.min": "El rol debe tener como mínimo 4 caracteres.",
       "string.max": "El rol debe tener como máximo 15 caracteres.",
     }),
+  telefono: Joi.string()
+    .allow("")
+    .max(20)
+    .messages({
+      "string.base": "El teléfono debe ser de tipo string.",
+      "string.max": "El teléfono debe tener como máximo 20 caracteres.",
+    }),
+  direccion: Joi.string()
+    .allow("")
+    .max(500)
+    .messages({
+      "string.base": "La dirección debe ser de tipo string.",
+      "string.max": "La dirección debe tener como máximo 500 caracteres.",
+    }),
 })
   .or(
     "nombreCompleto",
@@ -131,11 +145,13 @@ export const userBodyValidation = Joi.object({
     "password",
     "newPassword",
     "rut",
-    "rol"
+    "rol",
+    "telefono",
+    "direccion"
   )
   .unknown(false)
   .messages({
     "object.unknown": "No se permiten propiedades adicionales.",
     "object.missing":
-      "Debes proporcionar al menos un campo: nombreCompleto, email, password, newPassword, rut o rol.",
+      "Debes proporcionar al menos un campo para actualizar.",
   });

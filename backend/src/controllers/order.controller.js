@@ -9,6 +9,8 @@ import {
   calcularCostoEnvio,
   getZonasEnvio,
   getOrderHistoryService,
+  getDeliveryAvailabilityService,
+  updateDeliverySequenceService,
 } from "../services/order.service.js";
 import {
   handleErrorClient,
@@ -236,6 +238,35 @@ export async function getOrderHistory(req, res) {
     }
 
     handleSuccess(res, 200, "Historial de orden obtenido exitosamente", history);
+  } catch (error) {
+    handleErrorServer(res, 500, error.message);
+  }
+}
+
+export async function getDeliveryAvailability(req, res) {
+  try {
+    const { year, month } = req.query;
+    const [unavailableDates, error] = await getDeliveryAvailabilityService(year, month);
+    if (error) return handleErrorClient(res, 400, error);
+    handleSuccess(res, 200, "Disponibilidad obtenida exitosamente", unavailableDates);
+  } catch (error) {
+    handleErrorServer(res, 500, error.message);
+  }
+}
+
+export async function updateDeliverySequence(req, res) {
+  try {
+    const userRole = req.user.rol;
+    if (userRole !== "administrador" && userRole !== "bodeguero" && userRole !== "repartidor") {
+      return handleErrorClient(res, 403, "No tienes permisos para reordenar las entregas");
+    }
+    const { sequences } = req.body;
+    if (!Array.isArray(sequences)) {
+      return handleErrorClient(res, 400, "El campo 'sequences' debe ser un arreglo");
+    }
+    const [success, error] = await updateDeliverySequenceService(sequences);
+    if (error) return handleErrorClient(res, 400, error);
+    handleSuccess(res, 200, "Secuencia de entregas actualizada exitosamente");
   } catch (error) {
     handleErrorServer(res, 500, error.message);
   }

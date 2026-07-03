@@ -1,5 +1,6 @@
 "use strict";
 import User from "../entity/user.entity.js";
+import Warehouse from "../entity/warehouse.entity.js";
 import { AppDataSource } from "./configDb.js";
 import { encryptPassword } from "../helpers/bcrypt.helper.js";
 
@@ -26,7 +27,7 @@ async function createUsers() {
           rut: "13.456.789-0",
           email: "usuario1.2024@gmail.cl",
           password: await encryptPassword("user1234"),
-          rol: "usuario",
+          rol: "cliente",
         })
       ),
       userRepository.save(
@@ -35,7 +36,7 @@ async function createUsers() {
           rut: "24.396.686-8",
           email: "usuario2.2024@gmail.cl",
           password: await encryptPassword("user1234"),
-          rol: "usuario",
+          rol: "cliente",
         }),
       ),
       userRepository.save(
@@ -63,4 +64,27 @@ async function createUsers() {
   }
 }
 
-export { createUsers };
+async function createDefaultWarehouse() {
+  try {
+    const warehouseRepository = AppDataSource.getRepository(Warehouse);
+
+    const count = await warehouseRepository.count();
+    if (count > 0) return;
+
+    await warehouseRepository.save(
+      warehouseRepository.create({
+        nombre: "Bodega Central — Laraquete",
+        ubicacion: "Laraquete, Provincia de Arauco",
+        ciudad: "Laraquete",
+        region: "Bío Bío",
+        capacidad: null,
+        activo: true,
+      })
+    );
+    console.log("* => Almacén de retiro presencial creado exitosamente");
+  } catch (error) {
+    console.error("Error al crear almacén por defecto:", error);
+  }
+}
+
+export { createUsers, createDefaultWarehouse };

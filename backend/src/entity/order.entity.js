@@ -95,6 +95,11 @@ const OrderSchema = new EntitySchema({
       type: "date",
       nullable: false,
     },
+    secuenciaEntrega: {
+      type: "int",
+      nullable: true,
+      default: null,
+    },
     createdAt: {
       type: "timestamp with time zone",
       default: () => "CURRENT_TIMESTAMP",

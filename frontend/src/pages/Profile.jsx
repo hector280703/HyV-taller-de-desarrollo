@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useEditProfile from '@hooks/profile/useEditProfile';
+import { getMyCustomerProfile } from '@services/customer.service.js';
 import '@styles/profile.css';
 
 const Profile = () => {
@@ -28,17 +29,42 @@ const Profile = () => {
             return;
         }
 
-        setFormData({
+        // Cargar datos básicos desde sessionStorage
+        setFormData(prev => ({
+            ...prev,
             nombreCompleto: user.nombreCompleto || '',
             email: user.email || '',
             rut: user.rut || '',
             telefono: user.telefono || '',
             direccion: user.direccion || '',
-            currentPassword: '',
-            newPassword: '',
-            confirmPassword: ''
-        });
-    }, [user, navigate]);
+        }));
+
+        // Obtener datos detallados del backend
+        const loadCustomerProfile = async () => {
+            try {
+                const response = await getMyCustomerProfile();
+                if (response.data) {
+                    const customerData = response.data;
+                    setFormData(prev => ({
+                        ...prev,
+                        telefono: customerData.telefono || '',
+                        direccion: customerData.direccion || '',
+                    }));
+                    // Mantener el sessionStorage sincronizado
+                    const updatedUser = {
+                        ...user,
+                        telefono: customerData.telefono || '',
+                        direccion: customerData.direccion || '',
+                    };
+                    sessionStorage.setItem('usuario', JSON.stringify(updatedUser));
+                }
+            } catch (err) {
+                console.error("Error al cargar perfil detallado de cliente:", err);
+            }
+        };
+
+        loadCustomerProfile();
+    }, [navigate]);
 
     const handleInputChange = (field, value) => {
         setFormData(prev => ({
@@ -155,7 +181,7 @@ const Profile = () => {
                     </div>
                     <h1>Mi Perfil</h1>
                     <p className="profile-role-badge">
-                        {user.rol === 'administrador' ? '👑 Administrador' : '👤 Usuario'}
+                        {user.rol === 'administrador' ? '👑 Administrador' : '🛍️ Cliente'}
                     </p>
                 </div>
 

@@ -11,6 +11,8 @@ import {
   calculateShipping,
   reportStockIssue,
   getOrderHistory,
+  getDeliveryAvailability,
+  updateDeliverySequence,
 } from "../controllers/order.controller.js";
 import { authenticateJwt } from "../middlewares/authentication.middleware.js";
 import { orderCreateLimiter } from "../middlewares/rateLimit.middleware.js";
@@ -47,5 +49,11 @@ router.get("/:id/history", getOrderHistory);
 
 // Cancelar orden (usuario propietario o admin)
 router.delete("/:id", cancelOrder);
+
+// Obtener disponibilidad de entregas diarias
+router.get("/delivery-availability", getDeliveryAvailability);
+
+// Reordenar secuencia de entregas
+router.patch("/reorder", updateDeliverySequence);
 
 export default router;

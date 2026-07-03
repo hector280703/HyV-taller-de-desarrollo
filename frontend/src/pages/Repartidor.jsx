@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getOrders, updateOrderStatus } from '@services/order.service';
+import { getOrders, updateOrderStatus, updateDeliverySequence } from '@services/order.service';
 import { logout } from '@services/auth.service';
 import { showErrorAlert, showSuccessAlert, showConfirmAlert } from '@helpers/sweetAlert';
 import { formatPrice } from '@helpers/formatData';
@@ -41,6 +41,7 @@ function Repartidor() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('listo_para_envio');
+  const [filterFecha, setFilterFecha] = useState('');
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [updating, setUpdating] = useState(false);
   const [mapCenter, setMapCenter] = useState([-37.1653, -73.1835]);
@@ -80,6 +81,45 @@ function Repartidor() {
       showErrorAlert('Error', 'No se pudieron cargar las órdenes');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleMoveOrder = async (index, direction, sortedList) => {
+    const newList = [...sortedList];
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    
+    if (targetIndex < 0 || targetIndex >= newList.length) return;
+
+    // Intercambiar
+    const temp = newList[index];
+    newList[index] = newList[targetIndex];
+    newList[targetIndex] = temp;
+
+    // Asignar secuencia
+    const sequences = newList.map((order, idx) => ({
+      id: order.id,
+      secuenciaEntrega: idx + 1
+    }));
+
+    try {
+      setUpdating(true);
+      const response = await updateDeliverySequence(sequences);
+      if (response.status === 'Success') {
+        // Actualizar localmente
+        setOrders(prevOrders => {
+          return prevOrders.map(order => {
+            const foundSeq = sequences.find(s => s.id === order.id);
+            if (foundSeq) {
+              return { ...order, secuenciaEntrega: foundSeq.secuenciaEntrega };
+            }
+            return order;
+          });
+        });
+      }
+    } catch (err) {
+      showErrorAlert('Error', 'No se pudo actualizar la planificación de entrega');
+    } finally {
+      setUpdating(false);
     }
   };
 
@@ -221,6 +261,18 @@ function Repartidor() {
     window.location.href = '/';
   };
 
+  const filteredOrders = orders.filter(order => {
+    if (!filterFecha) return true;
+    const orderDate = order.fechaEntrega?.split('T')[0];
+    return orderDate === filterFecha;
+  });
+
+  const sortedOrders = [...filteredOrders].sort((a, b) => {
+    const seqA = a.secuenciaEntrega !== null && a.secuenciaEntrega !== undefined ? a.secuenciaEntrega : 999999;
+    const seqB = b.secuenciaEntrega !== null && b.secuenciaEntrega !== undefined ? b.secuenciaEntrega : 999999;
+    return seqA - seqB;
+  });
+
   return (
     <div className="repartidor-container">
       {/* Modal de verificación de entrega */}
@@ -273,6 +325,35 @@ function Repartidor() {
         </button>
       </div>
 
+      {/* Filtro por fecha */}
+      <div className="repartidor-date-filter-section">
+        <div className="date-filter-box">
+          <label htmlFor="repartidor-date-input">📅 Filtrar por fecha de entrega:</label>
+          <div className="date-input-group">
+            <input
+              id="repartidor-date-input"
+              type="date"
+              value={filterFecha}
+              onChange={(e) => setFilterFecha(e.target.value)}
+              className="repartidor-date-input"
+            />
+            {filterFecha && (
+              <button 
+                className="clear-date-btn"
+                onClick={() => setFilterFecha('')}
+              >
+                ❌ Limpiar Filtro
+              </button>
+            )}
+          </div>
+        </div>
+        {filterFecha && sortedOrders.length > 1 && (
+          <div className="planning-banner">
+            💡 <strong>Modo Planificación Activo:</strong> Puedes usar las flechas ▲ y ▼ en los pedidos para programar el orden de entrega de hoy.
+          </div>
+        )}
+      </div>
+
       {/* Contenido Principal */}
       <div className="repartidor-content">
         {loading ? (
@@ -280,9 +361,9 @@ function Repartidor() {
             <div className="spinner"></div>
             <p>Cargando órdenes...</p>
           </div>
-        ) : orders.length === 0 ? (
+        ) : sortedOrders.length === 0 ? (
           <div className="repartidor-empty">
-            <p>📭 No hay órdenes {filter !== 'todas' ? getStatusText(filter).toLowerCase() : ''}</p>
+            <p>📭 No hay órdenes {filterFecha ? `para el día ${filterFecha}` : ''} {filter !== 'todas' ? `en estado ${getStatusText(filter).toLowerCase()}` : ''}</p>
           </div>
         ) : (
           <div className="repartidor-layout">
@@ -298,7 +379,7 @@ function Repartidor() {
                   />
                   <MapController center={mapCenter} zoom={15} />
                   
-                  {orders.map(order => {
+                  {sortedOrders.map(order => {
                     const coords = parseCoordinates(order.direccionEnvio);
                     if (coords && order.tipoEntrega === 'envio') {
                       return (
@@ -334,7 +415,7 @@ function Repartidor() {
             {/* Lista de Órdenes */}
             <div className="orders-list">
               <h2 className="section-title">📋 Lista de Pedidos</h2>
-              {orders.map((order) => {
+              {sortedOrders.map((order, index) => {
                 const hasCoords = !!parseCoordinates(order.direccionEnvio);
                 return (
               <div
@@ -356,6 +437,29 @@ function Repartidor() {
                     <span className="status-icon">{getStatusIcon(order.estado)}</span>
                     <span className="numero-orden">{order.numeroOrden}</span>
                   </div>
+                  
+                  {filterFecha && sortedOrders.length > 1 && (
+                    <div className="seq-controls-wrapper" onClick={(e) => e.stopPropagation()}>
+                      <button 
+                        disabled={index === 0} 
+                        onClick={() => handleMoveOrder(index, 'up', sortedOrders)}
+                        className="seq-btn seq-up"
+                        title="Mover arriba"
+                      >
+                        ▲
+                      </button>
+                      <button 
+                        disabled={index === sortedOrders.length - 1} 
+                        onClick={() => handleMoveOrder(index, 'down', sortedOrders)}
+                        className="seq-btn seq-down"
+                        title="Mover abajo"
+                      >
+                        ▼
+                      </button>
+                      <span className="seq-badge">#{order.secuenciaEntrega || (index + 1)}</span>
+                    </div>
+                  )}
+
                   <div className="header-badge-wrapper">
                     <span className={`status-badge status-${order.estado}`}>
                       {getStatusText(order.estado)}

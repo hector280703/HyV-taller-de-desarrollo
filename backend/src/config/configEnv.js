@@ -27,3 +27,4 @@ export const CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY;
 export const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET;
 export const MP_ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN;
 export const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+export const MAX_DELIVERIES_PER_DAY = parseInt(process.env.MAX_DELIVERIES_PER_DAY) || 10;

@@ -70,7 +70,7 @@ export default function Popup({ show, setShow, data, action, isProductForm = fal
             fieldType: 'select',
             options: [
                 { value: 'administrador', label: 'Administrador' },
-                { value: 'usuario', label: 'Usuario' },
+                { value: 'cliente', label: 'Cliente' },
             ],
             required: true,
             defaultValue: userData.rol || "",
