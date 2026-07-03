@@ -15,11 +15,24 @@ export default function Popup({ show, setShow, data, action, isProductForm = fal
     const [isUploading, setIsUploading] = useState(false);
 
     const handleSubmit = (formData) => {
-        // Inyectar la URL de la imagen subida a Cloudinary
-        const finalData = isProductForm
-            ? { ...formData, imagenUrl: uploadedImageUrl }
-            : formData;
-        action(finalData);
+        if (isProductForm) {
+            const finalData = { 
+                ...formData, 
+                imagenUrl: uploadedImageUrl,
+                precio: formData.precio !== "" ? Number(formData.precio) : undefined,
+                stock: formData.stock !== "" ? Number(formData.stock) : 0,
+                descuento: formData.descuento === "" ? 0 : Number(formData.descuento),
+                peso: formData.peso === "" ? null : Number(formData.peso),
+                activo: formData.activo === "true" || formData.activo === true
+            };
+            
+            // Eliminar código si viene vacío para que el backend genere uno
+            if (finalData.codigo === "") delete finalData.codigo;
+            
+            action(finalData);
+        } else {
+            action(formData);
+        }
     };
 
 

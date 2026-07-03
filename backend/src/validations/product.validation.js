@@ -115,12 +115,12 @@ export const productBodyValidation = Joi.object({
       "number.max": "El descuento no puede ser mayor a 100.",
     }),
   peso: Joi.number()
-    .positive()
+    .min(0)
     .precision(2)
     .allow(null)
     .messages({
       "number.base": "El peso debe ser un número.",
-      "number.positive": "El peso debe ser un número positivo.",
+      "number.min": "El peso no puede ser negativo.",
     }),
   dimensiones: Joi.string()
     .max(100)
@@ -229,12 +229,12 @@ export const productCreateValidation = Joi.object({
       "number.max": "El descuento no puede ser mayor a 100.",
     }),
   peso: Joi.number()
-    .positive()
+    .min(0)
     .precision(2)
     .allow(null)
     .messages({
       "number.base": "El peso debe ser un número.",
-      "number.positive": "El peso debe ser un número positivo.",
+      "number.min": "El peso no puede ser negativo.",
     }),
   dimensiones: Joi.string()
     .max(100)
