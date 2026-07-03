@@ -16,7 +16,8 @@ export default function PaymentResult() {
   // Determinar el tipo de resultado basado en la ruta
   const pathSegment = location.pathname.split('/').pop(); // success, failure, pending
   const orderId = searchParams.get('order_id');
-  const paymentId = searchParams.get('payment_id'); // Obtener el ID del pago de la URL
+  // Mercado Pago a veces usa payment_id o collection_id
+  const paymentId = searchParams.get('payment_id') || searchParams.get('collection_id');
 
   const resultConfig = {
     success: {

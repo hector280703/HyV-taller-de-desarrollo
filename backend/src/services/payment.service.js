@@ -46,17 +46,31 @@ export async function createPaymentPreference(order) {
       });
     }
 
+    let successUrl = `${FRONTEND_URL}/payment/success?order_id=${order.id}`;
+    let failureUrl = `${FRONTEND_URL}/payment/failure?order_id=${order.id}`;
+    let pendingUrl = `${FRONTEND_URL}/payment/pending?order_id=${order.id}`;
+
+    // Si estamos en localhost, Mercado Pago rechaza las back_urls y bloquea el botón y auto_return.
+    // Usamos el dominio ngrok del backend para rebotar hacia el frontend.
+    if (FRONTEND_URL.includes("localhost") && process.env.NGROK_URL) {
+      const ngrokDomain = process.env.NGROK_URL.replace(/\/$/, ''); // remover slash final si lo hay
+      successUrl = `${ngrokDomain}/api/payments/bounce?type=success&order_id=${order.id}`;
+      failureUrl = `${ngrokDomain}/api/payments/bounce?type=failure&order_id=${order.id}`;
+      pendingUrl = `${ngrokDomain}/api/payments/bounce?type=pending&order_id=${order.id}`;
+    }
+
     const preferenceData = {
       items,
-      backUrls: {
-        success: `${FRONTEND_URL}/payment/success?order_id=${order.id}`,
-        failure: `${FRONTEND_URL}/payment/failure?order_id=${order.id}`,
-        pending: `${FRONTEND_URL}/payment/pending?order_id=${order.id}`,
+      back_urls: {
+        success: successUrl,
+        failure: failureUrl,
+        pending: pendingUrl,
       },
-      autoReturn: "approved",
-      externalReference: String(order.id),
-      notificationUrl: "https://straddle-remote-blazing.ngrok-free.dev/api/payments/webhook", // Se configura con ngrok en producción
-      statementDescriptor: "HyV Construcciones",
+      // Habilitamos auto_return si tenemos ngrok o estamos en producción
+      ...( (FRONTEND_URL.includes("localhost") && !process.env.NGROK_URL) ? {} : { auto_return: "approved" } ),
+      external_reference: String(order.id),
+      notification_url: process.env.NGROK_URL ? `${process.env.NGROK_URL.replace(/\/$/, '')}/api/payments/webhook` : undefined,
+      statement_descriptor: "HyV Construcciones",
       metadata: {
         order_id: order.id,
         numero_orden: order.numeroOrden,

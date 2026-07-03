@@ -85,6 +85,20 @@ export async function paymentWebhook(req, res) {
 }
 
 /**
+ * Rebote (Bounce) para entorno de desarrollo local.
+ * Recibe la redirección desde Mercado Pago (usando el dominio de ngrok)
+ * y redirige al usuario hacia el frontend en localhost.
+ * GET /api/payments/bounce
+ */
+export async function paymentBounce(req, res) {
+  const queryParams = new URLSearchParams(req.query).toString();
+  const type = req.query.type || 'success';
+  const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+  
+  res.redirect(`${frontendUrl}/payment/${type}?${queryParams}`);
+}
+
+/**
  * Obtener el estado de pago de una orden.
  * GET /api/payments/status/:orderId
  */

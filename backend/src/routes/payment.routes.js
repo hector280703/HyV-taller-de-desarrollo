@@ -4,6 +4,7 @@ import {
   createPreference,
   paymentWebhook,
   getPaymentStatusController,
+  paymentBounce,
 } from "../controllers/payment.controller.js";
 import { authenticateJwt } from "../middlewares/authentication.middleware.js";
 
@@ -11,6 +12,9 @@ const router = Router();
 
 // Webhook de Mercado Pago (NO requiere autenticación)
 router.post("/webhook", paymentWebhook);
+
+// Rebote para redireccionar a localhost (NO requiere autenticación)
+router.get("/bounce", paymentBounce);
 
 // Rutas protegidas con JWT
 router.use(authenticateJwt);
