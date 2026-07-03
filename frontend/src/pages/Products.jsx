@@ -1,5 +1,5 @@
 import { useCallback, useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useCarroCompras } from '@context/CarroComprasContext';
 import { showSuccessAlert, showErrorAlert } from '@helpers/sweetAlert.js';
 import useGetProducts from '@hooks/products/useGetProducts.jsx';
@@ -17,6 +17,7 @@ const Products = () => {
   const user = JSON.parse(sessionStorage.getItem('usuario')) || null;
   const isAdmin = user?.rol === 'administrador';
   const navigate = useNavigate();
+  const location = useLocation();
   const { agregarAlCarrito } = useCarroCompras();
 
   const {
@@ -53,6 +54,15 @@ const Products = () => {
       }
     };
   }, [searchInput]);
+
+  // Capturar la categoría desde la página de inicio (router state)
+  useEffect(() => {
+    if (location.state?.categoria) {
+      setCategoria(location.state.categoria);
+      // Limpiar el estado para que no vuelva a aplicar el filtro si el usuario recarga
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state, setCategoria, navigate, location.pathname]);
 
   const {
     handleCreate,

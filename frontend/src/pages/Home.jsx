@@ -96,7 +96,7 @@ const Home = () => {
             <div
               key={index}
               className="category-card"
-              onClick={() => navigate('/products')}
+              onClick={() => navigate('/products', { state: { categoria: category.value } })}
             >
               <img src={category.image} alt={category.name} className="category-image" />
               <h3>{category.name}</h3>
