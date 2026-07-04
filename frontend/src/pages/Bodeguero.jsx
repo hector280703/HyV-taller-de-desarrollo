@@ -5,6 +5,7 @@ import { logout } from '@services/auth.service';
 import { showErrorAlert, showSuccessAlert, showConfirmAlert } from '@helpers/sweetAlert';
 import { formatPrice } from '@helpers/formatData';
 import PreparationChecklist from '@components/PreparationChecklist';
+import Swal from 'sweetalert2';
 import '@styles/repartidor.css';
 
 function Bodeguero() {
@@ -44,7 +45,7 @@ function Bodeguero() {
   };
 
   const handleUpdateStatus = async (orderId, newStatus) => {
-    if (newStatus === 'listo_para_envio') {
+    if (newStatus === 'listo_para_envio' || newStatus === 'listo_para_retiro') {
       const orderToPrepare = orders.find(o => o.id === orderId);
       setChecklistOrder(orderToPrepare);
       return;
@@ -57,15 +58,39 @@ function Bodeguero() {
     const statusMessages = {
       procesando: 'marcar como Procesando',
       listo_para_envio: 'marcar como Listo para Envío',
+      listo_para_retiro: 'marcar como Listo para Retiro',
+      entregado: 'marcar como Entregado',
       incidencia_stock: 'reportar incidencia de stock',
     };
 
-    const confirmed = await showConfirmAlert(
-      '¿Confirmar cambio?',
-      `¿Deseas ${statusMessages[newStatus]} esta orden?`
-    );
+    if (newStatus === 'entregado') {
+      const order = orders.find(o => o.id === orderId);
+      const result = await Swal.fire({
+        title: 'Entregar Pedido',
+        text: 'Por favor, ingrese el código de la orden para confirmar la entrega al cliente (ej: ORD-...).',
+        input: 'text',
+        showCancelButton: true,
+        confirmButtonText: 'Confirmar Entrega',
+        cancelButtonText: 'Cancelar',
+        inputValidator: (value) => {
+          if (!value) {
+            return 'Debe ingresar un código';
+          }
+          if (value !== order.numeroOrden) {
+            return 'El código no coincide con el número de orden del cliente';
+          }
+        }
+      });
+      
+      if (!result.isConfirmed) return;
+    } else {
+      const confirmed = await showConfirmAlert(
+        '¿Confirmar cambio?',
+        `¿Deseas ${statusMessages[newStatus]} esta orden?`
+      );
 
-    if (!confirmed) return;
+      if (!confirmed) return;
+    }
 
     try {
       setUpdating(true);
@@ -88,6 +113,7 @@ function Bodeguero() {
       pendiente: '📋',
       procesando: '⚙️',
       listo_para_envio: '📦',
+      listo_para_retiro: '🏢',
       en_camino: '🚚',
       entregado: '✅',
       cancelado: '❌',
@@ -100,6 +126,7 @@ function Bodeguero() {
       pendiente: 'Pendiente',
       procesando: 'Procesando',
       listo_para_envio: 'Listo para Envío',
+      listo_para_retiro: 'Listo para Retiro',
       en_camino: 'En camino',
       entregado: 'Entregado',
       cancelado: 'Cancelado',
@@ -132,16 +159,18 @@ function Bodeguero() {
     return formatPrice(amount);
   };
 
-  const getNextStatus = (currentStatus) => {
+  const getNextStatus = (order) => {
+    const { estado, tipoEntrega } = order;
     const statusFlow = {
       pendiente: 'procesando',
-      procesando: 'listo_para_envio',
+      procesando: tipoEntrega === 'retiro' ? 'listo_para_retiro' : 'listo_para_envio',
+      listo_para_retiro: 'entregado'
     };
-    return statusFlow[currentStatus];
+    return statusFlow[estado];
   };
 
   const canUpdateStatus = (status) => {
-    return ['pendiente', 'procesando'].includes(status);
+    return ['pendiente', 'procesando', 'listo_para_retiro'].includes(status);
   };
 
   const getMetodoPagoText = (metodo) => {
@@ -187,6 +216,12 @@ function Bodeguero() {
           onClick={() => setFilter('listo_para_envio')}
         >
           📦 Listo para Envío
+        </button>
+        <button
+          className={`filter-btn ${filter === 'listo_para_retiro' ? 'active' : ''}`}
+          onClick={() => setFilter('listo_para_retiro')}
+        >
+          🏢 Listo para Retiro
         </button>
         <button
           className={`filter-btn ${filter === 'todas' ? 'active' : ''}`}
@@ -330,11 +365,11 @@ function Bodeguero() {
                           className="action-btn next-status"
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleUpdateStatus(order.id, getNextStatus(order.estado));
+                            handleUpdateStatus(order.id, getNextStatus(order));
                           }}
                           disabled={updating}
                         >
-                          {updating ? '⏳ Actualizando...' : `➡️ ${getStatusText(getNextStatus(order.estado))}`}
+                          {updating ? '⏳ Actualizando...' : `➡️ ${getStatusText(getNextStatus(order))}`}
                         </button>
                       </div>
                     )}

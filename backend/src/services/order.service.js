@@ -478,6 +478,7 @@ export async function updateOrderStatusService(orderId, newStatus, userId, userR
     const notasEstado = {
       procesando: "El pedido está siendo preparado",
       listo_para_envio: "El pedido está listo para ser despachado",
+      listo_para_retiro: "El pedido está listo para ser retirado en tienda",
       en_camino: "El pedido está en camino a la dirección de entrega",
       entregado: "El pedido fue entregado al cliente",
       cancelado: "El pedido fue cancelado",

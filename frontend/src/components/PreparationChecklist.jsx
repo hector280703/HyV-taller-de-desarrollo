@@ -40,8 +40,9 @@ export default function PreparationChecklist({ order, onClose, onSuccess }) {
     if (submitting) return;
 
     if (!hasDiscrepancy) {
-      // If no discrepancy, just proceed with normal status update to 'listo_para_envio'
-      onSuccess(order.id, 'listo_para_envio');
+      // If no discrepancy, just proceed with normal status update to 'listo_para_envio' or 'listo_para_retiro'
+      const targetStatus = order.tipoEntrega === 'retiro' ? 'listo_para_retiro' : 'listo_para_envio';
+      onSuccess(order.id, targetStatus);
       return;
     }
 
@@ -170,7 +171,7 @@ export default function PreparationChecklist({ order, onClose, onSuccess }) {
             onMouseOut={(e) => { if(!submitting) e.target.style.transform = 'translateY(0)'; }}
           >
             {submitting ? '⏳ Procesando...' : 
-              (hasDiscrepancy ? '⚠️ Reportar Falta de Stock' : '✅ Confirmar y Listo para Envío')}
+              (hasDiscrepancy ? '⚠️ Reportar Falta de Stock' : (order.tipoEntrega === 'retiro' ? '✅ Confirmar y Listo para Retiro' : '✅ Confirmar y Listo para Envío'))}
           </button>
         </div>
       </div>

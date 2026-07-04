@@ -346,6 +346,7 @@ export default function AdminOrders() {
       pendiente: { text: 'Pendiente', class: 'badge-pending' },
       procesando: { text: 'Procesando', class: 'badge-processing' },
       listo_para_envio: { text: 'Listo para Envío', class: 'badge-shipped' },
+      listo_para_retiro: { text: 'Listo para Retiro', class: 'badge-shipped' },
       en_camino: { text: 'En Camino', class: 'badge-shipped' },
       entregado: { text: 'Entregado', class: 'badge-delivered' },
       cancelado: { text: 'Cancelado', class: 'badge-cancelled' },
@@ -626,6 +627,7 @@ export default function AdminOrders() {
                             pendiente: '#f39c12',
                             procesando: '#3498db',
                             listo_para_envio: '#e67e22',
+                            listo_para_retiro: '#d35400',
                             en_camino: '#9b59b6',
                             entregado: '#27ae60',
                             cancelado: '#e74c3c'
@@ -687,6 +689,12 @@ export default function AdminOrders() {
                 onClick={() => setFilter('listo_para_envio')}
               >
                 Listo p/Envío
+              </button>
+              <button
+                className={filter === 'listo_para_retiro' ? 'filter-btn active' : 'filter-btn'}
+                onClick={() => setFilter('listo_para_retiro')}
+              >
+                Listo p/Retiro
               </button>
               <button
                 className={filter === 'en_camino' ? 'filter-btn active' : 'filter-btn'}
@@ -778,6 +786,7 @@ export default function AdminOrders() {
                                 <option value="incidencia_stock" disabled>Incidencia Stock</option>
                               )}
                               <option value="listo_para_envio">Listo para Envío</option>
+                              <option value="listo_para_retiro">Listo para Retiro</option>
                               <option value="en_camino">En Camino</option>
                               <option value="entregado">Entregado</option>
                               <option value="cancelado">Cancelado</option>

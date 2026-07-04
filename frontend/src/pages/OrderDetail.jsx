@@ -62,6 +62,7 @@ export default function OrderDetail() {
     const estados = {
       pendiente: { text: 'Pendiente', class: 'status-pending', icon: '⏳' },
       procesando: { text: 'Procesando', class: 'status-processing', icon: '⚙️' },
+      listo_para_retiro: { text: 'Listo para Retiro', class: 'status-shipped', icon: '🏢' },
       enviado: { text: 'Enviado', class: 'status-shipped', icon: '🚚' },
       entregado: { text: 'Entregado', class: 'status-delivered', icon: '✅' },
       cancelado: { text: 'Cancelado', class: 'status-cancelled', icon: '❌' },
@@ -144,6 +145,13 @@ export default function OrderDetail() {
         { key: 'pendiente',          icon: '⏳', label: 'Pedido Creado' },
         { key: 'procesando',         icon: '⚙️', label: 'En Preparación' },
         { key: 'incidencia_stock',   icon: '⚠️', label: 'Incidencia de Stock' },
+      ]
+    : order.tipoEntrega === 'retiro'
+    ? [
+        { key: 'pendiente',         icon: '⏳', label: 'Pedido Creado' },
+        { key: 'procesando',        icon: '⚙️', label: 'En Preparación' },
+        { key: 'listo_para_retiro', icon: '🏢', label: 'Listo para Retiro' },
+        { key: 'entregado',         icon: '✅', label: 'Entregado' },
       ]
     : [
         { key: 'pendiente',        icon: '⏳', label: 'Pedido Creado' },
@@ -367,8 +375,8 @@ export default function OrderDetail() {
           <div className="detail-section qr-section">
             <h2>📲 Comprobante QR de Entrega</h2>
             <p className="qr-description">
-              Muestra este código QR al repartidor cuando llegue a tu puerta.
-              Él lo escaneará para confirmar que el pedido fue entregado correctamente.
+              Muestra este código QR al momento de recibir o retirar tu pedido.
+              El personal lo escaneará o ingresará para confirmar que el pedido fue entregado correctamente.
             </p>
             <div className="qr-wrapper" id="qr-print-area">
               <div className="qr-code-container">
