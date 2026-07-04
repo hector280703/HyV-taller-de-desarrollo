@@ -195,7 +195,7 @@ export async function sendOrderConfirmationEmail(order) {
  */
 export async function sendOrderStatusUpdateEmail(order, oldStatus) {
   try {
-    const { user, numeroOrden, total, estado: newStatus } = order;
+    const { user, numeroOrden, total, estado: newStatus, tipoEntrega } = order;
 
     // Configuración visual por estado
     const statusConfig = {
@@ -204,16 +204,32 @@ export async function sendOrderStatusUpdateEmail(order, oldStatus) {
         label: "Procesando",
         color: "#3498db",
         gradient: "linear-gradient(135deg, #3498db 0%, #2980b9 100%)",
-        message: "Tu pedido está siendo preparado. Te notificaremos cuando sea enviado.",
+        message: "Tu pedido está siendo preparado. Te notificaremos cuando avance al siguiente paso.",
         subject: "🔄 Tu pedido está siendo procesado",
       },
-      enviado: {
+      listo_para_envio: {
+        icon: "📦",
+        label: "Listo para Envío",
+        color: "#e67e22",
+        gradient: "linear-gradient(135deg, #e67e22 0%, #d35400 100%)",
+        message: "Tu pedido ya está preparado y empacado, esperando a ser despachado.",
+        subject: "📦 Tu pedido está listo para envío",
+      },
+      listo_para_retiro: {
+        icon: "🏢",
+        label: "Listo para Retiro",
+        color: "#d35400",
+        gradient: "linear-gradient(135deg, #d35400 0%, #e67e22 100%)",
+        message: "Tu pedido ya está listo. Puedes acercarte a la sucursal para retirarlo presentando tu código QR o número de orden.",
+        subject: "🏢 ¡Tu pedido está listo para ser retirado!",
+      },
+      en_camino: {
         icon: "🚚",
-        label: "Enviado",
+        label: "En Camino",
         color: "#f39c12",
         gradient: "linear-gradient(135deg, #f39c12 0%, #e67e22 100%)",
         message: "¡Tu pedido va en camino! Pronto lo recibirás en tu dirección.",
-        subject: "📦 ¡Tu pedido ha sido enviado!",
+        subject: "🚚 ¡Tu pedido va en camino!",
       },
       entregado: {
         icon: "✅",
@@ -243,13 +259,16 @@ export async function sendOrderStatusUpdateEmail(order, oldStatus) {
     };
 
     // Generar pasos del timeline
-    const steps = ["pendiente", "procesando", "enviado", "entregado"];
+    const steps = tipoEntrega === "retiro" 
+      ? ["pendiente", "procesando", "listo_para_retiro", "entregado"]
+      : ["pendiente", "procesando", "listo_para_envio", "en_camino", "entregado"];
     const isCanceled = newStatus === "cancelado";
     const currentStepIndex = steps.indexOf(newStatus);
+    const colWidth = 100 / steps.length;
 
     const timelineSteps = steps.map((step, index) => {
-      const stepLabels = { pendiente: "Pendiente", procesando: "Procesando", enviado: "Enviado", entregado: "Entregado" };
-      const stepIcons = { pendiente: "📋", procesando: "⚙️", enviado: "🚚", entregado: "✅" };
+      const stepLabels = { pendiente: "Pendiente", procesando: "Preparando", listo_para_envio: "Empacado", listo_para_retiro: "Retiro", en_camino: "En Camino", entregado: "Entregado" };
+      const stepIcons = { pendiente: "📋", procesando: "⚙️", listo_para_envio: "📦", listo_para_retiro: "🏢", en_camino: "🚚", entregado: "✅" };
       let bgColor = "#ecf0f1";
       let textColor = "#bdc3c7";
 
@@ -262,7 +281,7 @@ export async function sendOrderStatusUpdateEmail(order, oldStatus) {
       }
 
       return `
-        <td style="text-align: center; padding: 0 4px; width: 25%;">
+        <td style="text-align: center; padding: 0 4px; width: ${colWidth}%;">
           <div style="width: 40px; height: 40px; border-radius: 50%; background: ${bgColor}; color: ${textColor}; display: inline-flex; align-items: center; justify-content: center; font-size: 18px; margin-bottom: 6px;">${stepIcons[step]}</div>
           <p style="color: ${index <= currentStepIndex && !isCanceled ? '#2c3e50' : '#bdc3c7'}; font-size: 11px; margin: 0; font-weight: ${index <= currentStepIndex && !isCanceled ? '700' : '400'};">${stepLabels[step]}</p>
         </td>`;
