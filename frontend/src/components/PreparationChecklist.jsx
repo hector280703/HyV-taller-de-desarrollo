@@ -98,7 +98,14 @@ export default function PreparationChecklist({ order, onClose, onSuccess }) {
               }}
             >
               <div style={{ flex: 1, paddingRight: '15px' }}>
-                <strong style={{ color: '#1e293b', display: 'block', marginBottom: '6px', fontSize: '15px' }}>{item.product.nombre}</strong>
+                <strong style={{ color: '#1e293b', display: 'block', marginBottom: '6px', fontSize: '15px' }}>
+                  {item.product.nombre}
+                  {item.product.zonaUbicacion && (
+                    <span style={{ marginLeft: '10px', background: '#fef3c7', color: '#d97706', padding: '3px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold', border: '1px solid #fde68a' }}>
+                      📍 Zona: {item.product.zonaUbicacion}
+                    </span>
+                  )}
+                </strong>
                 <span style={{ color: '#64748b', fontSize: '13px', fontWeight: '600' }}>Requerido: {item.cantidad}</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>

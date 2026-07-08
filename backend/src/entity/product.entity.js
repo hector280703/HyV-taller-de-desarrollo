@@ -75,6 +75,11 @@ const ProductSchema = new EntitySchema({
       length: 100,
       nullable: true,
     },
+    zonaUbicacion: {
+      type: "varchar",
+      length: 50,
+      nullable: true,
+    },
     activo: {
       type: "boolean",
       default: true,

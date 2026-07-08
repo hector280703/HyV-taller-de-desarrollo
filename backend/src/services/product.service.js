@@ -5,6 +5,25 @@ import { LOW_STOCK_THRESHOLD } from "../config/configEnv.js";
 import StockMovement from "../entity/stockMovement.entity.js";
 import Warehouse from "../entity/warehouse.entity.js";
 
+const CATEGORY_ZONE_MAP = {
+  "Cemento y Morteros": "Zona Exterior (Patio)",
+  "Ladrillos y Bloques": "Zona Exterior (Patio)",
+  "Arena y Ripio": "Zona Exterior (Patio)",
+  "Fierro y Acero": "Zona A (Estructuras)",
+  "Madera": "Zona A (Estructuras)",
+  "Pintura": "Zona B (Terminaciones)",
+  "Cerámica y Porcelanato": "Zona B (Terminaciones)",
+  "Fontanería": "Zona C (Instalaciones)",
+  "Electricidad": "Zona C (Instalaciones)",
+  "Herramientas": "Zona D (Herramientas)",
+  "Otros": "Zona General"
+};
+
+function getZonaForCategoria(categoria) {
+  if (!categoria) return "Zona General";
+  return CATEGORY_ZONE_MAP[categoria] || "Zona General";
+}
+
 export async function createProductService(body) {
   try {
     const productRepository = AppDataSource.getRepository(Product);
@@ -52,6 +71,11 @@ export async function createProductService(body) {
       }
     }
 
+    let zonaUbicacion = body.zonaUbicacion;
+    if (!zonaUbicacion || zonaUbicacion.trim() === "") {
+      zonaUbicacion = getZonaForCategoria(body.categoria);
+    }
+
     const newProduct = productRepository.create({
       nombre: body.nombre,
       codigo: codigo,
@@ -65,6 +89,7 @@ export async function createProductService(body) {
       descuento: body.descuento || 0,
       peso: body.peso || null,
       dimensiones: body.dimensiones || null,
+      zonaUbicacion: zonaUbicacion,
       activo: body.activo !== undefined ? body.activo : true,
     });
 
@@ -198,19 +223,28 @@ export async function updateProductService(query, body) {
       }
     }
 
+    let zonaUbicacion = body.zonaUbicacion !== undefined ? body.zonaUbicacion : productFound.zonaUbicacion;
+    const categoriaNueva = body.categoria !== undefined ? body.categoria : productFound.categoria;
+    
+    // Si envían la zona vacía intencionalmente (ej. borraron el input en el formulario), recalculamos
+    if (body.zonaUbicacion !== undefined && body.zonaUbicacion.trim() === "") {
+      zonaUbicacion = getZonaForCategoria(categoriaNueva);
+    }
+
     const dataProductUpdate = {
       nombre: body.nombre || productFound.nombre,
       codigo: body.codigo || productFound.codigo,
       descripcion: body.descripcion !== undefined ? body.descripcion : productFound.descripcion,
       precio: body.precio !== undefined ? body.precio : productFound.precio,
       stock: body.stock !== undefined ? body.stock : productFound.stock,
-      categoria: body.categoria !== undefined ? body.categoria : productFound.categoria,
+      categoria: categoriaNueva,
       unidadMedida: body.unidadMedida !== undefined ? body.unidadMedida : productFound.unidadMedida,
       marca: body.marca !== undefined ? body.marca : productFound.marca,
       imagenUrl: body.imagenUrl !== undefined ? body.imagenUrl : productFound.imagenUrl,
       descuento: body.descuento !== undefined ? body.descuento : productFound.descuento,
       peso: body.peso !== undefined ? body.peso : productFound.peso,
       dimensiones: body.dimensiones !== undefined ? body.dimensiones : productFound.dimensiones,
+      zonaUbicacion: zonaUbicacion,
       activo: body.activo !== undefined ? body.activo : productFound.activo,
       updatedAt: new Date(),
     };

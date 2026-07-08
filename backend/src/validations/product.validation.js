@@ -129,17 +129,24 @@ export const productBodyValidation = Joi.object({
       "string.base": "Las dimensiones deben ser de tipo string.",
       "string.max": "Las dimensiones deben tener como máximo 100 caracteres.",
     }),
+  zonaUbicacion: Joi.string()
+    .max(50)
+    .allow("")
+    .messages({
+      "string.base": "La zona de ubicación debe ser de tipo string.",
+      "string.max": "La zona de ubicación debe tener como máximo 50 caracteres.",
+    }),
   activo: Joi.boolean()
     .messages({
       "boolean.base": "El campo activo debe ser de tipo boolean.",
     }),
 })
-  .or("nombre", "codigo", "descripcion", "precio", "stock", "categoria", "unidadMedida", "marca", "imagenUrl", "descuento", "peso", "dimensiones", "activo")
+  .or("nombre", "codigo", "descripcion", "precio", "stock", "categoria", "unidadMedida", "marca", "imagenUrl", "descuento", "peso", "dimensiones", "zonaUbicacion", "activo")
   .unknown(false)
   .messages({
     "object.unknown": "No se permiten propiedades adicionales.",
     "object.missing":
-      "Debes proporcionar al menos un campo: nombre, codigo, descripcion, precio, stock, categoria, unidadMedida, marca, imagenUrl, descuento, peso, dimensiones o activo.",
+      "Debes proporcionar al menos un campo: nombre, codigo, descripcion, precio, stock, categoria, unidadMedida, marca, imagenUrl, descuento, peso, dimensiones, zonaUbicacion o activo.",
   });
 
 export const productCreateValidation = Joi.object({
@@ -242,6 +249,13 @@ export const productCreateValidation = Joi.object({
     .messages({
       "string.base": "Las dimensiones deben ser de tipo string.",
       "string.max": "Las dimensiones deben tener como máximo 100 caracteres.",
+    }),
+  zonaUbicacion: Joi.string()
+    .max(50)
+    .allow("")
+    .messages({
+      "string.base": "La zona de ubicación debe ser de tipo string.",
+      "string.max": "La zona de ubicación debe tener como máximo 50 caracteres.",
     }),
   activo: Joi.boolean()
     .default(true)

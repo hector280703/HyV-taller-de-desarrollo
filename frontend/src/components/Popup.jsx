@@ -278,6 +278,16 @@ export default function Popup({ show, setShow, data, action, isProductForm = fal
             ),
         },
         {
+            label: "Zona de Ubicación",
+            name: "zonaUbicacion",
+            defaultValue: productData.zonaUbicacion || "",
+            placeholder: 'Ej: Zona A (Automático según categoría si se deja en blanco)',
+            fieldType: 'input',
+            type: "text",
+            required: false,
+            maxLength: 50,
+        },
+        {
             label: "Estado",
             name: "activo",
             fieldType: 'select',
