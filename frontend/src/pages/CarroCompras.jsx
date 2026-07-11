@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useCarroCompras } from '@context/CarroComprasContext';
 import { showSuccessAlert, showErrorAlert, showConfirmAlert } from '@helpers/sweetAlert.js';
+import { CartIcon, TrashIcon, BoxIcon, AlertIcon } from '../components/Icons';
 import '@styles/carroCompras.css';
 
 const CarroCompras = () => {
@@ -69,7 +70,9 @@ const CarroCompras = () => {
     return (
       <div className="cart-container">
         <div className="cart-empty">
-          <div className="empty-cart-icon">🛒</div>
+          <div className="empty-cart-icon">
+            <CartIcon size={64} color="#94a3b8" />
+          </div>
           <h2>Tu carrito está vacío</h2>
           <p>¡Explora nuestro catálogo y agrega productos!</p>
           <button className="btn-continue-shopping" onClick={() => navigate('/products')}>
@@ -84,7 +87,10 @@ const CarroCompras = () => {
     <div className="cart-container">
       <div className="cart-content">
         <div className="cart-header">
-          <h1>🛒 Mi Carrito</h1>
+          <h1>
+            <CartIcon size={28} style={{ marginRight: '10px' }} />
+            Mi Carrito
+          </h1>
           <button className="btn-clear-cart" onClick={handleClearCart}>
             Vaciar Carrito
           </button>
@@ -102,7 +108,9 @@ const CarroCompras = () => {
                     {item.imagenUrl ? (
                       <img src={item.imagenUrl} alt={item.nombre} />
                     ) : (
-                      <div className="cart-item-placeholder">📦</div>
+                      <div className="cart-item-placeholder">
+                        <BoxIcon size={32} color="#94a3b8" />
+                      </div>
                     )}
                   </div>
 
@@ -158,10 +166,10 @@ const CarroCompras = () => {
                       {item.stock > 0 ? (
                         <span className={item.stock <= 5 ? 'low-stock' : ''}>
                           Stock disponible: {item.stock}
-                          {item.stock <= 5 && ' ⚠️'}
+                          {item.stock <= 5 && ' (Stock bajo)'}
                         </span>
                       ) : (
-                        <span className="no-stock">Sin stock ❌</span>
+                        <span className="no-stock">Sin stock</span>
                       )}
                     </p>
                   </div>
@@ -176,7 +184,7 @@ const CarroCompras = () => {
                     onClick={() => handleRemoveItem(item.id, item.nombre)}
                     title="Eliminar producto"
                   >
-                    🗑️
+                    <TrashIcon size={18} />
                   </button>
                 </div>
               );
@@ -198,7 +206,10 @@ const CarroCompras = () => {
               </div>
 
               <div className="summary-info">
-                <p>💡 El costo de envío se calculará al finalizar la compra</p>
+                <p>
+                  <AlertIcon size={14} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
+                  El costo de envío se calculará al finalizar la compra
+                </p>
               </div>
 
               <div className="summary-row total">
@@ -212,22 +223,22 @@ const CarroCompras = () => {
             </button>
 
             <button className="btn-continue-shopping-secondary" onClick={() => navigate('/products')}>
-              ← Seguir Comprando
+              Seguir Comprando
             </button>
 
             <div className="payment-methods">
               <p>Métodos de pago aceptados:</p>
               <div className="payment-icons">
-                <span>💳</span>
-                <span>💵</span>
-                <span>🏦</span>
+                <span className="payment-badge">Tarjeta</span>
+                <span className="payment-badge">Efectivo</span>
+                <span className="payment-badge">Transferencia</span>
               </div>
             </div>
 
             <div className="contact-info-summary">
               <h3>¿Necesitas ayuda?</h3>
-              <p>📞 +569 78187692</p>
-              <p>✉️ contacto@hyvconstructora.cl</p>
+              <p>Teléfono: +569 78187692</p>
+              <p>Correo: contacto@hyvconstructora.cl</p>
             </div>
           </div>
         </div>

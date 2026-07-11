@@ -5,6 +5,7 @@ import {
   updateWarehouse,
   deleteWarehouse,
 } from '@services/warehouse.service.js';
+import { StoreIcon, MapPinIcon, BoxIcon } from '../components/Icons';
 import '@styles/warehouses.css';
 
 const Warehouses = () => {
@@ -84,7 +85,7 @@ const Warehouses = () => {
     <div className="warehouses-container">
       <div className="warehouses-header">
         <div>
-          <h1>🏭 Gestión de Almacenes</h1>
+          <h1>Gestión de Almacenes</h1>
           <p className="warehouses-subtitle">Administra los almacenes y bodegas del negocio</p>
         </div>
         <button className="btn-new-warehouse" onClick={() => openModal()}>
@@ -92,50 +93,69 @@ const Warehouses = () => {
         </button>
       </div>
 
-      {successMsg && <div className="alert-success">✅ {successMsg}</div>}
-      {error && <div className="alert-error">❌ {error}</div>}
+      {successMsg && <div className="alert-success">{successMsg}</div>}
+      {error && <div className="alert-error">{error}</div>}
 
-      {loading ? (
-        <div className="warehouses-loading">
-          <div className="spinner"></div>
-          <p>Cargando almacenes...</p>
-        </div>
-      ) : warehouses.length === 0 ? (
-        <div className="warehouses-empty">
-          <span className="empty-icon">🏚️</span>
-          <p>No hay almacenes registrados</p>
-          <button className="btn-new-warehouse" onClick={() => openModal()}>Crear primer almacén</button>
-        </div>
-      ) : (
-        <div className="warehouses-grid">
-          {warehouses.map((w) => (
-            <div key={w.id} className={`warehouse-card ${!w.activo ? 'inactive' : ''}`}>
-              <div className="warehouse-card-header">
-                <span className="warehouse-icon">🏭</span>
-                <span className={`warehouse-badge ${w.activo ? 'badge-active' : 'badge-inactive'}`}>
-                  {w.activo ? 'Activo' : 'Inactivo'}
-                </span>
+      <div className="warehouses-card">
+        {loading ? (
+          <div className="warehouses-loading">
+            <div className="spinner"></div>
+            <p>Cargando almacenes...</p>
+          </div>
+        ) : warehouses.length === 0 ? (
+          <div className="warehouses-empty">
+            <StoreIcon size={48} color="#94a3b8" />
+            <p>No hay almacenes registrados</p>
+            <button className="btn-new-warehouse" onClick={() => openModal()}>Crear primer almacén</button>
+          </div>
+        ) : (
+          <div className="warehouses-grid">
+            {warehouses.map((w) => (
+              <div key={w.id} className={`warehouse-card ${!w.activo ? 'inactive' : ''}`}>
+                <div className="warehouse-card-header">
+                  <span className="warehouse-icon-wrapper">
+                    <StoreIcon size={24} />
+                  </span>
+                  <span className={`warehouse-badge ${w.activo ? 'badge-active' : 'badge-inactive'}`}>
+                    {w.activo ? 'Activo' : 'Inactivo'}
+                  </span>
+                </div>
+                <h3>{w.nombre}</h3>
+                <div className="warehouse-info">
+                  {w.ciudad && (
+                    <p>
+                      <MapPinIcon size={14} style={{ verticalAlign: 'middle' }} />
+                      <span>{w.ciudad}{w.region ? `, ${w.region}` : ''}</span>
+                    </p>
+                  )}
+                  {w.ubicacion && (
+                    <p>
+                      <MapPinIcon size={14} style={{ verticalAlign: 'middle' }} />
+                      <span>{w.ubicacion}</span>
+                    </p>
+                  )}
+                  {w.capacidad && (
+                    <p>
+                      <BoxIcon size={14} style={{ verticalAlign: 'middle' }} />
+                      <span>Capacidad: {w.capacidad.toLocaleString()} unidades</span>
+                    </p>
+                  )}
+                </div>
+                <div className="warehouse-actions">
+                  <button className="btn-edit" onClick={() => openModal(w)}>Editar</button>
+                  <button className="btn-delete" onClick={() => handleDelete(w.id)}>Eliminar</button>
+                </div>
               </div>
-              <h3>{w.nombre}</h3>
-              <div className="warehouse-info">
-                {w.ciudad && <p>📍 {w.ciudad}{w.region ? `, ${w.region}` : ''}</p>}
-                {w.ubicacion && <p>🗺️ {w.ubicacion}</p>}
-                {w.capacidad && <p>📦 Capacidad: {w.capacidad.toLocaleString()} unidades</p>}
-              </div>
-              <div className="warehouse-actions">
-                <button className="btn-edit" onClick={() => openModal(w)}>✏️ Editar</button>
-                <button className="btn-delete" onClick={() => handleDelete(w.id)}>🗑️ Eliminar</button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </div>
 
       {showModal && (
         <div className="modal-overlay" onClick={closeModal}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>{editingWarehouse ? '✏️ Editar Almacén' : '🏭 Nuevo Almacén'}</h2>
+              <h2>{editingWarehouse ? 'Editar Almacén' : 'Nuevo Almacén'}</h2>
               <button className="modal-close" onClick={closeModal}>✕</button>
             </div>
             <form onSubmit={handleSubmit} className="warehouse-form">
@@ -169,7 +189,7 @@ const Warehouses = () => {
                   </label>
                 </div>
               </div>
-              {error && <p className="form-error">❌ {error}</p>}
+              {error && <p className="form-error">{error}</p>}
               <div className="modal-actions">
                 <button type="button" className="btn-cancel" onClick={closeModal}>Cancelar</button>
                 <button type="submit" className="btn-save">{editingWarehouse ? 'Guardar cambios' : 'Crear almacén'}</button>

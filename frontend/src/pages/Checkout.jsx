@@ -5,6 +5,18 @@ import { createOrder, calculateShipping, getDeliveryAvailability } from '../serv
 import { createPaymentPreference } from '../services/payment.service.js';
 import { showErrorAlert, showSuccessAlert } from '../helpers/sweetAlert.js';
 import { formatPrice } from '../helpers/formatData.js';
+import {
+  BoxIcon,
+  TruckIcon,
+  StoreIcon,
+  MapPinIcon,
+  SearchIcon,
+  CheckIcon,
+  UserIcon,
+  FileTextIcon,
+  XIcon,
+  AlertIcon
+} from '../components/Icons';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -587,7 +599,7 @@ export default function Checkout() {
               <span>Envío ({shippingZoneName || 'No seleccionado'}):</span>
               <span>
                 {loadingShipping ? (
-                  <span className="loading-spinner-small">⏳</span>
+                  <span className="loading-text-small">Calculando...</span>
                 ) : tipoEntrega === 'retiro' ? (
                   formatPrice(0)
                 ) : mapPosition ? (
@@ -618,7 +630,10 @@ export default function Checkout() {
             
             {/* Método de Entrega */}
             <div className="form-group">
-              <label>📦 Método de Entrega *</label>
+              <label>
+                <BoxIcon size={16} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
+                Método de Entrega *
+              </label>
               <div className="delivery-type-selector">
                 <label className={`delivery-type-option ${tipoEntrega === 'envio' ? 'active' : ''}`}>
                   <input
@@ -629,7 +644,9 @@ export default function Checkout() {
                     onChange={() => setTipoEntrega('envio')}
                   />
                   <div className="option-content">
-                    <span className="option-icon">🚚</span>
+                    <span className="option-icon">
+                      <TruckIcon size={24} />
+                    </span>
                     <div className="option-text">
                       <span className="option-title">Despacho a Domicilio</span>
                       <span className="option-desc">Recibe en tu dirección (costo según zona y peso)</span>
@@ -646,7 +663,9 @@ export default function Checkout() {
                     onChange={() => setTipoEntrega('retiro')}
                   />
                   <div className="option-content">
-                    <span className="option-icon">🏢</span>
+                    <span className="option-icon">
+                      <StoreIcon size={24} />
+                    </span>
                     <div className="option-text">
                       <span className="option-title">Retiro en Tienda</span>
                       <span className="option-desc">Retira gratis en nuestro local (Laraquete)</span>
@@ -660,10 +679,15 @@ export default function Checkout() {
               <>
                 {/* Sección del Mapa */}
                 <div className="form-group">
-                  <label>📍 Ubicación de Entrega *</label>
+                  <label>
+                    <MapPinIcon size={16} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
+                    Ubicación de Entrega *
+                  </label>
                   <div className="map-search-container" ref={searchContainerRef}>
                     <div className="map-search-input-wrapper">
-                      <span className="map-search-icon">🔍</span>
+                      <span className="map-search-icon">
+                        <SearchIcon size={16} color="#94a3b8" />
+                      </span>
                       <input
                         type="text"
                         className="map-search-input"
@@ -672,7 +696,7 @@ export default function Checkout() {
                         onFocus={() => searchResults.length > 0 && setShowResults(true)}
                         placeholder="Buscar dirección... (ej: Av. O'Higgins 500, Concepción)"
                       />
-                      {isSearching && <span className="map-search-loading">⏳</span>}
+                      {isSearching && <span className="map-search-loading-text">Buscando...</span>}
                       {searchQuery && (
                         <button
                           type="button"
@@ -698,7 +722,9 @@ export default function Checkout() {
                             className="map-search-result-item"
                             onClick={() => handleSelectResult(result)}
                           >
-                            <span className="result-icon">📍</span>
+                            <span className="result-icon">
+                              <MapPinIcon size={14} />
+                            </span>
                             <span className="result-text">{result.display_name}</span>
                           </button>
                         ))}
@@ -728,11 +754,12 @@ export default function Checkout() {
                     <div className="map-hint">
                       {mapPosition ? (
                         <span className="map-hint-selected">
-                          ✅ Ubicación seleccionada — Haz clic en otro punto para cambiar
+                          <CheckIcon size={14} color="#10b981" style={{ marginRight: '6px', verticalAlign: 'middle' }} />
+                          Ubicación seleccionada — Haz clic en otro punto para cambiar
                         </span>
                       ) : (
                         <span className="map-hint-default">
-                          👆 Haz clic en el mapa o busca una dirección para marcar el punto de entrega
+                          Haz clic en el mapa o busca una dirección para marcar el punto de entrega
                         </span>
                       )}
                     </div>
@@ -760,12 +787,18 @@ export default function Checkout() {
               </>
             ) : (
               <div className="form-group pickup-address-display">
-                <label>🏢 Dirección de Retiro</label>
+                <label>
+                  <StoreIcon size={16} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
+                  Dirección de Retiro
+                </label>
                 <div className="pickup-address-card">
                   <p className="pickup-address-text"><strong>HyV Construcciones</strong></p>
                   <p className="pickup-address-subtext">La Cantera N°5, Laraquete, Arauco, Región del Bío Bío</p>
                   <p className="pickup-schedule"><strong>Horario de atención:</strong> Lunes a Viernes: 08:30 - 18:30 | Sábado: 09:00 - 14:00</p>
-                  <span className="pickup-badge">✓ Retiro Gratis</span>
+                  <span className="pickup-badge">
+                    <CheckIcon size={12} color="#10b981" style={{ marginRight: '4px', verticalAlign: 'middle' }} />
+                    Retiro Gratis
+                  </span>
                 </div>
               </div>
             )}
@@ -791,7 +824,10 @@ export default function Checkout() {
             {isVendedorPresencial && (
               <>
                 <div className="form-group">
-                  <label htmlFor="clienteNombre">👤 Nombre del Cliente *</label>
+                  <label htmlFor="clienteNombre">
+                    <UserIcon size={16} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
+                    Nombre del Cliente *
+                  </label>
                   <input
                     type="text"
                     id="clienteNombre"
@@ -807,7 +843,10 @@ export default function Checkout() {
                   </small>
                 </div>
                 <div className="form-group">
-                  <label htmlFor="clienteEmail">✉️ Email del Cliente *</label>
+                  <label htmlFor="clienteEmail">
+                    <UserIcon size={16} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
+                    Email del Cliente *
+                  </label>
                   <input
                     type="email"
                     id="clienteEmail"
@@ -827,16 +866,25 @@ export default function Checkout() {
             {/* Fecha de entrega - Deshabilitada para retiro en tienda */}
             {tipoEntrega === 'retiro' ? (
               <div className="form-group">
-                <label>📅 Fecha de Retiro</label>
+                <label>
+                  <FileTextIcon size={16} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
+                  Fecha de Retiro
+                </label>
                 <div className="pickup-address-card">
                   <p className="pickup-address-text"><strong>Retiro Inmediato</strong></p>
                   <p className="pickup-address-subtext">Al elegir retiro en tienda, el pedido estará disponible para ser retirado de inmediato.</p>
-                  <span className="pickup-badge">✓ Disponible ahora</span>
+                  <span className="pickup-badge">
+                    <CheckIcon size={12} color="#10b981" style={{ marginRight: '4px', verticalAlign: 'middle' }} />
+                    Disponible ahora
+                  </span>
                 </div>
               </div>
             ) : (
               <div className="form-group">
-                <label htmlFor="fechaEntrega">📅 Fecha Estimada de Entrega *</label>
+                <label htmlFor="fechaEntrega">
+                  <FileTextIcon size={16} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
+                  Fecha Estimada de Entrega *
+                </label>
                 <input
                   type="date"
                   id="fechaEntrega"
@@ -862,16 +910,18 @@ export default function Checkout() {
                 onChange={handleChange}
                 required
               >
-                <option value="efectivo">💵 Efectivo (pago contra entrega)</option>
-                <option value="transferencia">🏦 Transferencia Bancaria</option>
-                <option value="tarjeta">💳 Tarjeta de Crédito</option>
-                <option value="debito">💳 Tarjeta de Débito</option>
-                <option value="mercadopago">🟦 Mercado Pago (Pago Online)</option>
+                <option value="efectivo">Efectivo (pago contra entrega)</option>
+                <option value="transferencia">Transferencia Bancaria</option>
+                <option value="tarjeta">Tarjeta de Crédito</option>
+                <option value="debito">Tarjeta de Débito</option>
+                <option value="mercadopago">Mercado Pago (Pago Online)</option>
               </select>
               {formData.metodoPago === 'mercadopago' && (
                 <div className="mercadopago-info">
                   <div className="mp-badge">
-                    <span className="mp-icon">🟦</span>
+                    <span className="mp-icon">
+                      <CheckIcon size={16} color="#009ee3" />
+                    </span>
                     <div className="mp-text">
                       <strong>Mercado Pago</strong>
                       <small>Serás redirigido a Mercado Pago para completar el pago de forma segura. Acepta tarjetas de crédito, débito y más.</small>
@@ -917,7 +967,7 @@ export default function Checkout() {
                 {loading 
                   ? 'Procesando...' 
                   : formData.metodoPago === 'mercadopago' 
-                    ? '🟦 Pagar con Mercado Pago' 
+                    ? 'Pagar con Mercado Pago' 
                     : 'Finalizar Pedido'
                 }
               </button>
@@ -972,7 +1022,7 @@ export default function Checkout() {
                 <h3>Detalles de Entrega y Pago</h3>
                 <div className="modal-detail-item">
                   <strong>Método de Entrega:</strong>
-                  <p>{tipoEntrega === 'retiro' ? '🏢 Retiro en Tienda' : '🚚 Despacho a Domicilio'}</p>
+                  <p>{tipoEntrega === 'retiro' ? 'Retiro en Tienda' : 'Despacho a Domicilio'}</p>
                 </div>
                 <div className="modal-detail-item">
                   <strong>Ubicación:</strong>

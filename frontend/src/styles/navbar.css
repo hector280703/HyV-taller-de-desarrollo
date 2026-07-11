@@ -7,22 +7,23 @@
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	background: linear-gradient(135deg, rgba(44, 62, 80, 0.95) 0%, rgba(52, 73, 94, 0.95) 100%);
-	backdrop-filter: blur(20px) saturate(180%);
+	background: rgba(30, 41, 59, 0.8);
+	backdrop-filter: blur(12px) saturate(180%);
+	-webkit-backdrop-filter: blur(12px) saturate(180%);
 	height: 70px;
 	z-index: 1000;
 	padding: 0 3rem 0 2rem;
-	box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-	transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-	border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+	border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 	box-sizing: border-box;
 }
 
 /* Navbar scrolled - más compacto */
 .navbar.scrolled {
-	height: 60px;
-	background: linear-gradient(135deg, rgba(44, 62, 80, 0.98) 0%, rgba(52, 73, 94, 0.98) 100%);
-	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+	height: 64px;
+	background: rgba(15, 23, 42, 0.9);
+	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
 }
 
 /* ===== LOGO ===== */
@@ -100,7 +101,7 @@
 }
 
 .search-btn {
-	background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+	background: #ff6b35;
 	border: none;
 	width: 38px;
 	height: 38px;
@@ -110,12 +111,12 @@
 	align-items: center;
 	justify-content: center;
 	font-size: 1.1rem;
-	transition: all 0.3s ease;
+	transition: all 0.2s ease;
 }
 
 .search-btn:hover {
-	transform: scale(1.1);
-	box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4);
+	background: #f7931e;
+	box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
 }
 
 /* ===== MENÚ DE NAVEGACIÓN ===== */
@@ -146,36 +147,39 @@
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	color: white;
+	color: #cbd5e1;
 	text-decoration: none;
-	padding: 10px 20px;
-	border-radius: 12px;
-	font-weight: 600;
-	font-size: 0.95rem;
-	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+	padding: 8px 16px;
+	border-radius: 8px;
+	font-weight: 500;
+	font-size: 0.9rem;
+	transition: all 0.2s ease;
 	position: relative;
-	letter-spacing: 0.3px;
+	letter-spacing: 0.2px;
 }
 
 .nav-icon {
-	font-size: 1.2rem;
-	transition: transform 0.3s ease;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: transform 0.2s ease;
 }
 
 .nav-menu a:hover {
-	background: rgba(255, 255, 255, 0.1);
-	transform: translateY(-2px);
+	color: white;
+	background: rgba(255, 255, 255, 0.06);
 }
 
 .nav-menu a:hover .nav-icon {
-	transform: scale(1.2);
+	transform: scale(1.05);
 }
 
 /* Link activo */
 .nav-menu a.active {
-	background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
-	box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4);
-	font-weight: 700;
+	background: #ff6b35;
+	color: white;
+	box-shadow: 0 4px 12px rgba(255, 107, 53, 0.25);
+	font-weight: 600;
 }
 
 /* Carrito con badge */
@@ -286,6 +290,7 @@
 }
 
 .user-name {
+	color: #ffffff !important;
 	font-weight: 600;
 	font-size: 0.95rem;
 	max-width: 150px;
@@ -295,6 +300,7 @@
 }
 
 .dropdown-arrow {
+	color: #ffffff !important;
 	font-size: 0.7rem;
 	transition: transform 0.3s ease;
 }
@@ -524,23 +530,23 @@
 	display: flex;
 	align-items: center;
 	gap: 6px;
-	background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+	background: #ff6b35;
 	color: white;
 	border: none;
 	padding: 8px 16px;
 	border-radius: 20px;
 	cursor: pointer;
 	font-size: 0.87rem;
-	font-weight: 700;
-	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-	box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+	font-weight: 600;
+	transition: all 0.2s ease;
+	box-shadow: 0 4px 12px rgba(255, 107, 53, 0.2);
 	letter-spacing: 0.3px;
 	white-space: nowrap;
 }
 
 .login-btn:hover {
-	transform: translateY(-3px);
-	box-shadow: 0 6px 20px rgba(255, 107, 53, 0.5);
+	background: #f7931e;
+	box-shadow: 0 6px 20px rgba(255, 107, 53, 0.35);
 }
 
 .login-btn span:first-child {
@@ -618,24 +624,24 @@
 
 .navbar-login-form .submit-btn {
 	width: 100%;
-	background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+	background: #ff6b35;
 	color: white;
 	border: none;
 	padding: 12px;
 	border-radius: 10px;
 	cursor: pointer;
 	font-size: 0.95rem;
-	font-weight: 700;
-	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-	box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+	font-weight: 600;
+	transition: all 0.2s ease;
+	box-shadow: 0 4px 12px rgba(255, 107, 53, 0.2);
 	letter-spacing: 0.5px;
 	text-transform: uppercase;
 	box-sizing: border-box;
 }
 
 .navbar-login-form .submit-btn:hover {
-	transform: translateY(-2px);
-	box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
+	background: #f7931e;
+	box-shadow: 0 6px 20px rgba(255, 107, 53, 0.35);
 }
 
 .navbar-login-form .register-link {

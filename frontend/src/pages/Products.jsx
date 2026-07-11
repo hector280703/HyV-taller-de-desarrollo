@@ -2,6 +2,7 @@ import { useCallback, useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useCarroCompras } from '@context/CarroComprasContext';
 import { showSuccessAlert, showErrorAlert } from '@helpers/sweetAlert.js';
+import { BoxIcon, SearchIcon, CheckIcon } from '../components/Icons';
 import useGetProducts from '@hooks/products/useGetProducts.jsx';
 import useCreateProduct from '@hooks/products/useCreateProduct.jsx';
 import useEditProduct from '@hooks/products/useEditProduct.jsx';
@@ -142,14 +143,16 @@ const Products = () => {
       <div className='table-container'>
         {!user && (
           <div className='info-banner'>
-            <p>📦 Explora nuestro catálogo de materiales de construcción.</p>
+            <p>Explora nuestro catálogo de materiales de construcción.</p>
           </div>
         )}
         <div className='top-table'>
           <h1 className='title-table'>Materiales de Construcción</h1>
           <div className='filter-actions'>
             <div className='search-input-wrapper'>
-              <span className='search-icon'>🔍</span>
+              <span className='search-icon'>
+                <SearchIcon size={16} color="#94a3b8" />
+              </span>
               <input
                 type="text"
                 className='search-input-advanced'
@@ -244,7 +247,9 @@ const Products = () => {
                       {product.imagenUrl ? (
                         <img src={product.imagenUrl} alt={product.nombre} className='product-card-image' />
                       ) : (
-                        <div className='product-card-placeholder'>📦</div>
+                        <div className='product-card-placeholder'>
+                          <BoxIcon size={40} color="#94a3b8" />
+                        </div>
                       )}
                       {product.descuento > 0 && (
                         <span className='product-discount-badge'>-{product.descuento}%</span>
@@ -266,7 +271,7 @@ const Products = () => {
                           )}
                         </div>
                         <p className={`product-card-stock ${product.stock > 0 ? 'in-stock' : 'out-stock'}`}>
-                          {product.stock > 0 ? `✅ Stock: ${product.stock}` : '❌ Sin stock'}
+                          {product.stock > 0 ? `Stock: ${product.stock}` : 'Sin stock'}
                         </p>
                       </div>
                     </div>

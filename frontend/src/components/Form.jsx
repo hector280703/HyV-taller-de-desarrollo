@@ -144,7 +144,7 @@ const Form = ({ title, fields, buttonText, onSubmit, footerContent, backgroundCo
                                             {option.label}
                                         </option>
                                     ))}
-                                    <option value="___new___">➕ Agregar nueva...</option>
+                                    <option value="___new___">Agregar nueva...</option>
                                 </select>
                             )}
                         </>

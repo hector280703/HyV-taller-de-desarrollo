@@ -6,6 +6,22 @@ import { getOrders } from '@services/order.service.js';
 import '@styles/navbar.css';
 import { useState, useEffect, useRef } from "react";
 import useLogin from '@hooks/auth/useLogin.jsx';
+import {
+    HomeIcon,
+    BoxIcon,
+    CartIcon,
+    SearchIcon,
+    UserIcon,
+    BellIcon,
+    LogOutIcon,
+    TruckIcon,
+    StoreIcon,
+    FileTextIcon,
+    ActivityIcon,
+    KeyIcon,
+    AlertIcon,
+    CheckIcon
+} from './Icons';
 
 const Navbar = () => {
     const navigate = useNavigate();
@@ -184,7 +200,7 @@ const Navbar = () => {
                         className="search-input"
                     />
                     <button type="submit" className="search-btn">
-                        🔍
+                        <SearchIcon size={18} color="#2c3e50" />
                     </button>
                 </form>
             </div>
@@ -203,7 +219,7 @@ const Navbar = () => {
                                     }} 
                                     className={({ isActive }) => isActive ? 'active' : ''}
                                 >
-                                    <span className="nav-icon">🏠</span>
+                                    <span className="nav-icon"><HomeIcon size={18} /></span>
                                     <span>Inicio</span>
                                 </NavLink>
                             </li>
@@ -216,7 +232,7 @@ const Navbar = () => {
                                     }} 
                                     className={({ isActive }) => isActive ? 'active' : ''}
                                 >
-                                    <span className="nav-icon">📦</span>
+                                    <span className="nav-icon"><BoxIcon size={18} /></span>
                                     <span>Productos</span>
                                 </NavLink>
                             </li>
@@ -229,7 +245,7 @@ const Navbar = () => {
                                     }} 
                                     className={({ isActive }) => `cart-nav-link ${isActive ? 'active' : ''}`}
                                 >
-                                    <span className="nav-icon">🛒</span>
+                                    <span className="nav-icon"><CartIcon size={18} /></span>
                                     <span>Carrito</span>
                                     {cantidadItemsCarrito > 0 && (
                                         <span className="cart-badge">{cantidadItemsCarrito}</span>
@@ -248,7 +264,7 @@ const Navbar = () => {
                                 }} 
                                 className={({ isActive }) => isActive ? 'active' : ''}
                             >
-                                <span className="nav-icon">🚚</span>
+                                <span className="nav-icon"><TruckIcon size={18} /></span>
                                 <span>Mis Entregas</span>
                             </NavLink>
                         </li>
@@ -263,7 +279,7 @@ const Navbar = () => {
                                 }} 
                                 className={({ isActive }) => isActive ? 'active' : ''}
                             >
-                                <span className="nav-icon">🏭</span>
+                                <span className="nav-icon"><StoreIcon size={18} /></span>
                                 <span>Panel de Bodega</span>
                             </NavLink>
                         </li>
@@ -278,14 +294,13 @@ const Navbar = () => {
                                 }} 
                                 className={({ isActive }) => isActive ? 'active' : ''}
                             >
-                                <span className="nav-icon">📊</span>
+                                <span className="nav-icon"><ActivityIcon size={18} /></span>
                                 <span>Movim. Stock</span>
                             </NavLink>
                         </li>
                     )}
                 </ul>
             </div>
-
             {/* Acciones del navbar */}
             <div className="navbar-actions">
                 {/* Botón de búsqueda */}
@@ -295,7 +310,7 @@ const Navbar = () => {
                         onClick={() => setShowSearch(!showSearch)}
                         title="Buscar"
                     >
-                        🔍
+                        <SearchIcon size={20} />
                     </button>
                 )}
 
@@ -307,7 +322,7 @@ const Navbar = () => {
                             onClick={() => setShowStockPanel(!showStockPanel)}
                             title={totalAlerts > 0 ? `${totalAlerts} alerta${totalAlerts > 1 ? 's' : ''}` : 'Sin alertas'}
                         >
-                            🔔
+                            <BellIcon size={20} />
                             {totalAlerts > 0 && (
                                 <span className="stock-badge">{totalAlerts > 99 ? '99+' : totalAlerts}</span>
                             )}
@@ -317,7 +332,8 @@ const Navbar = () => {
                             <div className="stock-notification-panel">
                                 <div className="stock-panel-header">
                                     <span className="stock-panel-title">
-                                        {totalAlerts > 0 ? '🚨' : '✅'} Centro de Alertas
+                                        <AlertIcon size={16} color={totalAlerts > 0 ? '#ef4444' : '#10b981'} style={{ marginRight: '6px' }} />
+                                        Centro de Alertas
                                     </span>
                                     <span className="stock-panel-count">
                                         {totalAlerts} alerta{totalAlerts !== 1 ? 's' : ''}
@@ -327,7 +343,7 @@ const Navbar = () => {
                                 <div className="stock-panel-body">
                                     {totalAlerts === 0 ? (
                                         <div className="stock-panel-empty">
-                                            <span>✅</span>
+                                            <CheckIcon size={24} color="#10b981" />
                                             <p>Todo en orden. No hay alertas.</p>
                                         </div>
                                     ) : (
@@ -342,7 +358,9 @@ const Navbar = () => {
                                                         setShowStockPanel(false);
                                                     }}
                                                 >
-                                                    <div className="stock-panel-item-icon">🚫</div>
+                                                    <div className="stock-panel-item-icon">
+                                                        <XIcon size={16} color="#ef4444" />
+                                                    </div>
                                                     <div className="stock-panel-item-info">
                                                         <span className="stock-panel-item-name" style={{ color: '#b91c1c' }}>
                                                             Quiebre en Orden {order.numeroOrden}
@@ -365,7 +383,7 @@ const Navbar = () => {
                                                     }}
                                                 >
                                                     <div className="stock-panel-item-icon">
-                                                        {product.sinStock ? '❌' : '⚠️'}
+                                                        {product.sinStock ? <XIcon size={16} color="#ef4444" /> : <AlertIcon size={16} color="#f59e0b" />}
                                                     </div>
                                                     <div className="stock-panel-item-info">
                                                         <span className="stock-panel-item-name">{product.nombre}</span>
@@ -391,7 +409,7 @@ const Navbar = () => {
                             onClick={() => setShowUserMenu(!showUserMenu)}
                         >
                             <span className="user-avatar">
-                                {user.nombreCompleto?.charAt(0).toUpperCase() || '👤'}
+                                {user.nombreCompleto?.charAt(0).toUpperCase() || <UserIcon size={14} />}
                             </span>
                             <span className="user-name">{user.nombreCompleto || 'Usuario'}</span>
                             <span className={`dropdown-arrow ${showUserMenu ? 'open' : ''}`}>▼</span>
@@ -401,13 +419,13 @@ const Navbar = () => {
                             <div className="user-dropdown">
                                 <div className="user-info">
                                     <div className="user-avatar-large">
-                                        {user.nombreCompleto?.charAt(0).toUpperCase() || '👤'}
+                                        {user.nombreCompleto?.charAt(0).toUpperCase() || <UserIcon size={24} />}
                                     </div>
                                     <div className="user-details">
                                         <p className="user-name-large">{user.nombreCompleto}</p>
                                         <p className="user-email">{user.email}</p>
                                         <span className={`user-role-badge ${userRole}`}>
-                                            {userRole === 'administrador' ? '👑 Admin' : userRole === 'repartidor' ? '🚚 Repartidor' : userRole === 'bodeguero' ? '🏭 Bodeguero' : '🛍️ Cliente'}
+                                            {userRole === 'administrador' ? 'Admin' : userRole === 'repartidor' ? 'Repartidor' : userRole === 'bodeguero' ? 'Bodeguero' : 'Cliente'}
                                         </span>
                                     </div>
                                 </div>
@@ -420,7 +438,7 @@ const Navbar = () => {
                                             setShowUserMenu(false);
                                         }}
                                     >
-                                        <span>👤</span>
+                                        <UserIcon size={16} style={{ marginRight: '10px' }} />
                                         Mi Perfil
                                     </button>
                                 )}
@@ -432,7 +450,7 @@ const Navbar = () => {
                                             setShowUserMenu(false);
                                         }}
                                     >
-                                        <span>📦</span>
+                                        <BoxIcon size={16} style={{ marginRight: '10px' }} />
                                         Mis Pedidos
                                     </button>
                                 )}
@@ -444,7 +462,7 @@ const Navbar = () => {
                                             setShowUserMenu(false);
                                         }}
                                     >
-                                        <span>🛒</span>
+                                        <CartIcon size={16} style={{ marginRight: '10px' }} />
                                         Mi Carrito
                                     </button>
                                 )}
@@ -456,7 +474,7 @@ const Navbar = () => {
                                             setShowUserMenu(false);
                                         }}
                                     >
-                                        <span>🚚</span>
+                                        <TruckIcon size={16} style={{ marginRight: '10px' }} />
                                         Panel de Repartidor
                                     </button>
                                 )}
@@ -468,7 +486,7 @@ const Navbar = () => {
                                             setShowUserMenu(false);
                                         }}
                                     >
-                                        <span>🏭</span>
+                                        <StoreIcon size={16} style={{ marginRight: '10px' }} />
                                         Panel de Bodega
                                     </button>
                                 )}
@@ -480,7 +498,7 @@ const Navbar = () => {
                                             setShowUserMenu(false);
                                         }}
                                     >
-                                        <span>📦</span>
+                                        <BoxIcon size={16} style={{ marginRight: '10px' }} />
                                         Inventario
                                     </button>
                                 )}
@@ -493,7 +511,7 @@ const Navbar = () => {
                                                 setShowUserMenu(false);
                                             }}
                                         >
-                                            <span>👥</span>
+                                            <UserIcon size={16} style={{ marginRight: '10px' }} />
                                             Administrar Usuarios
                                         </button>
                                         <button 
@@ -503,7 +521,7 @@ const Navbar = () => {
                                                 setShowUserMenu(false);
                                             }}
                                         >
-                                            <span>📊</span>
+                                            <ActivityIcon size={16} style={{ marginRight: '10px' }} />
                                             Administrar Pedidos
                                         </button>
                                         <button 
@@ -513,7 +531,7 @@ const Navbar = () => {
                                                 setShowUserMenu(false);
                                             }}
                                         >
-                                            <span>🏭</span>
+                                            <StoreIcon size={16} style={{ marginRight: '10px' }} />
                                             Almacenes
                                         </button>
                                         <button 
@@ -523,7 +541,7 @@ const Navbar = () => {
                                                 setShowUserMenu(false);
                                             }}
                                         >
-                                            <span>🧾</span>
+                                            <FileTextIcon size={16} style={{ marginRight: '10px' }} />
                                             Facturas
                                         </button>
                                     </>
@@ -536,7 +554,7 @@ const Navbar = () => {
                                             setShowUserMenu(false);
                                         }}
                                     >
-                                        <span>📈</span>
+                                        <ActivityIcon size={16} style={{ marginRight: '10px' }} />
                                         Movimientos de Stock
                                     </button>
                                 )}
@@ -548,7 +566,7 @@ const Navbar = () => {
                                         setShowUserMenu(false);
                                     }}
                                 >
-                                    <span>🚪</span>
+                                    <LogOutIcon size={16} style={{ marginRight: '10px' }} />
                                     Cerrar Sesión
                                 </button>
                             </div>
@@ -559,7 +577,7 @@ const Navbar = () => {
                         className="login-btn" 
                         onClick={() => setShowLoginForm(!showLoginForm)}
                     >
-                        <span>🔑</span>
+                        <KeyIcon size={16} style={{ marginRight: '6px' }} />
                         <span>{showLoginForm ? 'Cerrar' : 'Iniciar Sesión'}</span>
                     </button>
                 )}

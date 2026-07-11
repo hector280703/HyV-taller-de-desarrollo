@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getInvoices, updateInvoiceStatus } from '@services/invoice.service.js';
+import { SearchIcon, FileTextIcon } from '../components/Icons';
 import '@styles/invoices.css';
 
 const ESTADO_LABELS = {
@@ -55,79 +56,87 @@ const Invoices = () => {
     <div className="invoices-container">
       <div className="invoices-header">
         <div>
-          <h1>🧾 Gestión de Facturas</h1>
+          <h1>Gestión de Facturas</h1>
           <p className="invoices-subtitle">Historial de todas las facturas generadas</p>
         </div>
       </div>
 
-      {successMsg && <div className="alert-success">✅ {successMsg}</div>}
-      {error && <div className="alert-error">❌ {error}</div>}
+      {successMsg && <div className="alert-success">{successMsg}</div>}
+      {error && <div className="alert-error">{error}</div>}
 
-      {/* Filtros */}
-      <form className="invoices-filters" onSubmit={handleFilter}>
-        <select value={filters.estado} onChange={(e) => setFilters({ ...filters, estado: e.target.value })}>
-          <option value="">Todos los estados</option>
-          <option value="emitida">Emitida</option>
-          <option value="pagada">Pagada</option>
-          <option value="anulada">Anulada</option>
-        </select>
-        <input type="date" placeholder="Desde" value={filters.fechaDesde} onChange={(e) => setFilters({ ...filters, fechaDesde: e.target.value })} />
-        <input type="date" placeholder="Hasta" value={filters.fechaHasta} onChange={(e) => setFilters({ ...filters, fechaHasta: e.target.value })} />
-        <button type="submit" className="btn-filter">🔍 Filtrar</button>
-        <button type="button" className="btn-clear" onClick={() => { setFilters({ estado: '', fechaDesde: '', fechaHasta: '' }); setTimeout(fetchInvoices, 100); }}>✕ Limpiar</button>
-      </form>
+      <div className="invoices-card">
+        {/* Filtros */}
+        <form className="invoices-filters" onSubmit={handleFilter}>
+          <select value={filters.estado} onChange={(e) => setFilters({ ...filters, estado: e.target.value })}>
+            <option value="">Todos los estados</option>
+            <option value="emitida">Emitida</option>
+            <option value="pagada">Pagada</option>
+            <option value="anulada">Anulada</option>
+          </select>
+          <input type="date" placeholder="Desde" value={filters.fechaDesde} onChange={(e) => setFilters({ ...filters, fechaDesde: e.target.value })} />
+          <input type="date" placeholder="Hasta" value={filters.fechaHasta} onChange={(e) => setFilters({ ...filters, fechaHasta: e.target.value })} />
+          <button type="submit" className="btn-filter">
+            <SearchIcon size={14} color="#fff" style={{ marginRight: '6px', verticalAlign: 'middle' }} />
+            Filtrar
+          </button>
+          <button type="button" className="btn-clear" onClick={() => { setFilters({ estado: '', fechaDesde: '', fechaHasta: '' }); setTimeout(fetchInvoices, 100); }}>Limpiar</button>
+        </form>
 
-      {loading ? (
-        <div className="invoices-loading"><div className="spinner"></div><p>Cargando facturas...</p></div>
-      ) : invoices.length === 0 ? (
-        <div className="invoices-empty"><span className="empty-icon">🧾</span><p>No hay facturas registradas</p></div>
-      ) : (
-        <div className="invoices-table-wrapper">
-          <table className="invoices-table">
-            <thead>
-              <tr>
-                <th>N° Factura</th>
-                <th>Fecha</th>
-                <th>Cliente</th>
-                <th>N° Orden</th>
-                <th>Subtotal</th>
-                <th>IVA</th>
-                <th>Total</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {invoices.map((inv) => (
-                <tr key={inv.id}>
-                  <td><span className="invoice-number">{inv.numeroFactura}</span></td>
-                  <td>{formatDate(inv.fechaEmision)}</td>
-                  <td>{inv.customer?.user?.nombreCompleto || '—'}</td>
-                  <td><span className="order-ref">{inv.order?.numeroOrden || '—'}</span></td>
-                  <td>{formatCurrency(inv.subtotal)}</td>
-                  <td>{formatCurrency(inv.iva)}</td>
-                  <td><strong>{formatCurrency(inv.total)}</strong></td>
-                  <td>
-                    <span className={`status-badge ${ESTADO_LABELS[inv.estado]?.className}`}>
-                      {ESTADO_LABELS[inv.estado]?.label || inv.estado}
-                    </span>
-                  </td>
-                  <td>
-                    <button className="btn-view" onClick={() => setSelectedInvoice(inv)}>Ver</button>
-                  </td>
+        {loading ? (
+          <div className="invoices-loading"><div className="spinner"></div><p>Cargando facturas...</p></div>
+        ) : invoices.length === 0 ? (
+          <div className="invoices-empty">
+            <FileTextIcon size={48} color="#94a3b8" />
+            <p>No hay facturas registradas</p>
+          </div>
+        ) : (
+          <div className="invoices-table-wrapper">
+            <table className="invoices-table">
+              <thead>
+                <tr>
+                  <th>N° Factura</th>
+                  <th>Fecha</th>
+                  <th>Cliente</th>
+                  <th>N° Orden</th>
+                  <th>Subtotal</th>
+                  <th>IVA</th>
+                  <th>Total</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+              </thead>
+              <tbody>
+                {invoices.map((inv) => (
+                  <tr key={inv.id}>
+                    <td><span className="invoice-number">{inv.numeroFactura}</span></td>
+                    <td>{formatDate(inv.fechaEmision)}</td>
+                    <td>{inv.customer?.user?.nombreCompleto || '—'}</td>
+                    <td><span className="order-ref">{inv.order?.numeroOrden || '—'}</span></td>
+                    <td>{formatCurrency(inv.subtotal)}</td>
+                    <td>{formatCurrency(inv.iva)}</td>
+                    <td><strong>{formatCurrency(inv.total)}</strong></td>
+                    <td>
+                      <span className={`status-badge ${ESTADO_LABELS[inv.estado]?.className}`}>
+                        {ESTADO_LABELS[inv.estado]?.label || inv.estado}
+                      </span>
+                    </td>
+                    <td>
+                      <button className="btn-view" onClick={() => setSelectedInvoice(inv)}>Ver</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
 
       {/* Modal detalle / cambio de estado */}
       {selectedInvoice && (
         <div className="modal-overlay" onClick={() => setSelectedInvoice(null)}>
           <div className="modal-content invoice-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>🧾 {selectedInvoice.numeroFactura}</h2>
+              <h2>Detalle Factura: {selectedInvoice.numeroFactura}</h2>
               <button className="modal-close" onClick={() => setSelectedInvoice(null)}>✕</button>
             </div>
             <div className="invoice-detail">

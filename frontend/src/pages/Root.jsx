@@ -30,9 +30,12 @@ function PageRoot() {
         }
     }, [location.pathname, navigate]);
 
+    const hideNavbarPaths = ['/register', '/login'];
+    const shouldHideNavbar = isRepartidor || hideNavbarPaths.includes(location.pathname);
+
     return (
         <>
-            {!isRepartidor && <Navbar />}
+            {!shouldHideNavbar && <Navbar />}
             <Outlet />
         </>
     );

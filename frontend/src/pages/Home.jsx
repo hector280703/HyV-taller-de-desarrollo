@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { getProducts } from '@services/product.service.js';
+import { BoxIcon, MapPinIcon } from '../components/Icons';
 import '@styles/home.css';
 
 const Home = () => {
@@ -122,7 +123,9 @@ const Home = () => {
                 {product.imagenUrl ? (
                   <img src={product.imagenUrl} alt={product.nombre} className="product-image" />
                 ) : (
-                  <div className="product-image-placeholder">📦</div>
+                  <div className="product-image-placeholder">
+                    <BoxIcon size={40} color="#94a3b8" />
+                  </div>
                 )}
                 {product.descuento > 0 && (
                   <span className="discount-badge">-{product.descuento}%</span>
@@ -142,7 +145,7 @@ const Home = () => {
                     )}
                   </div>
                   <p className="product-stock">
-                    {product.stock > 0 ? `✅ Disponible (${product.stock})` : '❌ Sin stock'}
+                    {product.stock > 0 ? `Disponible (${product.stock})` : 'Sin stock'}
                   </p>
                 </div>
               </div>
@@ -161,13 +164,16 @@ const Home = () => {
         <h2>Contacto y Ubicación</h2>
         <div className="contact-details">
           <p className="company-name">HyV Construcciones</p>
-          <p>📍 La Cantera N°5, Laraquete, Arauco, Región del Bío Bío, Chile</p>
+          <p>
+            <MapPinIcon size={16} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
+            La Cantera N°5, Laraquete, Arauco, Región del Bío Bío, Chile
+          </p>
           <div className="phone-numbers">
-            <p>📞 +569 78187692</p>
-            <p>📞 +569 58344044</p>
-            <p>📞 +569 61251723</p>
+            <p>Teléfono: +569 78187692</p>
+            <p>Teléfono: +569 58344044</p>
+            <p>Teléfono: +569 61251723</p>
           </div>
-          <p>✉️ contacto@hyvconstructora.cl</p>
+          <p>Correo: contacto@hyvconstructora.cl</p>
           <div className="social-media">
             <a href="https://www.instagram.com/constructora.hyv" target="_blank" rel="noopener noreferrer" className="social-link instagram">
               <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" alt="Instagram" className="social-icon" />
@@ -180,7 +186,7 @@ const Home = () => {
           </div>
           <div className="company-link">
             <a href="https://hyvconstructora.cl/" target="_blank" rel="noopener noreferrer">
-              🌐 ¿Quieres saber más sobre nuestra empresa? Visita nuestro sitio web
+              ¿Quieres saber más sobre nuestra empresa? Visita nuestro sitio web
             </a>
           </div>
         </div>

@@ -1,91 +1,180 @@
+/* =========================================
+   USERS PAGE STYLES (MODERN & PREMIUM)
+   ========================================= */
+
 .main-container {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    width: 100%;
+	min-height: 100vh;
+	padding: 100px 2rem 2rem 2rem;
+	background: linear-gradient(135deg, #c9cfe7 0%, #ca7112 100%);
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-start;
+	align-items: center;
+	width: 100%;
+	font-family: 'Inter', 'Segoe UI', sans-serif;
 }
 
 .table-container {
-    width: 90%;
-    max-width: 1400px;
-    margin: 0 auto;
+	width: 100%;
+	max-width: 1600px;
+	margin: 0 auto;
+	background: white;
+	border-radius: 20px;
+	padding: 2.5rem;
+	box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+	box-sizing: border-box;
 }
 
 .top-table {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	width: 100%;
+	margin-bottom: 2rem;
+	flex-wrap: wrap;
+	gap: 1rem;
 }
 
 .title-table {
-    color: #003366;
-    margin-left: 70px;
+	color: #2c3e50;
+	font-size: 2rem;
+	font-weight: 700;
+	margin: 0;
+	letter-spacing: -0.3px;
 }
 
 .filter-actions {
-    display: flex;
-    gap: 10px;
-    button {
-        background: rgba(255, 255, 255, 0.87);
-        border: #fff;
-        cursor: pointer;
-        box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;
-        
-    }
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+}
+
+.filter-actions button {
+	padding: 0.6rem;
+	background: #f8fafc;
+	border: 2px solid #e2e8f0;
+	border-radius: 10px;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 42px;
+	width: 42px;
+	box-sizing: border-box;
+}
+
+.filter-actions button:hover:not(:disabled) {
+	background: #e2e8f0;
+	border-color: #cbd5e1;
+	transform: translateY(-1px);
+}
+
+.filter-actions button:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
 }
 
 .delete-user-button {
-    margin-right: 70px;
+	margin-right: 0;
 }
 
+/* Tabulator Overrides for Modern Look */
+.table-container .tabulator {
+	border: 1px solid #e2e8f0 !important;
+	border-radius: 12px !important;
+	overflow: hidden;
+	background: white !important;
+}
+
+.table-container .tabulator .tabulator-header {
+	background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%) !important;
+	border-bottom: none !important;
+}
+
+.table-container .tabulator .tabulator-col {
+	background-color: transparent !important;
+	color: #ffffff !important;
+	padding: 12px 6px !important;
+	font-weight: 600 !important;
+	text-transform: uppercase !important;
+	letter-spacing: 0.5px !important;
+	font-size: 0.85rem !important;
+	border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.table-container .tabulator .tabulator-row {
+	border-bottom: 1px solid #f1f5f9 !important;
+	background-color: white !important;
+	transition: background-color 0.2s ease !important;
+}
+
+.table-container .tabulator .tabulator-row:hover {
+	background-color: #f8f9fa !important;
+}
+
+.table-container .tabulator .tabulator-row .tabulator-cell {
+	padding: 12px 10px !important;
+	font-size: 0.95rem !important;
+	color: #2c3e50 !important;
+	border-right: 1px solid #f1f5f9 !important;
+	display: flex;
+	align-items: center;
+}
+
+.tabulator .tabulator-footer {
+	background: #f8fafc !important;
+	border-top: 1px solid #e2e8f0 !important;
+	padding: 12px !important;
+}
+
+.tabulator .tabulator-footer .tabulator-page {
+	background-color: white !important;
+	color: #475569 !important;
+	border: 2px solid #e2e8f0 !important;
+	padding: 6px 12px !important;
+	border-radius: 8px !important;
+	font-weight: 700 !important;
+	font-size: 0.85rem !important;
+	transition: all 0.2s ease !important;
+}
+
+.tabulator .tabulator-footer .tabulator-page:hover:not(.active) {
+	background-color: #e2e8f0 !important;
+	color: #0f172a !important;
+}
+
+.tabulator .tabulator-footer .tabulator-page.active {
+	background: #ff6b35 !important;
+	color: white !important;
+	border-color: #ff6b35 !important;
+	box-shadow: 0 4px 10px rgba(255, 107, 53, 0.2) !important;
+}
+
+/* ===== RESPONSIVE ===== */
 @media (max-width: 767px) {
-    .title-table {
-        margin: 0;
-    }
-    .top-table {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
+	.main-container {
+		padding: 90px 1rem 1rem 1rem;
+	}
 
-    .delete-user-button {
-        margin-right: 0;
-    }
+	.table-container {
+		padding: 1.25rem;
+	}
 
-    .filter-actions {
-        margin-bottom: 10px;
-    }
-    .table-container {
-        margin: 0;
-        width: 352px;
-        height: 500px;
-    }
-    .popup {
-        width: 350px;
-        height: 600px;
-    }
-    .popup .form {
-        padding: 20px;
-    }
+	.title-table {
+		font-size: 1.5rem;
+		text-align: center;
+		width: 100%;
+	}
 
-    .popup .close {
-        margin-right: 0;
-    }
+	.top-table {
+		flex-direction: column;
+		gap: 1rem;
+	}
 
-    .popup .options-class {
-        width: 10px;
-    }
-}
-
-@media (min-width: 768px) and (max-width: 1024px) {
-    .title-table {
-        margin-left: 35px;
-    }
-
-    .delete-user-button {
-        margin-right: 35px;
-    }
+	.filter-actions {
+		width: 100%;
+		justify-content: center;
+	}
 }
