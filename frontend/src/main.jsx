@@ -25,6 +25,8 @@ import PaymentResult from '@pages/PaymentResult';
 import Warehouses from '@pages/Warehouses';
 import Invoices from '@pages/Invoices';
 import StockMovements from '@pages/StockMovements';
+import AdminLayout from '@components/AdminLayout';
+import AdminDashboard from '@components/AdminDashboard';
 
 const router = createBrowserRouter([
   {
@@ -40,22 +42,7 @@ const router = createBrowserRouter([
         path: '/home',
         element: <Home/>
       },
-      {
-        path: '/users',
-        element: (
-        <ProtectedRoute allowedRoles={['administrador']}>
-          <Users />
-        </ProtectedRoute>
-        ),
-      },
-      {
-        path: '/admin/orders',
-        element: (
-        <ProtectedRoute allowedRoles={['administrador']}>
-          <AdminOrders />
-        </ProtectedRoute>
-        ),
-      },
+
       {
         path: '/repartidor',
         element: (
@@ -72,22 +59,7 @@ const router = createBrowserRouter([
         </ProtectedRoute>
         ),
       },
-      {
-        path: '/vendedor-presencial',
-        element: (
-        <ProtectedRoute allowedRoles={['vendedor_presencial', 'administrador']}>
-          <VendedorPresencial />
-        </ProtectedRoute>
-        ),
-      },
-      {
-        path: '/inventory',
-        element: (
-        <ProtectedRoute allowedRoles={['administrador', 'bodeguero']}>
-          <Inventory />
-        </ProtectedRoute>
-        ),
-      },
+
       {
         path: '/products',
         element: <Products />,
@@ -161,28 +133,73 @@ const router = createBrowserRouter([
         element: <Register/>
       },
       {
-        path: '/warehouses',
-        element: (
-        <ProtectedRoute allowedRoles={['administrador']}>
-          <Warehouses />
-        </ProtectedRoute>
-        ),
-      },
-      {
-        path: '/invoices',
-        element: (
-        <ProtectedRoute allowedRoles={['administrador']}>
-          <Invoices />
-        </ProtectedRoute>
-        ),
-      },
-      {
-        path: '/stock-movements',
-        element: (
-        <ProtectedRoute allowedRoles={['administrador', 'bodeguero']}>
-          <StockMovements />
-        </ProtectedRoute>
-        ),
+        element: <AdminLayout />,
+        children: [
+          {
+            path: '/admin/dashboard',
+            element: (
+              <ProtectedRoute allowedRoles={['administrador']}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            )
+          },
+          {
+            path: '/users',
+            element: (
+              <ProtectedRoute allowedRoles={['administrador']}>
+                <Users />
+              </ProtectedRoute>
+            )
+          },
+          {
+            path: '/admin/orders',
+            element: (
+              <ProtectedRoute allowedRoles={['administrador']}>
+                <AdminOrders />
+              </ProtectedRoute>
+            )
+          },
+          {
+            path: '/vendedor-presencial',
+            element: (
+              <ProtectedRoute allowedRoles={['vendedor_presencial', 'administrador']}>
+                <VendedorPresencial />
+              </ProtectedRoute>
+            )
+          },
+          {
+            path: '/inventory',
+            element: (
+              <ProtectedRoute allowedRoles={['administrador', 'bodeguero']}>
+                <Inventory />
+              </ProtectedRoute>
+            )
+          },
+          {
+            path: '/warehouses',
+            element: (
+              <ProtectedRoute allowedRoles={['administrador']}>
+                <Warehouses />
+              </ProtectedRoute>
+            )
+          },
+          {
+            path: '/invoices',
+            element: (
+              <ProtectedRoute allowedRoles={['administrador']}>
+                <Invoices />
+              </ProtectedRoute>
+            )
+          },
+          {
+            path: '/stock-movements',
+            element: (
+              <ProtectedRoute allowedRoles={['administrador', 'bodeguero']}>
+                <StockMovements />
+              </ProtectedRoute>
+            )
+          }
+        ]
       }
     ]
   }

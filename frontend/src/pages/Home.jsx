@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { getProducts } from '@services/product.service.js';
 import { BoxIcon, MapPinIcon } from '../components/Icons';
@@ -9,6 +9,10 @@ const Home = () => {
   const navigate = useNavigate();
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  if (user?.rol === 'administrador') {
+    return <Navigate to="/admin/dashboard" replace />;
+  }
 
   useEffect(() => {
     const fetchFeaturedProducts = async () => {

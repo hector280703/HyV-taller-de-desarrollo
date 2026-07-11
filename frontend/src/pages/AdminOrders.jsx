@@ -6,6 +6,7 @@ import { showErrorAlert, showSuccessAlert } from '../helpers/sweetAlert.js';
 import { formatPrice } from '../helpers/formatData.js';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 import CountUp from '../components/CountUp.jsx';
+import { FileTextIcon, TruckIcon, BoxIcon, AlertIcon } from '../components/Icons';
 import '../styles/adminOrders.css';
 
 // Utilidad para exportar a CSV
@@ -388,7 +389,7 @@ export default function AdminOrders() {
   return (
     <div className="admin-orders-container">
       <div className="admin-header">
-        <h1>📊 Panel de Administración</h1>
+        <h1>Administración de Pedidos</h1>
         <p className="admin-subtitle">Estadísticas, seguimiento de órdenes y rendimiento</p>
         <div className="export-actions">
           <div className="month-selector">
@@ -409,7 +410,7 @@ export default function AdminOrders() {
             disabled={!stats}
             title="Descargar datos en formato CSV para análisis en Excel"
           >
-            📄 Exportar CSV
+            Exportar CSV
           </button>
           <button
             className="btn-export btn-export-pdf"
@@ -417,7 +418,7 @@ export default function AdminOrders() {
             disabled={!stats}
             title="Generar informe visual en PDF para imprimir o compartir"
           >
-            📑 Exportar PDF
+            Exportar PDF
           </button>
         </div>
       </div>
@@ -426,7 +427,7 @@ export default function AdminOrders() {
       {lowStockProducts.length > 0 && (
         <div className="stock-alerts-section">
           <div className="stock-alerts-header">
-            <span className="stock-alerts-icon">🚨</span>
+            <AlertIcon size={24} color="#ef4444" style={{ marginRight: '8px' }} />
             <div>
               <h2 className="stock-alerts-title">Alertas de Stock</h2>
               <p className="stock-alerts-subtitle">
@@ -450,7 +451,7 @@ export default function AdminOrders() {
                 className={`stock-alert-card ${product.sinStock ? 'alert-sin-stock' : 'alert-stock-bajo'}`}
               >
                 <div className="stock-alert-card-icon">
-                  {product.sinStock ? '❌' : '⚠️'}
+                  <AlertIcon size={16} color={product.sinStock ? "#ef4444" : "#f59e0b"} />
                 </div>
                 <div className="stock-alert-card-info">
                   <span className="stock-alert-card-name">{product.nombre}</span>
@@ -472,7 +473,9 @@ export default function AdminOrders() {
           {/* Stats Cards */}
           <div className="stats-grid">
             <div className="stat-card">
-              <div className="stat-icon">💰</div>
+              <div className="stat-icon">
+                <FileTextIcon size={20} color="#ff6b35" />
+              </div>
               <div className="stat-content">
                 <p className="stat-label">Ventas Hoy</p>
                 <p className="stat-value"><CountUp end={stats.ventasHoy} isCurrency={true} /></p>
@@ -480,7 +483,9 @@ export default function AdminOrders() {
             </div>
 
             <div className="stat-card">
-              <div className="stat-icon">📅</div>
+              <div className="stat-icon">
+                <FileTextIcon size={20} color="#f7931e" />
+              </div>
               <div className="stat-content">
                 <p className="stat-label">Ventas Mes ({stats.mesSeleccionado})</p>
                 <p className="stat-value"><CountUp end={stats.ventasMes} isCurrency={true} /></p>
@@ -488,7 +493,9 @@ export default function AdminOrders() {
             </div>
 
             <div className="stat-card">
-              <div className="stat-icon">💎</div>
+              <div className="stat-icon">
+                <FileTextIcon size={20} color="#ff6b35" />
+              </div>
               <div className="stat-content">
                 <p className="stat-label">Ventas Totales</p>
                 <p className="stat-value"><CountUp end={stats.ventasTotales} isCurrency={true} /></p>
@@ -496,7 +503,9 @@ export default function AdminOrders() {
             </div>
 
             <div className="stat-card">
-              <div className="stat-icon">📦</div>
+              <div className="stat-icon">
+                <TruckIcon size={20} color="#3b82f6" />
+              </div>
               <div className="stat-content">
                 <p className="stat-label">Pedidos Hoy</p>
                 <p className="stat-value"><CountUp end={stats.pedidosHoy} /></p>
@@ -504,7 +513,9 @@ export default function AdminOrders() {
             </div>
 
             <div className="stat-card">
-              <div className="stat-icon">📊</div>
+              <div className="stat-icon">
+                <TruckIcon size={20} color="#3b82f6" />
+              </div>
               <div className="stat-content">
                 <p className="stat-label">Pedidos Mes ({stats.mesSeleccionado})</p>
                 <p className="stat-value"><CountUp end={stats.pedidosMes} /></p>
@@ -512,7 +523,9 @@ export default function AdminOrders() {
             </div>
 
             <div className="stat-card">
-              <div className="stat-icon">📋</div>
+              <div className="stat-icon">
+                <TruckIcon size={20} color="#10b981" />
+              </div>
               <div className="stat-content">
                 <p className="stat-label">Total Pedidos</p>
                 <p className="stat-value"><CountUp end={stats.totalPedidos} /></p>

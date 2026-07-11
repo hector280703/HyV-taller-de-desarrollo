@@ -30,8 +30,21 @@ function PageRoot() {
         }
     }, [location.pathname, navigate]);
 
-    const hideNavbarPaths = ['/register', '/login'];
-    const shouldHideNavbar = isRepartidor || hideNavbarPaths.includes(location.pathname);
+    const adminPaths = [
+        '/admin/dashboard',
+        '/admin/orders',
+        '/inventory',
+        '/warehouses',
+        '/invoices',
+        '/stock-movements',
+        '/users',
+        '/vendedor-presencial'
+    ];
+    const isAuthPath = ['/register', '/login'].includes(location.pathname);
+    const isAdminPath = adminPaths.includes(location.pathname);
+    const isAdmin = user?.rol === 'administrador';
+    
+    const shouldHideNavbar = isRepartidor || isAuthPath || (isAdmin && (isAdminPath || location.pathname === '/' || location.pathname === '/home'));
 
     return (
         <>
