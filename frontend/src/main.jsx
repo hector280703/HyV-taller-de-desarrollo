@@ -19,6 +19,7 @@ import OrderDetail from '@pages/OrderDetail';
 import AdminOrders from '@pages/AdminOrders';
 import Repartidor from '@pages/Repartidor';
 import Bodeguero from '@pages/Bodeguero';
+import VendedorPresencial from '@pages/VendedorPresencial';
 import Inventory from '@pages/Inventory';
 import PaymentResult from '@pages/PaymentResult';
 import Warehouses from '@pages/Warehouses';
@@ -72,6 +73,14 @@ const router = createBrowserRouter([
         ),
       },
       {
+        path: '/vendedor-presencial',
+        element: (
+        <ProtectedRoute allowedRoles={['vendedor_presencial', 'administrador']}>
+          <VendedorPresencial />
+        </ProtectedRoute>
+        ),
+      },
+      {
         path: '/inventory',
         element: (
         <ProtectedRoute allowedRoles={['administrador', 'bodeguero']}>
@@ -102,7 +111,7 @@ const router = createBrowserRouter([
       {
         path: '/checkout',
         element: (
-          <ProtectedRoute allowedRoles={['administrador', 'cliente', 'usuario']}>
+          <ProtectedRoute allowedRoles={['administrador', 'cliente', 'usuario', 'vendedor_presencial']}>
             <Checkout />
           </ProtectedRoute>
         ),
@@ -110,7 +119,7 @@ const router = createBrowserRouter([
       {
         path: '/orders',
         element: (
-          <ProtectedRoute allowedRoles={['administrador', 'cliente', 'usuario']}>
+          <ProtectedRoute allowedRoles={['administrador', 'cliente', 'usuario', 'vendedor_presencial']}>
             <Orders />
           </ProtectedRoute>
         ),
@@ -118,7 +127,7 @@ const router = createBrowserRouter([
       {
         path: '/orders/:id',
         element: (
-          <ProtectedRoute allowedRoles={['administrador', 'cliente', 'usuario']}>
+          <ProtectedRoute allowedRoles={['administrador', 'cliente', 'usuario', 'vendedor_presencial']}>
             <OrderDetail />
           </ProtectedRoute>
         ),

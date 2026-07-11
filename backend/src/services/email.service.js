@@ -565,3 +565,151 @@ export async function sendStockIncidentEmail(order, issues) {
   }
 }
 
+/**
+ * Envía un email de confirmación de venta presencial al cliente.
+ * Incluye el resumen de compra y el código de entrega que necesita el bodeguero.
+ * @param {object} order - La orden completa con relaciones.
+ * @param {string} codigoEntrega - Código de 6 dígitos para confirmar la entrega.
+ */
+export async function sendPresentialSaleEmail(order, codigoEntrega) {
+  try {
+    const { orderItems, numeroOrden, subtotal, descuentoTotal, total, metodoPago, clienteNombre, clienteEmail, createdAt } = order;
+
+    const fechaFormateada = new Date(createdAt).toLocaleDateString("es-CL", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    const metodoPagoTexto = metodoPago === "efectivo" ? "💵 Efectivo" : "🏦 Transferencia Bancaria";
+
+    const itemsRows = orderItems
+      .map((item) => {
+        return `
+          <tr>
+            <td style="padding: 12px 16px; border-bottom: 1px solid #ecf0f1; color: #2c3e50;">${item.nombreProducto}</td>
+            <td style="padding: 12px 16px; border-bottom: 1px solid #ecf0f1; color: #2c3e50; text-align: center;">${item.cantidad}</td>
+            <td style="padding: 12px 16px; border-bottom: 1px solid #ecf0f1; color: #2c3e50; text-align: right;">$${parseFloat(item.precioUnitario).toLocaleString("es-CL")}</td>
+            <td style="padding: 12px 16px; border-bottom: 1px solid #ecf0f1; color: #ff6b35; text-align: right; font-weight: 700;">$${parseFloat(item.subtotal).toLocaleString("es-CL")}</td>
+          </tr>`;
+      })
+      .join("");
+
+    const htmlContent = `
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+      <div style="max-width: 640px; margin: 0 auto; padding: 20px;">
+
+        <!-- Header -->
+        <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); border-radius: 20px 20px 0 0; padding: 40px 32px; text-align: center;">
+          <div style="font-size: 44px; margin-bottom: 12px;">🏪</div>
+          <h1 style="color: #ffffff; font-size: 28px; margin: 0 0 8px 0; font-weight: 800; letter-spacing: -0.5px;">¡Compra Presencial Registrada!</h1>
+          <p style="margin: 0;">
+            <span style="background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%); color: white; padding: 6px 18px; border-radius: 20px; font-size: 14px; font-weight: 700; display: inline-block;">Orden ${numeroOrden}</span>
+          </p>
+        </div>
+
+        <!-- Body -->
+        <div style="background: #ffffff; padding: 32px; border-left: 1px solid #ecf0f1; border-right: 1px solid #ecf0f1;">
+
+          <!-- Greeting -->
+          <p style="color: #2c3e50; font-size: 16px; margin: 0 0 24px 0; line-height: 1.6;">
+            Hola <strong style="color: #ff6b35;">${clienteNombre}</strong>, tu compra ha sido registrada exitosamente en nuestra tienda. Aquí tienes el resumen:
+          </p>
+
+          <!-- Delivery Code - Destacado -->
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; padding: 24px; margin-bottom: 28px; text-align: center;">
+            <p style="color: rgba(255,255,255,0.8); font-size: 12px; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 8px 0; font-weight: 600;">🔑 CÓDIGO DE ENTREGA</p>
+            <p style="color: #ffffff; font-size: 42px; font-weight: 900; margin: 0 0 8px 0; letter-spacing: 10px; font-family: 'Courier New', monospace;">${codigoEntrega}</p>
+            <p style="color: rgba(255,255,255,0.8); font-size: 13px; margin: 0; line-height: 1.5;">
+              Presenta este código al bodeguero cuando vayas a retirar tu pedido.<br>
+              <strong>Guárdalo en un lugar seguro.</strong>
+            </p>
+          </div>
+
+          <!-- Order Info -->
+          <div style="background: #f8f9fa; border-left: 4px solid #ff6b35; border-radius: 0 12px 12px 0; padding: 16px 20px; margin-bottom: 24px;">
+            <p style="color: #7f8c8d; font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; margin: 0 0 6px 0; font-weight: 600;">Fecha de compra</p>
+            <p style="color: #2c3e50; font-size: 15px; margin: 0; font-weight: 700;">${fechaFormateada}</p>
+          </div>
+
+          <!-- Products Table -->
+          <div style="margin-bottom: 24px;">
+            <h2 style="color: #2c3e50; font-size: 16px; margin: 0 0 12px 0; padding-bottom: 10px; border-bottom: 3px solid #ff6b35; display: inline-block;">📦 Productos</h2>
+            <table style="width: 100%; border-collapse: collapse; margin-top: 8px;">
+              <thead>
+                <tr style="background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);">
+                  <th style="padding: 12px 16px; text-align: left; color: #ffffff; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700;">Producto</th>
+                  <th style="padding: 12px 16px; text-align: center; color: #ffffff; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700;">Cant.</th>
+                  <th style="padding: 12px 16px; text-align: right; color: #ffffff; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700;">Precio</th>
+                  <th style="padding: 12px 16px; text-align: right; color: #ffffff; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700;">Subtotal</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${itemsRows}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Totals -->
+          <div style="background: #f8f9fa; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+            ${parseFloat(descuentoTotal) > 0 ? `
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+              <span style="color: #7f8c8d; font-size: 14px;">Subtotal:</span>
+              <span style="color: #2c3e50; font-size: 14px;">$${parseFloat(subtotal).toLocaleString("es-CL")}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+              <span style="color: #27ae60; font-size: 14px;">Descuento:</span>
+              <span style="color: #27ae60; font-size: 14px; font-weight: 600;">-$${parseFloat(descuentoTotal).toLocaleString("es-CL")}</span>
+            </div>` : ""}
+            <div style="display: flex; justify-content: space-between; padding-top: 12px; border-top: 2px solid #dee2e6; margin-top: 8px;">
+              <span style="color: #2c3e50; font-size: 18px; font-weight: 800;">Total:</span>
+              <span style="color: #ff6b35; font-size: 18px; font-weight: 800;">$${parseFloat(total).toLocaleString("es-CL")}</span>
+            </div>
+          </div>
+
+          <!-- Payment Method -->
+          <div style="background: #f8f9fa; border-radius: 12px; padding: 16px 20px; margin-bottom: 24px;">
+            <p style="color: #7f8c8d; font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; margin: 0 0 6px 0; font-weight: 600;">Método de Pago</p>
+            <p style="color: #2c3e50; font-size: 15px; margin: 0; font-weight: 700;">${metodoPagoTexto}</p>
+          </div>
+
+          <!-- Reminder -->
+          <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 12px; padding: 16px 20px;">
+            <p style="color: #856404; font-size: 14px; margin: 0; line-height: 1.6;">
+              ⚠️ <strong>Recuerda:</strong> Necesitarás el <strong>código de entrega</strong> para retirar tu pedido. El bodeguero te lo pedirá al momento de entregarte los productos.
+            </p>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 0 0 20px 20px; padding: 24px 32px; text-align: center;">
+          <p style="color: rgba(255,255,255,0.6); font-size: 13px; margin: 0;">
+            Gracias por tu compra • Si tienes dudas, contáctanos respondiendo este email.
+          </p>
+        </div>
+      </div>
+    </body>
+    </html>`;
+
+    const mailOptions = {
+      from: `"HyV Tienda" <${EMAIL_USER}>`,
+      to: clienteEmail,
+      subject: `✅ Compra Presencial Confirmada - ${numeroOrden} | Código: ${codigoEntrega}`,
+      html: htmlContent,
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    return [info, null];
+  } catch (error) {
+    console.error("Error al enviar email de venta presencial:", error);
+    return [null, error.message];
+  }
+}

@@ -10,7 +10,7 @@ import StockMovement from "../entity/stockMovement.entity.js";
 import Warehouse from "../entity/warehouse.entity.js";
 import { AppDataSource } from "../config/configDb.js";
 import { Between, MoreThanOrEqual, LessThanOrEqual, Not } from "typeorm";
-import { sendOrderConfirmationEmail, sendOrderStatusUpdateEmail, sendLowStockAlertEmail, sendStockIncidentEmail } from "./email.service.js";
+import { sendOrderConfirmationEmail, sendOrderStatusUpdateEmail, sendLowStockAlertEmail, sendStockIncidentEmail, sendPresentialSaleEmail } from "./email.service.js";
 import { LOW_STOCK_THRESHOLD, MAX_DELIVERIES_PER_DAY } from "../config/configEnv.js";
 
 // Obtener el primer almacén activo (para vincular movimientos de stock)
@@ -128,46 +128,50 @@ export async function createOrderService(userId, orderData) {
     }
 
     // Validar y calcular items
-    const { items, metodoPago, direccionEnvio, telefonoContacto, notas, zonaEnvio, tipoEntrega, fechaEntrega } = orderData;
+    const { items, metodoPago, direccionEnvio, telefonoContacto, notas, zonaEnvio, tipoEntrega, fechaEntrega, clienteEmail, clienteNombre } = orderData;
     const selectedTipoEntrega = tipoEntrega || "envio";
 
-    if (!fechaEntrega) {
+    // Para retiro en tienda presencial, la fecha es hoy (retiro inmediato)
+    let deliveryDate;
+    if (!fechaEntrega && selectedTipoEntrega === "retiro") {
+      deliveryDate = new Date();
+    } else if (!fechaEntrega) {
       return [null, "La fecha de entrega/retiro es requerida"];
-    }
+    } else {
+      deliveryDate = new Date(fechaEntrega);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
 
-    const deliveryDate = new Date(fechaEntrega);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+      // Mínimo 2 días de anticipación
+      const minDate = new Date(today);
+      minDate.setDate(today.getDate() + 2);
 
-    // Mínimo 2 días de anticipación
-    const minDate = new Date(today);
-    minDate.setDate(today.getDate() + 2);
-
-    if (deliveryDate < minDate) {
-      return [null, "La fecha de entrega debe tener al menos 2 días de anticipación"];
-    }
-
-    // No domingos (0 = domingo en getUTCDay / getDay, pero considerando huso horario es mejor getUTCDay() si ISO es YYYY-MM-DD)
-    // Para asegurar precisión con el input "YYYY-MM-DD" que a las 00:00 UTC es igual al día local
-    if (deliveryDate.getUTCDay() === 0) {
-      return [null, "No realizamos entregas ni retiros los días domingo"];
-    }
-
-    // Validar límite diario de 10 pedidos
-    try {
-      const formattedDate = new Date(fechaEntrega).toISOString().split('T')[0];
-      const dailyOrdersCount = await orderRepository.count({
-        where: {
-          fechaEntrega: formattedDate,
-          estado: Not("cancelado")
-        }
-      });
-      
-      if (dailyOrdersCount >= MAX_DELIVERIES_PER_DAY) {
-        return [null, `El cupo de entregas para la fecha ${formattedDate} está completo (Límite: ${MAX_DELIVERIES_PER_DAY} pedidos)`];
+      if (deliveryDate < minDate) {
+        return [null, "La fecha de entrega debe tener al menos 2 días de anticipación"];
       }
-    } catch (countError) {
-      console.error("Error al validar límite de entregas diarias:", countError);
+
+      // No domingos (0 = domingo en getUTCDay / getDay, pero considerando huso horario es mejor getUTCDay() si ISO es YYYY-MM-DD)
+      // Para asegurar precisión con el input "YYYY-MM-DD" que a las 00:00 UTC es igual al día local
+      if (deliveryDate.getUTCDay() === 0) {
+        return [null, "No realizamos entregas ni retiros los días domingo"];
+      }
+
+      // Validar límite diario de 10 pedidos
+      try {
+        const formattedDate = new Date(fechaEntrega).toISOString().split('T')[0];
+        const dailyOrdersCount = await orderRepository.count({
+          where: {
+            fechaEntrega: formattedDate,
+            estado: Not("cancelado")
+          }
+        });
+        
+        if (dailyOrdersCount >= MAX_DELIVERIES_PER_DAY) {
+          return [null, `El cupo de entregas para la fecha ${formattedDate} está completo (Límite: ${MAX_DELIVERIES_PER_DAY} pedidos)`];
+        }
+      } catch (countError) {
+        console.error("Error al validar límite de entregas diarias:", countError);
+      }
     }
 
     let subtotal = 0;
@@ -248,11 +252,25 @@ export async function createOrderService(userId, orderData) {
     const random = Math.floor(Math.random() * 1000).toString().padStart(3, "0");
     const numeroOrden = `ORD-${year}${month}${day}-${random}`;
 
+    // Determinar si es venta presencial (vendedor presencial)
+    const isPresentialSale = user.rol === "vendedor_presencial";
+
+    // Para ventas presenciales con pago directo (no mercadopago), el pago ya está confirmado
+    let estadoPago = "pendiente";
+    if (isPresentialSale && metodoPago !== "mercadopago") {
+      estadoPago = "pagado";
+    }
+
+    // Generar código de entrega para ventas presenciales
+    const codigoEntrega = isPresentialSale ? generarCodigoEntrega() : null;
+
     // Crear orden
     const newOrder = orderRepository.create({
       user,
       numeroOrden,
       estado: "pendiente",
+      tipoVenta: isPresentialSale ? "presencial" : "online",
+      codigoEntrega,
       subtotal,
       descuentoTotal,
       costoEnvio,
@@ -264,6 +282,9 @@ export async function createOrderService(userId, orderData) {
       direccionEnvio,
       telefonoContacto,
       notas: notas || null,
+      clienteEmail: clienteEmail || null,
+      clienteNombre: clienteNombre || null,
+      estadoPago,
     });
 
     const savedOrder = await orderRepository.save(newOrder);
@@ -345,11 +366,19 @@ export async function createOrderService(userId, orderData) {
       relations: ["orderItems", "orderItems.product", "user"],
     });
 
-    // Enviar email de confirmación al cliente solo si no es Mercado Pago (se enviará al confirmar pago)
+    // Enviar email de confirmación
     if (orderComplete.metodoPago && orderComplete.metodoPago.toLowerCase() !== "mercadopago") {
-      sendOrderConfirmationEmail(orderComplete).catch((err) => {
-        console.error("Error al enviar email de confirmación:", err);
-      });
+      if (isPresentialSale && codigoEntrega && orderComplete.clienteEmail) {
+        // Para ventas presenciales, enviar email con código de entrega al cliente
+        sendPresentialSaleEmail(orderComplete, codigoEntrega).catch((err) => {
+          console.error("Error al enviar email de venta presencial:", err);
+        });
+      } else {
+        // Para ventas online normales, enviar email de confirmación al usuario registrado
+        sendOrderConfirmationEmail(orderComplete).catch((err) => {
+          console.error("Error al enviar email de confirmación:", err);
+        });
+      }
     }
     // Verificar y alertar productos con stock bajo
     const lowStockProducts = orderItemsData
@@ -923,3 +952,268 @@ export async function updateDeliverySequenceService(orderSequences) {
   }
 }
 
+/**
+ * Genera un código de entrega alfanumérico de 6 caracteres en mayúsculas.
+ * Omite caracteres confusos (O, 0, I, 1) para facilitar la lectura.
+ */
+function generarCodigoEntrega() {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let codigo = "";
+  for (let i = 0; i < 6; i++) {
+    codigo += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return codigo;
+}
+
+/**
+ * Crea una venta presencial registrada por un vendedor presencial.
+ * La venta es inmediata: estado "procesando", fecha de entrega = hoy, sin límite diario.
+ * El cliente recibe un email con el código de entrega.
+ */
+export async function createPresentialSaleService(sellerId, saleData) {
+  try {
+    const orderRepository = AppDataSource.getRepository(Order);
+    const orderItemRepository = AppDataSource.getRepository(OrderItem);
+    const productRepository = AppDataSource.getRepository(Product);
+    const userRepository = AppDataSource.getRepository(User);
+
+    const seller = await userRepository.findOne({ where: { id: sellerId } });
+    if (!seller) {
+      return [null, "Usuario no encontrado"];
+    }
+    if (seller.rol !== "vendedor_presencial" && seller.rol !== "administrador") {
+      return [null, "No tienes permisos para registrar ventas presenciales"];
+    }
+
+    const { items, metodoPago, clienteNombre, clienteEmail, telefonoContacto, notas } = saleData;
+
+    let subtotal = 0;
+    let descuentoTotal = 0;
+    const orderItemsData = [];
+
+    for (const item of items) {
+      const product = await productRepository.findOne({ where: { id: item.productId } });
+
+      if (!product) {
+        return [null, `Producto con ID ${item.productId} no encontrado`];
+      }
+
+      if (product.stock < item.cantidad) {
+        return [null, `Stock insuficiente para ${product.nombre}. Disponible: ${product.stock}`];
+      }
+
+      const precioUnitario = product.precio;
+      const descuento = product.descuento || 0;
+      const precioConDescuento = precioUnitario - (precioUnitario * descuento / 100);
+      const subtotalItem = precioConDescuento * item.cantidad;
+
+      subtotal += precioUnitario * item.cantidad;
+      descuentoTotal += (precioUnitario * descuento / 100) * item.cantidad;
+
+      const stockAnterior = product.stock;
+      product.stock -= item.cantidad;
+      await productRepository.save(product);
+
+      orderItemsData.push({
+        product,
+        nombreProducto: product.nombre,
+        cantidad: item.cantidad,
+        precioUnitario,
+        descuento,
+        subtotal: subtotalItem,
+        stockAnterior,
+        stockNuevo: product.stock,
+        lowStock: product.stock <= LOW_STOCK_THRESHOLD,
+        currentStock: product.stock,
+        productCode: product.codigo,
+        productCategory: product.categoria,
+      });
+    }
+
+    const total = subtotal - descuentoTotal;
+
+    const fecha = new Date();
+    const year = fecha.getFullYear();
+    const month = String(fecha.getMonth() + 1).padStart(2, "0");
+    const day = String(fecha.getDate()).padStart(2, "0");
+    const random = Math.floor(Math.random() * 1000).toString().padStart(3, "0");
+    const numeroOrden = `PRS-${year}${month}${day}-${random}`;
+    const codigoEntrega = generarCodigoEntrega();
+
+    const newOrder = orderRepository.create({
+      user: seller,
+      numeroOrden,
+      estado: "procesando",
+      tipoVenta: "presencial",
+      codigoEntrega,
+      clienteNombre,
+      clienteEmail,
+      subtotal,
+      descuentoTotal,
+      costoEnvio: 0,
+      zonaEnvio: null,
+      tipoEntrega: "retiro",
+      fechaEntrega: fecha,
+      total,
+      metodoPago,
+      direccionEnvio: "Retiro en Tienda (Venta Presencial)",
+      telefonoContacto,
+      notas: notas || null,
+      estadoPago: metodoPago === "efectivo" ? "pagado" : "pendiente",
+    });
+
+    const savedOrder = await orderRepository.save(newOrder);
+
+    for (const itemData of orderItemsData) {
+      const orderItem = orderItemRepository.create({
+        order: savedOrder,
+        product: itemData.product,
+        nombreProducto: itemData.nombreProducto,
+        cantidad: itemData.cantidad,
+        precioUnitario: itemData.precioUnitario,
+        descuento: itemData.descuento,
+        subtotal: itemData.subtotal,
+      });
+      await orderItemRepository.save(orderItem);
+    }
+
+    const orderHistoryRepository = AppDataSource.getRepository(OrderHistory);
+    await orderHistoryRepository.save(
+      orderHistoryRepository.create({
+        order: savedOrder,
+        estadoAnterior: null,
+        estadoNuevo: "procesando",
+        nota: "Venta presencial registrada. Pendiente de preparación por bodega.",
+      })
+    );
+
+    for (const itemData of orderItemsData) {
+      await registrarMovimientoStock({
+        product: itemData.product,
+        tipo: "salida",
+        cantidad: itemData.cantidad,
+        cantidadAnterior: itemData.stockAnterior,
+        cantidadNueva: itemData.stockNuevo,
+        motivo: "Venta presencial",
+        referencia: numeroOrden,
+      });
+    }
+
+    // Generar factura automáticamente
+    try {
+      const invoiceRepository = AppDataSource.getRepository(Invoice);
+      const randomFac = Math.floor(Math.random() * 9000 + 1000);
+      const numeroFactura = `FAC-${year}${month}${day}-${randomFac}`;
+      const ivaRate = 0.19;
+      const subtotalFac = parseFloat(subtotal - descuentoTotal);
+      const ivaFac = parseFloat((subtotalFac * ivaRate).toFixed(2));
+      const totalFac = parseFloat((subtotalFac + ivaFac).toFixed(2));
+      await invoiceRepository.save(
+        invoiceRepository.create({
+          order: savedOrder,
+          customer: null,
+          numeroFactura,
+          fechaEmision: new Date(),
+          subtotal: subtotalFac,
+          iva: ivaFac,
+          total: totalFac,
+          estado: "emitida",
+        })
+      );
+    } catch (invoiceError) {
+      console.error("Error al generar factura de venta presencial:", invoiceError);
+    }
+
+    const orderComplete = await orderRepository.findOne({
+      where: { id: savedOrder.id },
+      relations: ["orderItems", "orderItems.product", "user"],
+    });
+
+    sendPresentialSaleEmail(orderComplete, codigoEntrega).catch((err) => {
+      console.error("Error al enviar email de venta presencial:", err);
+    });
+
+    const lowStockProducts = orderItemsData
+      .filter((item) => item.lowStock)
+      .map((item) => ({
+        nombre: item.nombreProducto,
+        codigo: item.productCode,
+        stock: item.currentStock,
+        categoria: item.productCategory,
+      }));
+
+    if (lowStockProducts.length > 0) {
+      sendLowStockAlertEmail(lowStockProducts).catch((err) => {
+        console.error("Error al enviar alerta de stock bajo:", err);
+      });
+    }
+
+    return [{ order: orderComplete, codigoEntrega }, null];
+  } catch (error) {
+    console.error("Error al crear venta presencial:", error);
+    return [null, "Error interno del servidor al crear la venta presencial"];
+  }
+}
+
+/**
+ * Confirma la entrega de una venta presencial validando el código de entrega.
+ * El bodeguero ingresa el código que el cliente recibió por email.
+ */
+export async function confirmPresentialDeliveryService(orderId, codigoIngresado, userId, userRole) {
+  try {
+    if (userRole !== "administrador" && userRole !== "bodeguero") {
+      return [null, "No tienes permisos para confirmar entregas"];
+    }
+
+    const orderRepository = AppDataSource.getRepository(Order);
+
+    const order = await orderRepository.findOne({
+      where: { id: orderId },
+      relations: ["orderItems", "orderItems.product", "user"],
+    });
+
+    if (!order) {
+      return [null, "Orden no encontrada"];
+    }
+
+    if (order.tipoVenta !== "presencial") {
+      return [null, "Esta orden no es una venta presencial"];
+    }
+
+    if (order.estado === "entregado") {
+      return [null, "Esta orden ya fue entregada"];
+    }
+
+    if (order.estado !== "procesando" && order.estado !== "listo_para_retiro") {
+      return [null, "La orden debe estar en estado 'procesando' o 'listo para retiro' para confirmar entrega"];
+    }
+
+    if (!order.codigoEntrega || order.codigoEntrega.toUpperCase() !== codigoIngresado.toUpperCase()) {
+      return [null, "Código de entrega incorrecto. Verifique el código que recibió el cliente por email."];
+    }
+
+    const oldStatus = order.estado;
+    order.estado = "entregado";
+    await orderRepository.save(order);
+
+    const orderHistoryRepository = AppDataSource.getRepository(OrderHistory);
+    await orderHistoryRepository.save(
+      orderHistoryRepository.create({
+        order: { id: order.id },
+        estadoAnterior: oldStatus,
+        estadoNuevo: "entregado",
+        nota: "Entrega confirmada por bodeguero mediante código de entrega presencial.",
+      })
+    );
+
+    const orderComplete = await orderRepository.findOne({
+      where: { id: order.id },
+      relations: ["orderItems", "orderItems.product", "user"],
+    });
+
+    return [orderComplete, null];
+  } catch (error) {
+    console.error("Error al confirmar entrega presencial:", error);
+    return [null, "Error interno del servidor"];
+  }
+}

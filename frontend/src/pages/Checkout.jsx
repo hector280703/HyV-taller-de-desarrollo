@@ -115,6 +115,10 @@ export default function Checkout() {
   const [loading, setLoading] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   
+  // Detectar si el usuario es vendedor presencial
+  const user = JSON.parse(sessionStorage.getItem('usuario'));
+  const isVendedorPresencial = user?.rol === 'vendedor_presencial';
+
   // Estado del mapa
   const [mapPosition, setMapPosition] = useState(null);
   const [mapCenter] = useState([-37.1653, -73.1835]); // Laraquete, Chile
@@ -132,6 +136,10 @@ export default function Checkout() {
   const [shippingDetails, setShippingDetails] = useState(null);
   const [loadingShipping, setLoadingShipping] = useState(false);
 
+  // Email del cliente (solo para vendedor presencial)
+  const [clienteEmail, setClienteEmail] = useState('');
+  const [clienteNombre, setClienteNombre] = useState('');
+
   const [formData, setFormData] = useState({
     direccionEnvio: '',
     telefonoContacto: '',
@@ -140,7 +148,7 @@ export default function Checkout() {
     fechaEntrega: '',
   });
 
-  const [tipoEntrega, setTipoEntrega] = useState('envio');
+  const [tipoEntrega, setTipoEntrega] = useState(isVendedorPresencial ? 'retiro' : 'envio');
   const [blockedDates, setBlockedDates] = useState([]);
 
   // Cargar disponibilidad al montar el componente
@@ -393,6 +401,25 @@ export default function Checkout() {
       return;
     }
 
+    // Validación de email del cliente (solo para vendedor presencial)
+    if (isVendedorPresencial) {
+      if (!clienteEmail || !clienteEmail.trim()) {
+        showErrorAlert('Email requerido', 'Debes ingresar el email del cliente para enviar el código de retiro');
+        return;
+      }
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(clienteEmail.trim())) {
+        showErrorAlert('Email inválido', 'Ingresa un email válido para el cliente');
+        return;
+      }
+    }
+
+    // Validación de fecha (no requerida para retiro en tienda)
+    if (tipoEntrega !== 'retiro' && !formData.fechaEntrega) {
+      showErrorAlert('Fecha requerida', 'Selecciona una fecha de entrega');
+      return;
+    }
+
     // Validación de notas (opcional)
     if (formData.notas && formData.notas.length > 1000) {
       showErrorAlert('Notas muy largas', 'Las notas no deben exceder 1000 caracteres');
@@ -432,7 +459,9 @@ export default function Checkout() {
         notas: formData.notas?.trim() || undefined,
         zonaEnvio: tipoEntrega === 'envio' ? (shippingZone || undefined) : undefined,
         tipoEntrega,
-        fechaEntrega: formData.fechaEntrega,
+        fechaEntrega: tipoEntrega === 'retiro' ? undefined : formData.fechaEntrega,
+        ...(isVendedorPresencial && clienteEmail ? { clienteEmail: clienteEmail.trim() } : {}),
+        ...(isVendedorPresencial && clienteNombre ? { clienteNombre: clienteNombre.trim() } : {}),
       };
 
       const response = await createOrder(orderData);
@@ -758,22 +787,71 @@ export default function Checkout() {
               </small>
             </div>
 
-            <div className="form-group">
-              <label htmlFor="fechaEntrega">📅 Fecha Estimada de {tipoEntrega === 'retiro' ? 'Retiro' : 'Entrega'} *</label>
-              <input
-                type="date"
-                id="fechaEntrega"
-                name="fechaEntrega"
-                value={formData.fechaEntrega}
-                onChange={handleDateChange}
-                min={getMinDate()}
-                required
-                className="checkout-input"
-              />
-              <small className="form-help">
-                Selecciona una fecha (mínimo 2 días de anticipación). Los días domingo no están disponibles.
-              </small>
-            </div>
+            {/* Email del cliente - Solo visible para vendedor presencial */}
+            {isVendedorPresencial && (
+              <>
+                <div className="form-group">
+                  <label htmlFor="clienteNombre">👤 Nombre del Cliente *</label>
+                  <input
+                    type="text"
+                    id="clienteNombre"
+                    value={clienteNombre}
+                    onChange={(e) => setClienteNombre(e.target.value)}
+                    placeholder="Nombre completo del cliente"
+                    required
+                    minLength={2}
+                    className="checkout-input"
+                  />
+                  <small className="form-help">
+                    Nombre del cliente que realiza la compra presencial
+                  </small>
+                </div>
+                <div className="form-group">
+                  <label htmlFor="clienteEmail">✉️ Email del Cliente *</label>
+                  <input
+                    type="email"
+                    id="clienteEmail"
+                    value={clienteEmail}
+                    onChange={(e) => setClienteEmail(e.target.value)}
+                    placeholder="correo@ejemplo.com"
+                    required
+                    className="checkout-input"
+                  />
+                  <small className="form-help">
+                    El cliente recibirá un correo con el código de retiro de su producto
+                  </small>
+                </div>
+              </>
+            )}
+
+            {/* Fecha de entrega - Deshabilitada para retiro en tienda */}
+            {tipoEntrega === 'retiro' ? (
+              <div className="form-group">
+                <label>📅 Fecha de Retiro</label>
+                <div className="pickup-address-card">
+                  <p className="pickup-address-text"><strong>Retiro Inmediato</strong></p>
+                  <p className="pickup-address-subtext">Al elegir retiro en tienda, el pedido estará disponible para ser retirado de inmediato.</p>
+                  <span className="pickup-badge">✓ Disponible ahora</span>
+                </div>
+              </div>
+            ) : (
+              <div className="form-group">
+                <label htmlFor="fechaEntrega">📅 Fecha Estimada de Entrega *</label>
+                <input
+                  type="date"
+                  id="fechaEntrega"
+                  name="fechaEntrega"
+                  value={formData.fechaEntrega}
+                  onChange={handleDateChange}
+                  min={getMinDate()}
+                  required
+                  className="checkout-input"
+                />
+                <small className="form-help">
+                  Selecciona una fecha (mínimo 2 días de anticipación). Los días domingo no están disponibles.
+                </small>
+              </div>
+            )}
 
             <div className="form-group">
               <label htmlFor="metodoPago">Método de Pago *</label>
@@ -902,8 +980,20 @@ export default function Checkout() {
                 </div>
                 <div className="modal-detail-item">
                   <strong>Fecha de {tipoEntrega === 'retiro' ? 'Retiro' : 'Entrega'}:</strong>
-                  <p>{formData.fechaEntrega}</p>
+                  <p>{tipoEntrega === 'retiro' ? 'Retiro Inmediato' : formData.fechaEntrega}</p>
                 </div>
+                {isVendedorPresencial && clienteEmail && (
+                  <div className="modal-detail-item">
+                    <strong>Email del Cliente:</strong>
+                    <p>{clienteEmail}</p>
+                  </div>
+                )}
+                {isVendedorPresencial && clienteNombre && (
+                  <div className="modal-detail-item">
+                    <strong>Nombre del Cliente:</strong>
+                    <p>{clienteNombre}</p>
+                  </div>
+                )}
                 <div className="modal-detail-item">
                   <strong>Teléfono de Contacto:</strong>
                   <p>{formData.telefonoContacto}</p>

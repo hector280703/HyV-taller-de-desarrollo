@@ -60,10 +60,18 @@ export const orderCreateValidation = Joi.object({
     .messages({
       "any.only": "El tipo de entrega debe ser: retiro o envio",
     }),
-  fechaEntrega: Joi.date().iso().required().messages({
+  fechaEntrega: Joi.date().iso().allow(null, "").messages({
     "date.base": "La fecha de entrega debe ser una fecha válida",
     "date.format": "La fecha de entrega debe tener formato ISO",
-    "any.required": "La fecha de entrega es requerida",
+  }),
+  clienteEmail: Joi.string().email({ tlds: { allow: false } }).allow("", null).messages({
+    "string.base": "El email del cliente debe ser texto",
+    "string.email": "El email del cliente debe tener un formato válido",
+  }),
+  clienteNombre: Joi.string().min(2).max(255).allow("", null).messages({
+    "string.base": "El nombre del cliente debe ser texto",
+    "string.min": "El nombre del cliente debe tener al menos 2 caracteres",
+    "string.max": "El nombre del cliente no debe exceder 255 caracteres",
   }),
 }).messages({
   "object.base": "Los datos del pedido deben ser un objeto válido",
@@ -103,4 +111,60 @@ export const orderQueryValidation = Joi.object({
   }),
 }).messages({
   "object.base": "Los filtros deben ser un objeto válido",
+});
+
+export const presentialSaleValidation = Joi.object({
+  items: Joi.array()
+    .items(
+      Joi.object({
+        productId: Joi.number().integer().positive().required().messages({
+          "number.base": "El ID del producto debe ser un número",
+          "number.positive": "El ID del producto debe ser positivo",
+          "any.required": "El ID del producto es requerido",
+        }),
+        cantidad: Joi.number().integer().min(1).required().messages({
+          "number.base": "La cantidad debe ser un número",
+          "number.min": "La cantidad debe ser al menos 1",
+          "any.required": "La cantidad es requerida",
+        }),
+      })
+    )
+    .min(1)
+    .required()
+    .messages({
+      "array.min": "Debe haber al menos un producto en la venta",
+      "any.required": "Los items de la venta son requeridos",
+    }),
+  metodoPago: Joi.string()
+    .valid("efectivo", "transferencia")
+    .required()
+    .messages({
+      "string.base": "El método de pago debe ser texto",
+      "any.only": "El método de pago debe ser: efectivo o transferencia",
+      "any.required": "El método de pago es requerido",
+    }),
+  clienteNombre: Joi.string().min(2).max(255).required().messages({
+    "string.base": "El nombre del cliente debe ser texto",
+    "string.min": "El nombre del cliente debe tener al menos 2 caracteres",
+    "string.max": "El nombre del cliente no debe exceder 255 caracteres",
+    "any.required": "El nombre del cliente es requerido",
+  }),
+  clienteEmail: Joi.string().email({ tlds: { allow: false } }).required().messages({
+    "string.base": "El email del cliente debe ser texto",
+    "string.email": "El email del cliente debe tener un formato válido",
+    "any.required": "El email del cliente es requerido",
+  }),
+  telefonoContacto: Joi.string()
+    .pattern(/^[+]?[\d\s-]{8,20}$/)
+    .required()
+    .messages({
+      "string.base": "El teléfono debe ser texto",
+      "string.pattern.base": "El teléfono debe tener un formato válido",
+      "any.required": "El teléfono de contacto es requerido",
+    }),
+  notas: Joi.string().max(1000).allow("", null).messages({
+    "string.max": "Las notas no deben exceder 1000 caracteres",
+  }),
+}).messages({
+  "object.base": "Los datos de la venta deben ser un objeto válido",
 });

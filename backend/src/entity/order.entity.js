@@ -21,6 +21,27 @@ const OrderSchema = new EntitySchema({
       enum: ["pendiente", "procesando", "listo_para_envio", "listo_para_retiro", "en_camino", "entregado", "cancelado", "incidencia_stock"],
       default: "pendiente",
     },
+    tipoVenta: {
+      type: "varchar",
+      length: 20,
+      default: "online",
+      nullable: false,
+    },
+    codigoEntrega: {
+      type: "varchar",
+      length: 10,
+      nullable: true,
+    },
+    clienteEmail: {
+      type: "varchar",
+      length: 255,
+      nullable: true,
+    },
+    clienteNombre: {
+      type: "varchar",
+      length: 255,
+      nullable: true,
+    },
     subtotal: {
       type: "decimal",
       precision: 12,

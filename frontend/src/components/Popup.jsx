@@ -84,6 +84,9 @@ export default function Popup({ show, setShow, data, action, isProductForm = fal
             options: [
                 { value: 'administrador', label: 'Administrador' },
                 { value: 'cliente', label: 'Cliente' },
+                { value: 'bodeguero', label: 'Bodeguero' },
+                { value: 'repartidor', label: 'Repartidor' },
+                { value: 'vendedor_presencial', label: 'Vendedor Presencial' },
             ],
             required: true,
             defaultValue: userData.rol || "",

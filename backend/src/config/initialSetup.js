@@ -56,6 +56,15 @@ async function createUsers() {
           password: await encryptPassword("bodeguero1234"),
           rol: "bodeguero",
         }),
+      ),
+      userRepository.save(
+        userRepository.create({
+          nombreCompleto: "Ana Sofía Martínez Ruiz",
+          rut: "12.345.678-9",
+          email: "vendedor2024@gmail.cl",
+          password: await encryptPassword("vendedor1234"),
+          rol: "vendedor_presencial",
+        }),
       )
     ]);
     console.log("* => Usuarios creados exitosamente");

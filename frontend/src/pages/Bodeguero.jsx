@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getOrders, updateOrderStatus } from '@services/order.service';
+import { getOrders, updateOrderStatus, confirmPresentialDelivery } from '@services/order.service';
 import { logout } from '@services/auth.service';
 import { showErrorAlert, showSuccessAlert, showConfirmAlert } from '@helpers/sweetAlert';
 import { formatPrice } from '@helpers/formatData';
@@ -65,6 +65,49 @@ function Bodeguero() {
 
     if (newStatus === 'entregado') {
       const order = orders.find(o => o.id === orderId);
+
+      // Flujo diferente para ventas presenciales
+      if (order.tipoVenta === 'presencial') {
+        const result = await Swal.fire({
+          title: '🏪 Confirmar Entrega Presencial',
+          html: `
+            <p style="margin-bottom:12px; color:#555;">Ingresa el <strong>código de entrega</strong> que el cliente recibió por email.</p>
+            <div style="background:linear-gradient(135deg,#667eea,#764ba2);border-radius:12px;padding:12px;margin-bottom:16px;">
+              <p style="color:rgba(255,255,255,0.8);font-size:11px;margin:0 0 4px;">CÓDIGO (6 caracteres)</p>
+              <p style="color:#fff;font-size:13px;margin:0;">Ej: <strong>A3F7KX</strong></p>
+            </div>
+          `,
+          input: 'text',
+          inputAttributes: { maxlength: 6, style: 'text-transform:uppercase;letter-spacing:6px;font-size:22px;font-weight:bold;text-align:center;' },
+          showCancelButton: true,
+          confirmButtonText: '✅ Confirmar Entrega',
+          cancelButtonText: 'Cancelar',
+          confirmButtonColor: '#667eea',
+          inputValidator: (value) => {
+            if (!value || value.trim().length === 0) return 'Debe ingresar el código';
+            if (value.trim().length !== 6) return 'El código debe tener exactamente 6 caracteres';
+          }
+        });
+
+        if (!result.isConfirmed) return;
+
+        try {
+          setUpdating(true);
+          const response = await confirmPresentialDelivery(orderId, result.value.trim());
+          if (response.status === 'Success') {
+            showSuccessAlert('¡Entrega confirmada!', 'La venta presencial fue entregada exitosamente.');
+            fetchOrders();
+            setSelectedOrder(null);
+          }
+        } catch (error) {
+          showErrorAlert('Código incorrecto', error.message || 'No se pudo confirmar la entrega');
+        } finally {
+          setUpdating(false);
+        }
+        return;
+      }
+
+      // Flujo original para ventas online
       const result = await Swal.fire({
         title: 'Entregar Pedido',
         text: 'Por favor, ingrese el código de la orden para confirmar la entrega al cliente (ej: ORD-...).',
@@ -268,6 +311,11 @@ function Bodeguero() {
                   <div className="order-number">
                     <span className="status-icon">{getStatusIcon(order.estado)}</span>
                     <span className="numero-orden">{order.numeroOrden}</span>
+                    {order.tipoVenta === 'presencial' && (
+                      <span style={{ background: 'linear-gradient(135deg,#667eea,#764ba2)', color: '#fff', fontSize: '10px', fontWeight: '700', padding: '2px 8px', borderRadius: '10px', letterSpacing: '0.5px' }}>
+                        🏪 PRESENCIAL
+                      </span>
+                    )}
                   </div>
                   <div className="header-badge-wrapper">
                     <span className={`status-badge status-${order.estado}`}>
@@ -286,7 +334,9 @@ function Bodeguero() {
                   </div>
                   <div className="info-row">
                     <span className="info-label">👤 Cliente:</span>
-                    <span className="info-value">{order.user?.nombreCompleto}</span>
+                    <span className="info-value">
+                      {order.tipoVenta === 'presencial' ? order.clienteNombre : order.user?.nombreCompleto}
+                    </span>
                   </div>
                   <div className="info-row">
                     <span className="info-label">📞 Teléfono:</span>

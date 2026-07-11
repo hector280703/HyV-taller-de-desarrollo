@@ -141,4 +141,22 @@ export async function updateDeliverySequence(sequences) {
   }
 }
 
+export async function createPresentialSale(saleData) {
+  try {
+    const response = await axios.post('/orders/presential', saleData);
+    return response.data;
+  } catch (error) {
+    console.error('Error al crear venta presencial:', error);
+    throw error.response?.data || error;
+  }
+}
 
+export async function confirmPresentialDelivery(orderId, codigoEntrega) {
+  try {
+    const response = await axios.post(`/orders/${orderId}/confirm-delivery`, { codigoEntrega });
+    return response.data;
+  } catch (error) {
+    console.error('Error al confirmar entrega presencial:', error);
+    throw error.response?.data || error;
+  }
+}

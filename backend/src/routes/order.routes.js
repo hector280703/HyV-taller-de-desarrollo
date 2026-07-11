@@ -13,6 +13,8 @@ import {
   getOrderHistory,
   getDeliveryAvailability,
   updateDeliverySequence,
+  createPresentialSale,
+  confirmPresentialDelivery,
 } from "../controllers/order.controller.js";
 import { authenticateJwt } from "../middlewares/authentication.middleware.js";
 import { orderCreateLimiter } from "../middlewares/rateLimit.middleware.js";
@@ -55,5 +57,11 @@ router.get("/delivery-availability", getDeliveryAvailability);
 
 // Reordenar secuencia de entregas
 router.patch("/reorder", updateDeliverySequence);
+
+// Crear venta presencial (vendedor_presencial o admin)
+router.post("/presential", createPresentialSale);
+
+// Confirmar entrega de venta presencial con código (bodeguero o admin)
+router.post("/:id/confirm-delivery", confirmPresentialDelivery);
 
 export default router;

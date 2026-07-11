@@ -11,6 +11,8 @@ import {
   getOrderHistoryService,
   getDeliveryAvailabilityService,
   updateDeliverySequenceService,
+  createPresentialSaleService,
+  confirmPresentialDeliveryService,
 } from "../services/order.service.js";
 import {
   handleErrorClient,
@@ -21,6 +23,7 @@ import {
   orderCreateValidation,
   orderStatusValidation,
   orderQueryValidation,
+  presentialSaleValidation,
 } from "../validations/order.validation.js";
 
 export async function createOrder(req, res) {
@@ -267,6 +270,58 @@ export async function updateDeliverySequence(req, res) {
     const [success, error] = await updateDeliverySequenceService(sequences);
     if (error) return handleErrorClient(res, 400, error);
     handleSuccess(res, 200, "Secuencia de entregas actualizada exitosamente");
+  } catch (error) {
+    handleErrorServer(res, 500, error.message);
+  }
+}
+
+export async function createPresentialSale(req, res) {
+  try {
+    const sellerId = req.user.id;
+    const saleData = req.body;
+
+    const { error } = presentialSaleValidation.validate(saleData);
+    if (error) {
+      return handleErrorClient(res, 400, error.message);
+    }
+
+    const [result, errorResult] = await createPresentialSaleService(sellerId, saleData);
+    if (errorResult) {
+      return handleErrorClient(res, 400, errorResult);
+    }
+
+    handleSuccess(res, 201, "Venta presencial registrada exitosamente", result);
+  } catch (error) {
+    handleErrorServer(res, 500, error.message);
+  }
+}
+
+export async function confirmPresentialDelivery(req, res) {
+  try {
+    const orderId = parseInt(req.params.id);
+    const userId = req.user.id;
+    const userRole = req.user.rol;
+    const { codigoEntrega } = req.body;
+
+    if (isNaN(orderId)) {
+      return handleErrorClient(res, 400, "ID de orden inválido");
+    }
+
+    if (!codigoEntrega || typeof codigoEntrega !== "string" || codigoEntrega.trim().length === 0) {
+      return handleErrorClient(res, 400, "El código de entrega es requerido");
+    }
+
+    const [order, errorOrder] = await confirmPresentialDeliveryService(
+      orderId,
+      codigoEntrega.trim(),
+      userId,
+      userRole
+    );
+    if (errorOrder) {
+      return handleErrorClient(res, 400, errorOrder);
+    }
+
+    handleSuccess(res, 200, "Entrega presencial confirmada exitosamente", order);
   } catch (error) {
     handleErrorServer(res, 500, error.message);
   }

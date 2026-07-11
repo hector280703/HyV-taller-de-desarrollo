@@ -117,12 +117,10 @@ export const userBodyValidation = Joi.object({
       "string.pattern.base": "Formato rut inválido, debe ser xx.xxx.xxx-x o xxxxxxxx-x.",
     }),
   rol: Joi.string()
-    .min(4)
-    .max(15)
+    .valid("administrador", "cliente", "bodeguero", "repartidor", "vendedor_presencial")
     .messages({
       "string.base": "El rol debe ser de tipo string.",
-      "string.min": "El rol debe tener como mínimo 4 caracteres.",
-      "string.max": "El rol debe tener como máximo 15 caracteres.",
+      "any.only": "El rol debe ser uno de los roles válidos del sistema.",
     }),
   telefono: Joi.string()
     .allow("")
