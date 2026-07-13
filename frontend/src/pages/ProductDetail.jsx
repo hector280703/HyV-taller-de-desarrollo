@@ -357,11 +357,11 @@ const ProductDetail = () => {
             <p className="contact-item">✉️ contacto@hyvconstructora.cl</p>
             <div className="social-media-detail">
               <a href="https://www.instagram.com/constructora.hyv" target="_blank" rel="noopener noreferrer" className="social-link-detail instagram">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" alt="Instagram" className="social-icon-detail" />
+                <img src="/images/social/instagram.png" alt="Instagram" className="social-icon-detail" />
                 Instagram
               </a>
               <a href="https://www.facebook.com/constructora.hyv" target="_blank" rel="noopener noreferrer" className="social-link-detail facebook">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" alt="Facebook" className="social-icon-detail" />
+                <img src="/images/social/facebook.svg" alt="Facebook" className="social-icon-detail" />
                 Facebook
               </a>
             </div>

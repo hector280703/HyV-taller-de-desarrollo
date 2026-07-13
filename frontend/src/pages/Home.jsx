@@ -30,16 +30,16 @@ const Home = () => {
   }, []);
 
   const categories = [
-    { name: 'Cemento y Morteros', image: 'https://www.acepconcretos.com/wp-content/uploads/2021/04/mortero-930x620.jpg', value: 'Cemento y Morteros' },
-    { name: 'Ladrillos y Bloques', image: 'https://www.reformadisimo.es/wp-content/uploads/2019/10/tipos-de-ladrillos.jpg', value: 'Ladrillos y Bloques' },
-    { name: 'Fierro y Acero', image: 'https://grupocasalima.com/wp-content/uploads/2022/04/tipos-de-fierros-de-construccion.webp', value: 'Fierro y Acero' },
-    { name: 'Arena y Ripio', image: 'https://i0.wp.com/www.glosarioarquitectonico.com/wp-content/uploads/2015/12/ripio-1.jpg?resize=300%2C300&ssl=1', value: 'Arena y Ripio' },
-    { name: 'Madera', image: 'https://b1929112.smushcdn.com/1929112/imagenes/2025/03/Tablas-de-madera-para-construccion-y-carpinteria.png?lossy=0&strip=1&webp=1', value: 'Madera' },
-    { name: 'Pintura', image: 'http://www.pinturassuper.com/wp-content/uploads/2019/04/ASPECTOS-A-TENER-EN-CUENTA-PARA-COMPRAR-LA-PINTURA.jpg', value: 'Pintura' },
-    { name: 'Herramientas', image: 'https://cdnx.jumpseller.com/ferreteria-mfs/image/18473713/imprescindibles.jpg.jpg?1629945732', value: 'Herramientas' },
-    { name: 'Fontanería', image: 'https://www.bisermax.com/wp-content/uploads/2024/05/Herramientas-de-fontaneria.jpg', value: 'Fontanería' },
-    { name: 'Electricidad', image: 'https://www.pavezmartinez.cl/wp-content/uploads/2024/11/automaticos.jpg', value: 'Electricidad' },
-    { name: 'Cerámica y Porcelanato', image: 'https://www.rubi.com/es/blog/wp-content/uploads/2021/06/alicatar-una-pared-1.jpg', value: 'Cerámica y Porcelanato' },
+    { name: 'Cemento y Morteros', image: '/images/categories/cemento_y_morteros.png', value: 'Cemento y Morteros' },
+    { name: 'Ladrillos y Bloques', image: '/images/categories/ladrillos_y_bloques.png', value: 'Ladrillos y Bloques' },
+    { name: 'Fierro y Acero', image: '/images/categories/fierro_y_acero.png', value: 'Fierro y Acero' },
+    { name: 'Arena y Ripio', image: '/images/categories/arena_y_ripio.png', value: 'Arena y Ripio' },
+    { name: 'Madera', image: '/images/categories/madera.png', value: 'Madera' },
+    { name: 'Pintura', image: '/images/categories/pintura.png', value: 'Pintura' },
+    { name: 'Herramientas', image: '/images/categories/herramientas.png', value: 'Herramientas' },
+    { name: 'Fontanería', image: '/images/categories/fontaneria.png', value: 'Fontanería' },
+    { name: 'Electricidad', image: '/images/categories/electricidad.png', value: 'Electricidad' },
+    { name: 'Cerámica y Porcelanato', image: '/images/categories/ceramica_y_porcelanato.png', value: 'Cerámica y Porcelanato' },
   ];
 
   const formatPrice = (price) => {
@@ -72,22 +72,22 @@ const Home = () => {
       {/* Beneficios */}
       <section className="benefits-section">
         <div className="benefit-card">
-          <img src="https://transporte-inmediato.com/wp-content/uploads/2020/12/entregas-a-domicilio-1080x675.jpg" alt="Envíos a Todo Chile" className="benefit-image" />
+          <img src="/images/benefits/envios.jpg" alt="Envíos a Todo Chile" className="benefit-image" />
           <h3>Envíos a Todo Chile</h3>
           <p>Despacho rápido y seguro</p>
         </div>
         <div className="benefit-card">
-          <img src="https://img.freepik.com/vector-gratis/concepto-pago-tarjeta-credito-pagina-inicio_52683-24768.jpg?semt=ais_hybrid&w=740&q=80" alt="Pago Seguro" className="benefit-image" />
+          <img src="/images/benefits/pago.jpg" alt="Pago Seguro" className="benefit-image" />
           <h3>Pago Seguro</h3>
           <p>Múltiples medios de pago</p>
         </div>
         <div className="benefit-card">
-          <img src="https://www.supermercadosruizgalan.es/documents/10180/2672051/logo+atencion.png/5fd21c0a-0bc7-48b1-8388-867085a84538?t=1612256921229" alt="Atención Personalizada" className="benefit-image" />
+          <img src="/images/benefits/atencion.png" alt="Atención Personalizada" className="benefit-image" />
           <h3>Atención Personalizada</h3>
           <p>Asesoría técnica disponible</p>
         </div>
         <div className="benefit-card">
-          <img src="https://www.shutterstock.com/image-vector/medal-approved-successful-icon-quality-600nw-2421797193.jpg" alt="Calidad Garantizada" className="benefit-image" />
+          <img src="/images/benefits/calidad.jpg" alt="Calidad Garantizada" className="benefit-image" />
           <h3>Calidad Garantizada</h3>
           <p>Productos certificados</p>
         </div>
@@ -180,11 +180,11 @@ const Home = () => {
           <p>Correo: contacto@hyvconstructora.cl</p>
           <div className="social-media">
             <a href="https://www.instagram.com/constructora.hyv" target="_blank" rel="noopener noreferrer" className="social-link instagram">
-              <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" alt="Instagram" className="social-icon" />
+              <img src="/images/social/instagram.png" alt="Instagram" className="social-icon" />
               Instagram
             </a>
             <a href="https://www.facebook.com/constructora.hyv" target="_blank" rel="noopener noreferrer" className="social-link facebook">
-              <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" alt="Facebook" className="social-icon" />
+              <img src="/images/social/facebook.svg" alt="Facebook" className="social-icon" />
               Facebook
             </a>
           </div>
