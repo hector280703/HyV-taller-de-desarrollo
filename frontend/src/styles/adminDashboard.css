@@ -869,19 +869,19 @@
 
 /* Ensure subpages title styles match admin layout style */
 .admin-dashboard-layout-content h1 {
-  font-size: 2.4rem !important;
+  font-size: 1.5rem !important;
   font-weight: 800 !important;
   color: white !important;
-  margin: 0 0 0.5rem 0 !important;
+  margin: 0 0 0.25rem 0 !important;
   text-shadow: 0 4px 10px rgba(0, 0, 0, 0.15) !important;
   letter-spacing: -0.5px !important;
 }
 
 .admin-dashboard-layout-content .title-table {
   color: white !important;
-  font-size: 2.4rem !important;
+  font-size: 1.5rem !important;
   font-weight: 800 !important;
-  margin-bottom: 0.5rem !important;
+  margin-bottom: 0.25rem !important;
   text-shadow: 0 4px 10px rgba(0, 0, 0, 0.15) !important;
 }
 
