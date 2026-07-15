@@ -155,7 +155,7 @@ export default function Checkout() {
   const [formData, setFormData] = useState({
     direccionEnvio: '',
     telefonoContacto: '',
-    metodoPago: 'efectivo',
+    metodoPago: isVendedorPresencial ? 'efectivo' : 'mercadopago',
     notas: '',
     fechaEntrega: '',
   });
@@ -426,9 +426,9 @@ export default function Checkout() {
       }
     }
 
-    // Validación de fecha (no requerida para retiro en tienda)
-    if (tipoEntrega !== 'retiro' && !formData.fechaEntrega) {
-      showErrorAlert('Fecha requerida', 'Selecciona una fecha de entrega');
+    // Validación de fecha (requerida para envío, y para retiro si no es vendedor presencial)
+    if ((tipoEntrega === 'envio' || (tipoEntrega === 'retiro' && !isVendedorPresencial)) && !formData.fechaEntrega) {
+      showErrorAlert('Fecha requerida', tipoEntrega === 'retiro' ? 'Selecciona una fecha de retiro' : 'Selecciona una fecha de entrega');
       return;
     }
 
@@ -471,7 +471,7 @@ export default function Checkout() {
         notas: formData.notas?.trim() || undefined,
         zonaEnvio: tipoEntrega === 'envio' ? (shippingZone || undefined) : undefined,
         tipoEntrega,
-        fechaEntrega: tipoEntrega === 'retiro' ? undefined : formData.fechaEntrega,
+        fechaEntrega: (tipoEntrega === 'retiro' && isVendedorPresencial) ? undefined : formData.fechaEntrega,
         ...(isVendedorPresencial && clienteEmail ? { clienteEmail: clienteEmail.trim() } : {}),
         ...(isVendedorPresencial && clienteNombre ? { clienteNombre: clienteNombre.trim() } : {}),
       };
@@ -863,8 +863,8 @@ export default function Checkout() {
               </>
             )}
 
-            {/* Fecha de entrega - Deshabilitada para retiro en tienda */}
-            {tipoEntrega === 'retiro' ? (
+            {/* Fecha de entrega - Deshabilitada para retiro en tienda solo si es vendedor presencial */}
+            {tipoEntrega === 'retiro' && isVendedorPresencial ? (
               <div className="form-group">
                 <label>
                   <FileTextIcon size={16} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
@@ -883,7 +883,7 @@ export default function Checkout() {
               <div className="form-group">
                 <label htmlFor="fechaEntrega">
                   <FileTextIcon size={16} style={{ marginRight: '6px', verticalAlign: 'middle' }} />
-                  Fecha Estimada de Entrega *
+                  {tipoEntrega === 'retiro' ? 'Fecha Estimada de Retiro *' : 'Fecha Estimada de Entrega *'}
                 </label>
                 <input
                   type="date"
@@ -896,7 +896,9 @@ export default function Checkout() {
                   className="checkout-input"
                 />
                 <small className="form-help">
-                  Selecciona una fecha (mínimo 2 días de anticipación). Los días domingo no están disponibles.
+                  {tipoEntrega === 'retiro'
+                    ? 'Selecciona una fecha para retirar tu pedido (mínimo 2 días de anticipación). Los días domingo no están disponibles.'
+                    : 'Selecciona una fecha (mínimo 2 días de anticipación). Los días domingo no están disponibles.'}
                 </small>
               </div>
             )}
@@ -910,11 +912,17 @@ export default function Checkout() {
                 onChange={handleChange}
                 required
               >
-                <option value="efectivo">Efectivo (pago contra entrega)</option>
-                <option value="transferencia">Transferencia Bancaria</option>
-                <option value="tarjeta">Tarjeta de Crédito</option>
-                <option value="debito">Tarjeta de Débito</option>
-                <option value="mercadopago">Mercado Pago (Pago Online)</option>
+                {isVendedorPresencial ? (
+                  <>
+                    <option value="efectivo">Efectivo (pago directo)</option>
+                    <option value="transferencia">Transferencia Bancaria</option>
+                    <option value="tarjeta">Tarjeta de Crédito</option>
+                    <option value="debito">Tarjeta de Débito</option>
+                    <option value="mercadopago">Mercado Pago (Pago Online)</option>
+                  </>
+                ) : (
+                  <option value="mercadopago">Mercado Pago (Pago Online)</option>
+                )}
               </select>
               {formData.metodoPago === 'mercadopago' && (
                 <div className="mercadopago-info">
